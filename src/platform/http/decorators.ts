@@ -37,7 +37,9 @@ export const CurrentActor = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): Actor => {
     const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
     if (!request.actor) {
-      throw new Error('CurrentActor used on a @Public route — programming error');
+      throw new Error(
+        'CurrentActor used on a @Public route — programming error',
+      );
     }
     return request.actor;
   },

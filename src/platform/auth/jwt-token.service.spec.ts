@@ -36,13 +36,16 @@ describe('JwtTokenService (Python token compatibility)', () => {
     );
   });
 
-  it.each(['refresh', 'widget'])('rejects type=%s on the access path', (type) => {
-    const token = jwt.sign({ sub: 'u1', type }, secret, {
-      algorithm: 'HS256',
-      expiresIn: 60,
-    });
-    expect(() => service().verifyAccess(token)).toThrow(UnauthorizedError);
-  });
+  it.each(['refresh', 'widget'])(
+    'rejects type=%s on the access path',
+    (type) => {
+      const token = jwt.sign({ sub: 'u1', type }, secret, {
+        algorithm: 'HS256',
+        expiresIn: 60,
+      });
+      expect(() => service().verifyAccess(token)).toThrow(UnauthorizedError);
+    },
+  );
 
   it('rejects an invalid signature', () => {
     const token = jwt.sign({ sub: 'u1', type: 'access' }, 'other', {

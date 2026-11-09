@@ -525,7 +525,8 @@ export class MockAiEngineClient implements AiEngineClient {
                   toolName: 'run_shell',
                   toolOrigin: 'client',
                   args: { command: 'ls -la' },
-                  description: 'Run a command on the user machine (requires approval)',
+                  description:
+                    'Run a command on the user machine (requires approval)',
                 },
               ],
               deviceId: null,
@@ -599,7 +600,10 @@ export class MockAiEngineClient implements AiEngineClient {
             { title: 'Step 2 (mock)', status: 'pending', order: 2 },
           ]
         : [],
-      suggestions: ['Can you explain further?', 'Can you give a concrete example?'],
+      suggestions: [
+        'Can you explain further?',
+        'Can you give a concrete example?',
+      ],
       usage: {
         inputTokens: Math.ceil(scenario.cleanMessage.length / 4),
         outputTokens: Math.ceil(text.length / 4),
@@ -611,7 +615,8 @@ export class MockAiEngineClient implements AiEngineClient {
   private answerTokens(scenario: MockScenario): string[] {
     const base = `This is a simulated answer from the mock AI Engine for: "${scenario.cleanMessage || '(empty)'}". `;
     const body = scenario.long
-      ? base + 'Long content to test streaming, lease and the Stop button. '.repeat(20)
+      ? base +
+        'Long content to test streaming, lease and the Stop button. '.repeat(20)
       : base + 'With a real AI Engine, set AI_ENGINE_MODE=http.';
     return body.match(/\S+\s*/g) ?? [body];
   }
