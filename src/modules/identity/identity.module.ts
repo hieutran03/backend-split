@@ -34,6 +34,7 @@ import {
 } from './application/ports';
 import { RefreshTokenIssuer } from './application/refresh-token.issuer';
 import { LogoutUseCase, RefreshUseCase } from './application/session.use-cases';
+import { GetMeUseCase } from './application/user.use-cases';
 import { BcryptPasswordHasher } from './infrastructure/bcrypt-password.hasher';
 import { JwtAccessTokenIssuer } from './infrastructure/jwt-access-token.issuer';
 import {
@@ -47,6 +48,7 @@ import {
   TypeOrmUserTokenStateReader,
 } from './infrastructure/user-token-state.readers';
 import { AuthController } from './presentation/auth.controller';
+import { UsersController } from './presentation/users.controller';
 
 /**
  * Identity context: users + refresh_tokens. Covers auth (A1–A4) and users/me (A5).
@@ -55,7 +57,7 @@ import { AuthController } from './presentation/auth.controller';
  * port, and this module is the one that owns the `users` table.
  */
 @Module({
-  controllers: [AuthController],
+  controllers: [AuthController, UsersController],
   providers: [
     // ---- adapters
     {
@@ -130,6 +132,11 @@ import { AuthController } from './presentation/auth.controller';
       ],
     },
     // ---- use cases
+    {
+      provide: GetMeUseCase,
+      useFactory: (users: UserRepository) => new GetMeUseCase(users),
+      inject: [USER_REPOSITORY],
+    },
     {
       provide: SignupUseCase,
       useFactory: (
