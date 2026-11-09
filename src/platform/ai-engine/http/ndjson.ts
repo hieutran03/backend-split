@@ -1,6 +1,6 @@
 /**
- * Đọc body NDJSON theo dòng, KHÔNG đợi hết body (§11 "NDJSON reader").
- * Dòng rỗng bị bỏ qua. Dòng không parse được => throw (stream hỏng).
+ * Reads an NDJSON body line by line, WITHOUT waiting for the whole body (§11 "NDJSON reader").
+ * Empty lines are skipped. Unparseable lines => throw (corrupt stream).
  */
 export async function* readNdjson<T>(
   body: ReadableStream<Uint8Array>,

@@ -1,7 +1,7 @@
 {
   "name": "chatbot-backend",
   "version": "0.1.0",
-  "description": "Chatbot backend (NestJS): auth, ownership, CRUD, turn orchestration, storage. AI chạy ở AI Engine (Python) qua /internal/v1.",
+  "description": "Chatbot backend (NestJS): auth, ownership, CRUD, turn orchestration, storage. AI runs in the Python AI Engine behind /internal/v1.",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

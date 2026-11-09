@@ -1,9 +1,9 @@
 /**
- * Chạy `work` trong một transaction. Repository bên trong tự lấy EntityManager
- * của transaction hiện hành (AsyncLocalStorage), nên use case không cần truyền
- * manager đi khắp nơi.
+ * Runs `work` in a transaction. Repositories inside pick up the EntityManager
+ * of the current transaction themselves (AsyncLocalStorage), so use cases don't
+ * need to pass the manager around.
  *
- * Quy tắc: outbox (D9) phải được ghi TRONG cùng transaction với thay đổi nghiệp vụ.
+ * Rule: the outbox (D9) must be written INSIDE the same transaction as the business change.
  */
 export type IsolationLevel =
   'READ COMMITTED' | 'REPEATABLE READ' | 'SERIALIZABLE';

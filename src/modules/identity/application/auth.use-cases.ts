@@ -18,9 +18,9 @@ export interface SignupInput {
 }
 
 /**
- * A1 — Đăng ký. Trùng email/username ⇒ 409 (Python cũ trả 422).
- * Kiểm trùng 2 lớp: hỏi trước (thông báo rõ field nào trùng) + unique index ở DB
- * (chặn hai request song song lọt qua bước hỏi).
+ * A1 — Signup. Duplicate email/username ⇒ 409 (old Python returned 422).
+ * Two-layer duplicate check: query first (clear message on which field clashes) + DB unique index
+ * (stops two concurrent requests that both slip past the query).
  */
 export class SignupUseCase {
   public constructor(
@@ -68,9 +68,9 @@ export interface LoginInput {
 }
 
 /**
- * A2 — Đăng nhập. Mọi kiểu thất bại (email không có, user đã xoá, sai mật khẩu)
- * đều trả CÙNG một lỗi 401 `invalid_credentials` và tốn CÙNG thời gian — không
- * cho đoán email nào đã đăng ký.
+ * A2 — Login. Every kind of failure (unknown email, deleted user, wrong password)
+ * returns the SAME 401 `invalid_credentials` error and takes the SAME time — no way
+ * to guess which emails are registered.
  */
 export class LoginUseCase {
   public constructor(

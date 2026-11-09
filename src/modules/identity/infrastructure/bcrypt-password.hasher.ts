@@ -3,11 +3,11 @@ import bcrypt from 'bcrypt';
 import type { PasswordHasher } from '../application/ports';
 
 /**
- * bcrypt native — sinh `$2b$<cost>$…`, đọc được `$2a$`/`$2b$`/`$2y$`.
- * Python dùng `bcrypt.hashpw` cost 12 (§11) ⇒ hash cũ trong DB verify được trực tiếp.
+ * Native bcrypt — produces `$2b$<cost>$…`, reads `$2a$`/`$2b$`/`$2y$`.
+ * Python uses `bcrypt.hashpw` cost 12 (§11) ⇒ old hashes in the DB verify directly.
  */
 export class BcryptPasswordHasher implements PasswordHasher {
-  /** Hash giả để `burnTime` tốn đúng thời gian của một lần verify thật. */
+  /** Dummy hash so `burnTime` takes exactly as long as one real verify. */
   private readonly dummyHash: string;
 
   public constructor(private readonly cost: number) {
@@ -19,7 +19,7 @@ export class BcryptPasswordHasher implements PasswordHasher {
   }
 
   public verify(plain: string, hash: string): Promise<boolean> {
-    // Hash hỏng/định dạng lạ ⇒ coi như sai mật khẩu, không ném 500.
+    // Malformed/unknown hash format ⇒ treat as wrong password, do not throw 500.
     return bcrypt.compare(plain, hash).catch(() => false);
   }
 

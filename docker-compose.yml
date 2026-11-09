@@ -1,5 +1,5 @@
-# Hạ tầng local cho dev. AI Engine KHÔNG nằm ở đây: mặc định dùng mock in-process
-# (AI_ENGINE_MODE=mock). Khi có Engine Python thật, đặt AI_ENGINE_MODE=http.
+# Local development infrastructure. The AI Engine is NOT here: the in-process mock is used
+# by default (AI_ENGINE_MODE=mock). Point AI_ENGINE_MODE=http at the real Python Engine when available.
 services:
   postgres:
     image: postgres:16-alpine

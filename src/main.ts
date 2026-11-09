@@ -17,7 +17,7 @@ async function bootstrap(): Promise<void> {
     origin:
       config.http.corsOrigins.length > 0 ? [...config.http.corsOrigins] : '*',
     credentials: config.http.corsOrigins.length > 0,
-    // FE AI SDK cần đọc header này (§3b.1 CORS).
+    // The FE AI SDK needs to read this header (§3b.1 CORS).
     exposedHeaders: ['x-vercel-ai-ui-message-stream'],
   });
   app.enableShutdownHooks();

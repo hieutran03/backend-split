@@ -1,7 +1,7 @@
 /**
- * Transactional outbox (D9). Use case gọi `enqueue` TRONG transaction; một
- * publisher định kỳ (task OBX-02) đọc bảng outbox_events và gọi Engine (E2/E5/E8/E9).
- * Không bao giờ gọi Engine trực tiếp cho side effect chéo miền trước khi commit.
+ * Transactional outbox (D9). Use cases call `enqueue` INSIDE the transaction; a
+ * periodic publisher (task OBX-02) reads the outbox_events table and calls the Engine (E2/E5/E8/E9).
+ * Never call the Engine directly for cross-domain side effects before commit.
  */
 export type OutboxEventType =
   | 'conversation.deleted'

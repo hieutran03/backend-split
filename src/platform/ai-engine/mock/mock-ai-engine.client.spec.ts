@@ -50,9 +50,9 @@ const engine = () =>
     serviceToken: 't',
   });
 
-describe('MockAiEngineClient — giữ đúng hợp đồng V3', () => {
-  it('lượt bình thường: seq tăng dần, đúng 1 terminal complete ở cuối', async () => {
-    const events = await collect(engine().startTurn(turn('xin chào')));
+describe('MockAiEngineClient — honors the V3 contract', () => {
+  it('normal turn: seq increases, exactly 1 terminal complete at the end', async () => {
+    const events = await collect(engine().startTurn(turn('hello')));
     expect(events[0]?.type).toBe('run_start');
     expect(events.map((e) => e.seq)).toEqual(events.map((_, i) => i + 1));
     expect(events.filter(isTerminalEvent)).toHaveLength(1);
@@ -70,19 +70,19 @@ describe('MockAiEngineClient — giữ đúng hợp đồng V3', () => {
     ['[mock:continuation]', 'continuation_available'],
     ['[mock:error]', 'error'],
   ])('%s => terminal %s', async (marker, terminal) => {
-    const events = await collect(engine().startTurn(turn(`hỏi ${marker}`)));
+    const events = await collect(engine().startTurn(turn(`ask ${marker}`)));
     expect(events.at(-1)?.type).toBe(terminal);
     expect(events.filter(isTerminalEvent)).toHaveLength(1);
   });
 
-  it('[mock:disconnect] => stream kết thúc KHÔNG có terminal', async () => {
+  it('[mock:disconnect] => stream ends WITHOUT a terminal', async () => {
     const events = await collect(
       engine().startTurn(turn('x [mock:disconnect]')),
     );
     expect(events.some(isTerminalEvent)).toBe(false);
   });
 
-  it('[mock:tool] phát cặp tool_execution_start/end', async () => {
+  it('[mock:tool] emits a tool_execution_start/end pair', async () => {
     const types = (
       await collect(engine().startTurn(turn('x [mock:tool]')))
     ).map((e) => e.type);
@@ -90,7 +90,7 @@ describe('MockAiEngineClient — giữ đúng hợp đồng V3', () => {
     expect(types).toContain('tool_execution_end');
   });
 
-  it('stopTurn giữa chừng => complete(stopped); sau đó not_inflight', async () => {
+  it('stopTurn midway => complete(stopped); then not_inflight', async () => {
     const e = engine();
     const out: V3StreamEvent[] = [];
     for await (const event of e.startTurn(turn('x [mock:long]', 'gen-stop'))) {
@@ -113,7 +113,7 @@ describe('MockAiEngineClient — giữ đúng hợp đồng V3', () => {
     });
   });
 
-  it('parseScenario bỏ marker khỏi message', () => {
+  it('parseScenario strips markers from the message', () => {
     expect(
       parseScenario('  hello [mock:tool]  world [MOCK:error]').cleanMessage,
     ).toBe('hello world');

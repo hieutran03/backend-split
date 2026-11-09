@@ -37,7 +37,7 @@ function setup() {
 }
 
 describe('projects use cases', () => {
-  it('tạo project, trim name, chuỗi rỗng => null', async () => {
+  it('creates project, trims name, empty string => null', async () => {
     const s = setup();
     const view = await s.create.execute(alice, {
       name: '  Q3 report  ',
@@ -48,14 +48,14 @@ describe('projects use cases', () => {
     expect(s.repo.rows.size).toBe(1);
   });
 
-  it('từ chối name rỗng bằng ValidationError (400)', async () => {
+  it('rejects empty name with ValidationError (400)', async () => {
     const s = setup();
     await expect(
       s.create.execute(alice, { name: '   ' }),
     ).rejects.toBeInstanceOf(ValidationError);
   });
 
-  it('user khác đọc project => 404, không phải 403 (D15)', async () => {
+  it('another user reading the project => 404, not 403 (D15)', async () => {
     const s = setup();
     const view = await s.create.execute(alice, { name: 'Secret' });
     await expect(s.get.execute(bob, view.id)).rejects.toBeInstanceOf(
@@ -69,7 +69,7 @@ describe('projects use cases', () => {
     );
   });
 
-  it('list chỉ thấy project của mình, có meta phân trang', async () => {
+  it('list only shows own projects, with pagination meta', async () => {
     const s = setup();
     await s.create.execute(alice, { name: 'A1' });
     await s.create.execute(alice, { name: 'A2' });
@@ -79,20 +79,20 @@ describe('projects use cases', () => {
     expect(page.meta).toEqual({ page: 1, limit: 1, total: 2, totalPages: 2 });
   });
 
-  it('update đổi updatedAt theo clock', async () => {
+  it('update changes updatedAt according to the clock', async () => {
     const s = setup();
     const created = await s.create.execute(alice, { name: 'Old' });
     s.clock.advance(60_000);
     const updated = await s.update.execute(alice, created.id, {
       name: 'New',
-      instructions: 'Trả lời ngắn',
+      instructions: 'Answer briefly',
     });
     expect(updated.name).toBe('New');
-    expect(updated.instructions).toBe('Trả lời ngắn');
+    expect(updated.instructions).toBe('Answer briefly');
     expect(updated.updatedAt).not.toBe(created.updatedAt);
   });
 
-  it('delete: xoá mềm + outbox project.deleted trong 1 transaction', async () => {
+  it('delete: soft delete + project.deleted outbox in 1 transaction', async () => {
     const s = setup();
     const created = await s.create.execute(alice, { name: 'Gone' });
     await s.remove.execute(alice, created.id);

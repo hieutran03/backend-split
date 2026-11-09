@@ -1,21 +1,21 @@
 /**
- * Sự kiện stream V3 mà AI Engine trả về qua NDJSON (mỗi dòng 1 event).
+ * V3 stream events the AI Engine returns over NDJSON (one event per line).
  *
- * ⚠️ DRAFT — suy ra từ tài liệu Backend Split (§1b, §8). Phải đối chiếu lại với
- * `app/services/event_streaming/events.py` của repo chatbot (task ENG-01) rồi
- * mới freeze. Mọi thay đổi breaking => tăng `v`.
+ * ⚠️ DRAFT — inferred from the Backend Split document (§1b, §8). Must be reconciled with
+ * `app/services/event_streaming/events.py` in the chatbot repo (task ENG-01) before
+ * freezing. Any breaking change => bump `v`.
  *
- * Quy tắc hợp đồng (§8):
- *  - heartbeat mỗi 5 s khi không có event;
- *  - ĐÚNG MỘT sự kiện cuối: complete | interrupt | continuation_available | error;
- *  - im lặng > 5 s × 3 => backend coi như đứt stream (engine_disconnect).
+ * Contract rules (§8):
+ *  - heartbeat every 5 s when there are no events;
+ *  - EXACTLY ONE terminal event: complete | interrupt | continuation_available | error;
+ *  - silence > 5 s × 3 => the backend treats the stream as broken (engine_disconnect).
  */
 export const V3_VERSION = 3 as const;
 
 interface Base<T extends string, D> {
   readonly v: typeof V3_VERSION;
   readonly type: T;
-  /** Tăng dần trong một lượt, bắt đầu từ 1. Dùng để phát hiện mất/lặp event. */
+  /** Increases within a turn, starting at 1. Used to detect lost/duplicate events. */
   readonly seq: number;
   readonly generationId: string;
   /** ISO-8601 */
@@ -127,7 +127,7 @@ export interface InterruptActionRequestV1 {
 
 export interface InterruptPayloadV1 {
   readonly schema: 'interrupt.v1';
-  /** VARCHAR(255) id của LangGraph — KHÔNG phải UUID (§11). */
+  /** LangGraph's VARCHAR(255) id — NOT a UUID (§11). */
   readonly interruptId: string;
   readonly threadId: string;
   readonly partialText: string;
@@ -147,7 +147,7 @@ export interface ContinuationPayloadV1 {
 
 export interface ErrorPayloadV1 {
   readonly schema: 'error.v1';
-  /** WorkflowErrorCode phía Python. */
+  /** Python-side WorkflowErrorCode. */
   readonly code: string;
   readonly message: string;
   readonly partialText: string;

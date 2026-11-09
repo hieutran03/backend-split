@@ -24,20 +24,20 @@ import { ZodValidationPipe } from '@platform/http/zod-validation.pipe';
 const playgroundSchema = z.object({
   message: z.string().min(1).max(10_000).meta({
     description:
-      'Chèn marker [mock:tool] [mock:interrupt] [mock:error] [mock:continuation] [mock:disconnect] [mock:slow]... (xem docs/ai-engine-mock.md)',
-    example: 'thời tiết hôm nay [mock:tool]',
+      'Insert markers [mock:tool] [mock:interrupt] [mock:error] [mock:continuation] [mock:disconnect] [mock:slow]... (see docs/ai-engine-mock.md)',
+    example: 'weather today [mock:tool]',
   }),
 });
 
 /**
- * CHỈ dev: bắn thẳng một lượt vào AiEngineClient (mock hoặc http) và trả NDJSON V3
- * nguyên bản — để xem hợp đồng stream mà không cần module generations.
+ * DEV ONLY: fires a single turn straight at AiEngineClient (mock or http) and returns the raw
+ * V3 NDJSON — to inspect the stream contract without the generations module.
  *
  *   curl -N -X POST localhost:3000/api/v1/dev/engine/turns \
  *     -H "authorization: Bearer $(pnpm -s token:dev)" -H 'content-type: application/json' \
- *     -d '{"message":"xin chào [mock:tool] [mock:interrupt]"}'
+ *     -d '{"message":"hello [mock:tool] [mock:interrupt]"}'
  *
- * Không persist gì. Không phải API thật — bị gỡ khỏi build production (app.module).
+ * Persists nothing. Not a real API — excluded from the production build (app.module).
  */
 @ApiTags('dev')
 @ApiBearerAuth(BEARER_AUTH)
@@ -50,12 +50,13 @@ export class EnginePlaygroundController {
   @Post('turns')
   @RawResponse()
   @ApiOperation({
-    summary: 'Bắn một lượt vào AI Engine (mock/http), trả NDJSON V3 nguyên bản',
-    description: 'Chỉ có ở môi trường dev. Không persist gì.',
+    summary:
+      'Fire a single turn at the AI Engine (mock/http), return raw V3 NDJSON',
+    description: 'Only available in the dev environment. Persists nothing.',
   })
   @ApiZodBody(playgroundSchema)
   @ApiProduces('application/x-ndjson')
-  @ApiResponse({ status: 200, description: 'Mỗi dòng một V3StreamEvent' })
+  @ApiResponse({ status: 200, description: 'One V3StreamEvent per line' })
   public async turn(
     @CurrentActor() actor: Actor,
     @Body(new ZodValidationPipe(playgroundSchema))

@@ -33,12 +33,12 @@ const CODE_BY_STATUS: Record<number, ErrorCode> = Object.fromEntries(
 );
 
 /**
- * Map mọi lỗi sang envelope chuẩn (§4.1 S1, S6):
+ * Maps every error to the standard envelope (§4.1 S1, S6):
  *   { success: false, code, message, data: { reason?, errors?, ...details } }
- * 500 chỉ khi lỗi bất ngờ — và không lộ stack/thông điệp nội bộ.
+ * 500 only for unexpected errors — without leaking stack traces/internal messages.
  *
- * Với route stream: nếu header đã gửi (đang stream) thì filter không ghi được nữa,
- * projector phải tự phát event error cuối (S7).
+ * For streaming routes: once headers are sent (mid-stream) the filter can no longer write,
+ * so the projector must emit the final error event itself (S7).
  */
 @Catch()
 export class AppExceptionFilter implements ExceptionFilter {
@@ -100,7 +100,7 @@ export class AppExceptionFilter implements ExceptionFilter {
       };
     }
     if (exception instanceof HttpException) {
-      // Lỗi do Nest/Express sinh (404 route, 413 body quá lớn, JSON hỏng...).
+      // Errors raised by Nest/Express (404 route, 413 body too large, malformed JSON...).
       const status = exception.getStatus();
       return {
         status,

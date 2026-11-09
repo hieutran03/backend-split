@@ -1,12 +1,12 @@
 import { ValidationError } from '@shared/errors/app-error';
 
 /**
- * Luật mật khẩu khi ĐĂNG KÝ (không áp cho đăng nhập — tài khoản cũ có thể có
- * mật khẩu không theo luật mới).
+ * Password rules at SIGNUP (not applied at login — old accounts may have
+ * passwords that do not follow the new rules).
  *
- * - Tối thiểu 8 ký tự (giống Python `UserCreate.password minLength 8`).
- * - Tối đa 72 BYTE UTF-8: bcrypt chỉ dùng 72 byte đầu, phần sau bị bỏ qua âm thầm.
- *   Chặn ngay để người dùng không tưởng mật khẩu dài hơn là an toàn hơn (TC-18).
+ * - At least 8 characters (same as Python `UserCreate.password minLength 8`).
+ * - At most 72 UTF-8 BYTES: bcrypt only uses the first 72 bytes, the rest is silently ignored.
+ *   Reject up front so users do not believe a longer password is safer (TC-18).
  */
 export const PASSWORD_MIN_CHARS = 8;
 export const PASSWORD_MAX_BYTES = 72;

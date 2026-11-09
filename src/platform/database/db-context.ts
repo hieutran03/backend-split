@@ -7,11 +7,11 @@ import type {
 } from '@platform/ports/transaction-manager.port';
 
 /**
- * Giữ EntityManager của transaction hiện hành trong AsyncLocalStorage.
+ * Holds the current transaction's EntityManager in AsyncLocalStorage.
  *
- * Repository LUÔN lấy manager qua `db.manager` — trong transaction thì nhận
- * manager của transaction, ngoài transaction thì nhận manager mặc định.
- * Nhờ vậy use case chỉ cần `transactions.run(async () => {...})`.
+ * Repositories ALWAYS get the manager via `db.manager` — inside a transaction they get
+ * the transaction's manager, outside one they get the default manager.
+ * That way use cases only need `transactions.run(async () => {...})`.
  */
 export class DbContext {
   private readonly storage = new AsyncLocalStorage<EntityManager>();
@@ -30,7 +30,7 @@ export class DbContext {
     work: () => Promise<T>,
     isolation: IsolationLevel = 'READ COMMITTED',
   ): Promise<T> {
-    // Transaction lồng nhau => dùng lại transaction ngoài.
+    // Nested transaction => reuse the outer transaction.
     if (this.inTransaction) return work();
     return this.dataSource.transaction(isolation, (manager) =>
       this.storage.run(manager, work),

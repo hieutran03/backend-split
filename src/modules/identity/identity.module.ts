@@ -27,7 +27,7 @@ import { TypeOrmUserRepository } from './infrastructure/typeorm-user.repository'
 import { AuthController } from './presentation/auth.controller';
 
 /**
- * Context identity: users + refresh_tokens. Gồm auth (A1–A4) và users/me (A5).
+ * Identity context: users + refresh_tokens. Covers auth (A1–A4) and users/me (A5).
  */
 @Module({
   controllers: [AuthController],

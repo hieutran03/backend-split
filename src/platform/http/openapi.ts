@@ -10,16 +10,16 @@ import {
 import { z, type ZodType } from 'zod';
 
 /**
- * Cầu nối zod → OpenAPI.
+ * zod → OpenAPI bridge.
  *
- * Schema zod đặt cạnh controller vừa dùng để validate (ZodValidationPipe) vừa dùng
- * để sinh tài liệu — một nguồn duy nhất, không viết DTO class lần hai.
+ * The zod schema next to the controller is used both for validation (ZodValidationPipe)
+ * and for generating docs — a single source, no second DTO class.
  *
  *   @ApiZodBody(createProjectSchema)
  *   @ApiEnvelope(projectViewSchema, { status: 201 })
  */
 
-/** `input` cho request (default còn optional), `output` cho response. */
+/** `input` for requests (defaults stay optional), `output` for responses. */
 export function zodToOpenApi(
   schema: ZodType,
   io: 'input' | 'output' = 'output',
@@ -40,7 +40,7 @@ export function ApiZodBody(
   return ApiBody({ schema: zodToOpenApi(schema, 'input'), description });
 }
 
-/** Trải từng field của một z.object thành query param. */
+/** Spreads each field of a z.object into a query param. */
 export function ApiZodQuery(schema: ZodType): MethodDecorator {
   const json = zodToOpenApi(schema, 'input');
   const required = new Set(json.required ?? []);
@@ -86,9 +86,9 @@ function successEnvelope(data: SchemaObject, message: string): SchemaObject {
 }
 
 /**
- * Response thành công bọc envelope chuẩn (§4.1 S1).
+ * Success response wrapped in the standard envelope (§4.1 S1).
  * `paginated: true` => data = { items: T[], meta } (§4.1 S2).
- * `dataSchema = null` => data: null (vd. DELETE).
+ * `dataSchema = null` => data: null (e.g. DELETE).
  */
 export function ApiEnvelope(
   dataSchema: ZodType | null,
@@ -111,7 +111,7 @@ export function ApiEnvelope(
     : item;
   return ApiResponse({
     status: options.status ?? 200,
-    description: options.description ?? 'Thành công',
+    description: options.description ?? 'Success',
     schema: successEnvelope(data, options.message ?? 'OK'),
   });
 }
@@ -151,14 +151,14 @@ function errorEnvelope(status: number): SchemaObject {
         type: 'object',
         nullable: true,
         description:
-          'Lỗi validation: `errors[{field,message}]`. Lỗi nghiệp vụ: `reason` + chi tiết.',
+          'Validation error: `errors[{field,message}]`. Business error: `reason` + details.',
         example: example.data,
       },
     },
   };
 }
 
-/** Khai báo các response lỗi chuẩn. Mặc định 400/401/404 — route nào khác thì truyền vào. */
+/** Declares the standard error responses. Defaults to 400/401/404 — pass others per route. */
 export function ApiErrors(
   ...statuses: number[]
 ): MethodDecorator & ClassDecorator {
@@ -168,7 +168,7 @@ export function ApiErrors(
     ...list.map((status) =>
       ApiResponse({
         status,
-        description: `Lỗi ${status}`,
+        description: `Error ${status}`,
         schema: errorEnvelope(status),
       }),
     ),

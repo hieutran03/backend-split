@@ -9,11 +9,11 @@ import type { ProjectRepository } from './ports/project.repository';
 import { toProjectView, type ProjectView } from './project.view';
 
 /**
- * Use case của projects (PJ1–PJ5). Mỗi class một việc, constructor injection
- * thuần — không decorator Nest, test bằng `new` + fake.
+ * Projects use cases (PJ1–PJ5). One class per job, plain constructor injection
+ * — no Nest decorators, tested with `new` + fakes.
  *
- * Module nhỏ có thể gom use case vào 1 file như ở đây; module lớn (generations)
- * tách mỗi use case một file trong application/use-cases/.
+ * A small module may group its use cases in one file like this; a large module (generations)
+ * splits each use case into its own file under application/use-cases/.
  */
 
 export interface CreateProjectInput {
@@ -94,12 +94,12 @@ export class UpdateProjectUseCase {
 }
 
 /**
- * PJ5: xoá mềm project + outbox `project.deleted` trong CÙNG transaction.
- * Engine nhận event để xoá mềm user_memories của project (C19) — backend không
- * ghi bảng của Engine nữa.
+ * PJ5: soft-deletes the project + `project.deleted` outbox in the SAME transaction.
+ * The Engine receives the event to soft-delete the project's user_memories (C19) — the backend
+ * no longer writes the Engine's tables.
  *
- * TODO(PJ-05): khoá project trước hội thoại (thứ tự khoá như Python) và quyết định
- * xử lý conversations.project_id đang gắn (set NULL hay chặn) — xem §11 "Projects".
+ * TODO(PJ-05): lock the project before conversations (lock order as in Python) and decide
+ * how to handle attached conversations.project_id (set NULL or block) — see §11 "Projects".
  */
 export class DeleteProjectUseCase {
   public constructor(

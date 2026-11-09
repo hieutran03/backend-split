@@ -1,9 +1,9 @@
 /**
- * Seed dữ liệu dev: 2 user (để test ownership chéo user => 404).
+ * Seeds dev data: 2 users (to test cross-user ownership => 404).
  *   pnpm db:migrate && pnpm db:seed
  *
- * Mật khẩu dev của cả hai user: DEV_PASSWORD trong scripts/dev-users.ts (bcrypt cost 12).
- * Chạy lại seed sẽ cập nhật password_hash (tiện khi seed cũ dùng hash giả).
+ * Dev password of both users: DEV_PASSWORD in scripts/dev-users.ts (bcrypt cost 12).
+ * Re-running the seed updates password_hash (handy when an old seed used a dummy hash).
  */
 import 'reflect-metadata';
 

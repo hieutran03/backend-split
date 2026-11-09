@@ -9,7 +9,7 @@ import { type Observable, map } from 'rxjs';
 
 import { RAW_RESPONSE, RESPONSE_MESSAGE } from './decorators';
 
-/** Envelope thành công chuẩn mới (§4.1 S1): code luôn có. */
+/** New standard success envelope (§4.1 S1): code is always present. */
 export interface SuccessEnvelope<T> {
   readonly success: true;
   readonly code: 'ok';

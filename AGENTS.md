@@ -16,3 +16,5 @@
 7. **Package manager: pnpm.** Không ghi đường dẫn tuyệt đối vào file.
 8. **Không bịa** tên file, hàm, kết quả test, hành vi của code Python. Không chắc ⇒ ghi vào
    "Câu hỏi đang mở" trong PLAN.
+9. **Ngôn ngữ:** comment, chuỗi text trong code (message, Swagger summary, tên test), file cấu hình và
+   commit message viết **tiếng Anh**. Tài liệu (`docs/`, README, AGENTS, CLAUDE, nhật ký) giữ **tiếng Việt**.

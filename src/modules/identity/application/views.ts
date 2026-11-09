@@ -1,6 +1,6 @@
 import type { User } from '../domain/user';
 
-/** Giữ đúng tên trường `UserRead` của Python + `role` mới (A1). */
+/** Keeps the exact field names of Python `UserRead` + the new `role` (A1). */
 export interface UserView {
   readonly id: string;
   readonly username: string;
@@ -26,12 +26,12 @@ export function toUserView(user: User): UserView {
   };
 }
 
-/** Giữ đúng tên trường `TokenResponse` của Python (A2). */
+/** Keeps the exact field names of Python `TokenResponse` (A2). */
 export interface TokenView {
   readonly accessToken: string;
   readonly refreshToken: string;
   readonly tokenType: 'bearer';
-  /** Giây. Mới: 900 (15 phút); Python cũ: 36000. */
+  /** Seconds. New: 900 (15 minutes); old Python: 36000. */
   readonly expiresIn: number;
   readonly userId: string;
 }

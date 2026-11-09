@@ -1,23 +1,23 @@
 /**
- * Kịch bản của mock AI Engine, chọn bằng marker trong nội dung tin nhắn.
+ * Mock AI Engine scenarios, selected by markers in the message content.
  *
- * Ví dụ gửi tin nhắn: "Tra cứu thời tiết [mock:tool] [mock:interrupt]".
- * Không có marker => `answer` (trả lời bình thường, stream từng token).
+ * Example message: "Look up the weather [mock:tool] [mock:interrupt]".
+ * No marker => `answer` (normal reply, streamed token by token).
  *
- * | Marker               | Hành vi                                                      |
+ * | Marker               | Behavior                                                     |
  * |----------------------|--------------------------------------------------------------|
- * | [mock:tool]          | chèn tool_execution_start/end trước câu trả lời              |
- * | [mock:subagent]      | chèn subagent_start/end (planning worker)                    |
- * | [mock:sources]       | phát `sources` trước complete                                |
- * | [mock:reasoning]     | phát reasoning_delta trước câu trả lời                       |
- * | [mock:todo]          | complete có todoUpdates (→ task_plans)                       |
- * | [mock:media]         | complete có generatedMedia (→ chat_images)                   |
- * | [mock:interrupt]     | dừng ở tool cần duyệt → terminal `interrupt` (HITL)          |
- * | [mock:continuation]  | hết budget → terminal `continuation_available`               |
+ * | [mock:tool]          | insert tool_execution_start/end before the answer            |
+ * | [mock:subagent]      | insert subagent_start/end (planning worker)                  |
+ * | [mock:sources]       | emit `sources` before complete                               |
+ * | [mock:reasoning]     | emit reasoning_delta before the answer                       |
+ * | [mock:todo]          | complete carries todoUpdates (→ task_plans)                  |
+ * | [mock:media]         | complete carries generatedMedia (→ chat_images)              |
+ * | [mock:interrupt]     | stop at tool needing approval → terminal `interrupt` (HITL)  |
+ * | [mock:continuation]  | budget exhausted → terminal `continuation_available`         |
  * | [mock:error]         | terminal `error` (WorkflowErrorCode=mock_failure)            |
- * | [mock:disconnect]    | stream đứt giữa chừng, KHÔNG có terminal (test engine_disconnect) |
- * | [mock:slow]          | delay mỗi event x10 (test Stop, heartbeat, lease)            |
- * | [mock:long]          | câu trả lời dài (~200 token)                                 |
+ * | [mock:disconnect]    | stream breaks midway, NO terminal (test engine_disconnect)   |
+ * | [mock:slow]          | delay each event x10 (test Stop, heartbeat, lease)           |
+ * | [mock:long]          | long answer (~200 tokens)                                    |
  */
 export type MockTerminal =
   'complete' | 'interrupt' | 'continuation' | 'error' | 'disconnect';
@@ -32,7 +32,7 @@ export interface MockScenario {
   readonly withMedia: boolean;
   readonly slow: boolean;
   readonly long: boolean;
-  /** Tin nhắn đã bỏ marker. */
+  /** Message with markers stripped. */
   readonly cleanMessage: string;
 }
 

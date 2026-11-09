@@ -11,8 +11,8 @@ const service = (acceptLegacyAccess = true) =>
     acceptLegacyAccess,
   });
 
-describe('JwtTokenService (tương thích token Python)', () => {
-  it('ký và xác thực access token mới', () => {
+describe('JwtTokenService (Python token compatibility)', () => {
+  it('signs and verifies a new access token', () => {
     const { token } = service().signAccess('u1', 3);
     expect(service().verifyAccess(token)).toEqual({
       userId: 'u1',
@@ -21,7 +21,7 @@ describe('JwtTokenService (tương thích token Python)', () => {
     });
   });
 
-  it('chấp nhận token cũ không có type khi bật D19', () => {
+  it('accepts a legacy token without type when D19 is enabled', () => {
     const legacy = jwt.sign({ sub: 'u1' }, secret, {
       algorithm: 'HS256',
       expiresIn: 60,
@@ -36,15 +36,18 @@ describe('JwtTokenService (tương thích token Python)', () => {
     );
   });
 
-  it.each(['refresh', 'widget'])('từ chối type=%s ở đường access', (type) => {
-    const token = jwt.sign({ sub: 'u1', type }, secret, {
-      algorithm: 'HS256',
-      expiresIn: 60,
-    });
-    expect(() => service().verifyAccess(token)).toThrow(UnauthorizedError);
-  });
+  it.each(['refresh', 'widget'])(
+    'rejects type=%s on the access path',
+    (type) => {
+      const token = jwt.sign({ sub: 'u1', type }, secret, {
+        algorithm: 'HS256',
+        expiresIn: 60,
+      });
+      expect(() => service().verifyAccess(token)).toThrow(UnauthorizedError);
+    },
+  );
 
-  it('từ chối chữ ký sai', () => {
+  it('rejects an invalid signature', () => {
     const token = jwt.sign({ sub: 'u1', type: 'access' }, 'other', {
       algorithm: 'HS256',
     });

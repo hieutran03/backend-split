@@ -12,19 +12,19 @@ export const IS_ADMIN_ONLY = 'http:isAdminOnly';
 export const RAW_RESPONSE = 'http:rawResponse';
 export const RESPONSE_MESSAGE = 'http:responseMessage';
 
-/** Route không cần JWT (signup, login, health...). */
+/** Route that does not require a JWT (signup, login, health...). */
 export const Public = (): MethodDecorator & ClassDecorator =>
   SetMetadata(IS_PUBLIC, true);
 
-/** Chỉ admin. User thường => 403 admin_required (403 CHỈ dùng cho role, D15). */
+/** Admin only. Regular users => 403 admin_required (403 is used ONLY for roles, D15). */
 export const AdminOnly = (): MethodDecorator & ClassDecorator =>
   SetMetadata(IS_ADMIN_ONLY, true);
 
-/** Không bọc envelope (stream SSE/NDJSON, file nhị phân, Prometheus). */
+/** Do not wrap in the envelope (SSE/NDJSON streams, binary files, Prometheus). */
 export const RawResponse = (): MethodDecorator =>
   SetMetadata(RAW_RESPONSE, true);
 
-/** Message trong envelope thành công. Mặc định "OK". */
+/** Message in the success envelope. Defaults to "OK". */
 export const ResponseMessage = (message: string): MethodDecorator =>
   SetMetadata(RESPONSE_MESSAGE, message);
 
@@ -32,12 +32,14 @@ export interface AuthenticatedRequest extends Request {
   actor?: Actor;
 }
 
-/** Inject Actor đã xác thực vào handler. */
+/** Injects the authenticated Actor into the handler. */
 export const CurrentActor = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): Actor => {
     const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
     if (!request.actor) {
-      throw new Error('CurrentActor dùng trên route @Public — lỗi lập trình');
+      throw new Error(
+        'CurrentActor used on a @Public route — programming error',
+      );
     }
     return request.actor;
   },

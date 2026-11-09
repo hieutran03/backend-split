@@ -11,7 +11,7 @@ function streamOf(chunks: string[]): ReadableStream<Uint8Array> {
 }
 
 describe('readNdjson', () => {
-  it('ghép dòng bị cắt giữa các chunk, bỏ dòng rỗng, đọc dòng cuối thiếu \\n', async () => {
+  it('joins lines split across chunks, skips empty lines, reads a final line missing \\n', async () => {
     const out: unknown[] = [];
     for await (const item of readNdjson(
       streamOf(['{"a":1}\n{"b"', ':2}\n\n', '{"c":3}']),

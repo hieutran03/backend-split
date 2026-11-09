@@ -3,13 +3,13 @@ import jwt from 'jsonwebtoken';
 import { UnauthorizedError } from '@shared/errors/app-error';
 
 /**
- * Ký/xác thực access token HS256 tương thích Python (§11):
- *  - Token cũ: claim {sub, iat, exp, ver?}, KHÔNG có `type` — chấp nhận tới khi
- *    hết hạn tự nhiên nếu `acceptLegacyAccess` (D19).
- *  - Token mới: thêm `type: "access"`, TTL 15 phút.
- *  - Luôn từ chối `type=refresh` và `type=widget` ở đường access.
+ * Signs/verifies Python-compatible HS256 access tokens (§11):
+ *  - Legacy tokens: claims {sub, iat, exp, ver?}, NO `type` — accepted until they
+ *    expire naturally if `acceptLegacyAccess` (D19).
+ *  - New tokens: add `type: "access"`, TTL 15 minutes.
+ *  - Always reject `type=refresh` and `type=widget` on the access path.
  *
- * TODO(AUTH-03): kiểm `ver` với users.token_version + deleted_at (cache ≤ 30 s).
+ * TODO(AUTH-03): check `ver` against users.token_version + deleted_at (cache ≤ 30 s).
  */
 export interface AccessClaims {
   readonly userId: string;

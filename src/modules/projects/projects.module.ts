@@ -27,9 +27,9 @@ import { TypeOrmProjectRepository } from './infrastructure/typeorm-project.repos
 import { ProjectsController } from './presentation/projects.controller';
 
 /**
- * Wiring của module projects — nơi DUY NHẤT core gặp NestJS.
- * Đọc từ trên xuống: adapter → use case. Mọi thứ là `useFactory` + `new`, nên
- * nhìn một file là biết cái gì được inject vào đâu.
+ * Wiring for the projects module — the ONLY place the core meets NestJS.
+ * Read top to bottom: adapters → use cases. Everything is `useFactory` + `new`, so
+ * one file shows what gets injected where.
  */
 @Module({
   controllers: [ProjectsController],

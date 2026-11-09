@@ -1,9 +1,9 @@
 /**
- * Bề mặt DUY NHẤT module khác được import (rule `no-cross-module-internals`).
- * Chỉ export type/token/class Nest module — không export repository/record.
+ * The ONLY surface other modules may import (rule `no-cross-module-internals`).
+ * Exports only types/tokens/the Nest module class — never repositories/records.
  *
- * Ví dụ sau này (task GEN-03): generations cần `projectInstructions` cho body E1
- * => export một query port ở đây, KHÔNG để generations đọc bảng projects trực tiếp.
+ * Future example (task GEN-03): generations needs `projectInstructions` for the E1 body
+ * => export a query port here, do NOT let generations read the projects table directly.
  */
 export { ProjectsModule } from './projects.module';
 export { ProjectRecord } from './infrastructure/project.record';

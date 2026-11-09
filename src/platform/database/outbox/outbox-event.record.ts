@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
-/** Bảng mới §6.3 S3 — transactional outbox (D9). */
+/** New table §6.3 S3 — transactional outbox (D9). */
 @Entity('outbox_events')
 @Index('ix_outbox_events_status_available', ['status', 'availableAt'])
 export class OutboxEventRecord {

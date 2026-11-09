@@ -39,7 +39,7 @@ const valid = {
 };
 
 describe('SignupUseCase (A1)', () => {
-  it('tạo user role=user, token_version=0, lưu hash chứ không lưu mật khẩu thô', async () => {
+  it('creates user with role=user, token_version=0, stores the hash and not the raw password', async () => {
     const s = setup();
     const view = await s.signup.execute({ ...valid, username: '  hieu  ' });
     expect(view).toMatchObject({
@@ -54,7 +54,7 @@ describe('SignupUseCase (A1)', () => {
     expect(stored?.tokenVersion).toBe(0);
   });
 
-  it('trùng email ⇒ 409 email_not_available', async () => {
+  it('duplicate email ⇒ 409 email_not_available', async () => {
     const s = setup();
     await s.signup.execute(valid);
     await expect(
@@ -65,7 +65,7 @@ describe('SignupUseCase (A1)', () => {
     });
   });
 
-  it('trùng username ⇒ 409 username_not_available', async () => {
+  it('duplicate username ⇒ 409 username_not_available', async () => {
     const s = setup();
     await s.signup.execute(valid);
     const err = await s.signup
@@ -75,7 +75,7 @@ describe('SignupUseCase (A1)', () => {
     expect((err as ConflictError).reason).toBe('username_not_available');
   });
 
-  it('email của user ĐÃ XOÁ vẫn bị coi là trùng (unique index không lọc deleted_at)', async () => {
+  it('email of a DELETED user still counts as taken (unique index does not filter deleted_at)', async () => {
     const s = setup();
     const created = await s.signup.execute(valid);
     s.users.softDelete(created.id);
@@ -84,15 +84,15 @@ describe('SignupUseCase (A1)', () => {
     ).rejects.toBeInstanceOf(ConflictError);
   });
 
-  it('mật khẩu > 72 byte UTF-8 ⇒ 400 (bcrypt sẽ cắt âm thầm)', async () => {
+  it('password > 72 UTF-8 bytes ⇒ 400 (bcrypt would silently truncate)', async () => {
     const s = setup();
-    // 25 ký tự "ệ" = 75 byte nhưng chỉ 25 ký tự — lọt qua kiểm số ký tự.
+    // 25 × "ệ" = 75 bytes but only 25 characters — passes the character-count check.
     await expect(
       s.signup.execute({ ...valid, password: 'ệ'.repeat(25) }),
     ).rejects.toBeInstanceOf(ValidationError);
   });
 
-  it('mật khẩu < 8 ký tự ⇒ 400', async () => {
+  it('password < 8 characters ⇒ 400', async () => {
     const s = setup();
     await expect(
       s.signup.execute({ ...valid, password: 'short' }),
@@ -101,7 +101,7 @@ describe('SignupUseCase (A1)', () => {
 });
 
 describe('LoginUseCase (A2)', () => {
-  it('đúng thông tin ⇒ access + refresh opaque, tokenType bearer, ghi user-agent', async () => {
+  it('valid credentials ⇒ access + opaque refresh, tokenType bearer, records user-agent', async () => {
     const s = setup();
     const user = await s.signup.execute(valid);
     const tokens = await s.login.execute({
@@ -119,7 +119,7 @@ describe('LoginUseCase (A2)', () => {
     expect(s.refresh.issued).toEqual([{ userId: user.id, userAgent: 'jest' }]);
   });
 
-  it('email có khoảng trắng thừa vẫn đăng nhập được', async () => {
+  it('email with surrounding whitespace can still log in', async () => {
     const s = setup();
     await s.signup.execute(valid);
     await expect(
@@ -131,7 +131,7 @@ describe('LoginUseCase (A2)', () => {
     ).resolves.toHaveProperty('accessToken');
   });
 
-  it('sai mật khẩu / email không tồn tại / user đã xoá ⇒ CÙNG một lỗi 401 invalid_credentials', async () => {
+  it('wrong password / unknown email / deleted user ⇒ the SAME 401 invalid_credentials error', async () => {
     const s = setup();
     const user = await s.signup.execute(valid);
     const attempts = [
@@ -166,7 +166,7 @@ describe('LoginUseCase (A2)', () => {
     expect(s.refresh.issued).toHaveLength(0);
   });
 
-  it('email không tồn tại vẫn "đốt" thời gian băm (chống dò email qua độ trễ)', async () => {
+  it('unknown email still "burns" hashing time (prevents email probing via latency)', async () => {
     const s = setup();
     await s.login
       .execute({ email: 'nobody@example.com', password: 'x', userAgent: null })

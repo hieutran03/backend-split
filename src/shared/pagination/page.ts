@@ -1,11 +1,11 @@
-/** Phân trang chuẩn mới (§4.1 S2): page bắt đầu từ 1, limit mặc định 20, tối đa 100. */
+/** New standard pagination (§4.1 S2): page starts at 1, limit defaults to 20, max 100. */
 export const DEFAULT_PAGE_LIMIT = 20;
 export const MAX_PAGE_LIMIT = 100;
 
 export interface PageRequest {
   readonly page: number;
   readonly limit: number;
-  /** Ví dụ `-updatedAt` = updatedAt DESC. Module tự whitelist field được sort. */
+  /** E.g. `-updatedAt` = updatedAt DESC. Each module whitelists its own sortable fields. */
   readonly sort?: string;
 }
 
@@ -39,7 +39,7 @@ export function mapPage<A, B>(page: Page<A>, fn: (a: A) => B): Page<B> {
   return { items: page.items.map(fn), meta: page.meta };
 }
 
-/** Parse `sort=-updatedAt` thành {field, direction}, chỉ nhận field trong whitelist. */
+/** Parse `sort=-updatedAt` into {field, direction}; only whitelisted fields are accepted. */
 export function parseSort<F extends string>(
   sort: string | undefined,
   allowed: readonly F[],

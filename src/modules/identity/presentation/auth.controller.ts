@@ -23,7 +23,7 @@ import {
 } from './auth.schemas';
 
 /**
- * A1 signup, A2 login. Refresh/logout (A3, A4) là task AUTH-02.
+ * A1 signup, A2 login. Refresh/logout (A3, A4) is task AUTH-02.
  */
 @ApiTags('auth')
 @Controller('auth')
@@ -35,7 +35,7 @@ export class AuthController {
 
   @Public()
   @Post('signup')
-  @ApiOperation({ summary: 'Đăng ký tài khoản (A1)' })
+  @ApiOperation({ summary: 'Sign up (A1)' })
   @ApiZodBody(signupSchema)
   @ApiEnvelope(userViewSchema, { status: 201, message: 'Signup successfully' })
   @ApiErrors(400, 409)
@@ -50,9 +50,9 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   @ApiOperation({
-    summary: 'Đăng nhập (A2)',
+    summary: 'Log in (A2)',
     description:
-      'Sai email, sai mật khẩu hay tài khoản đã xoá đều trả cùng 401 `invalid_credentials`.',
+      'Wrong email, wrong password or a deleted account all return the same 401 `invalid_credentials`.',
   })
   @ApiZodBody(loginSchema)
   @ApiEnvelope(tokenViewSchema, { message: 'Login successfully' })

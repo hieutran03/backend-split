@@ -28,8 +28,8 @@ export function createDataSource(
     entities,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     migrations: migrations as Function[],
-    migrationsTableName: 'backend_migrations', // §6.3 S7: không đụng alembic_version
-    synchronize: false, // TUYỆT ĐỐI không bật: schema thuộc Alembic tới P3
+    migrationsTableName: 'backend_migrations', // §6.3 S7: do not touch alembic_version
+    synchronize: false, // NEVER enable: the schema belongs to Alembic until P3
     logging: config.logQueries,
     extra: { max: config.poolMax },
   });

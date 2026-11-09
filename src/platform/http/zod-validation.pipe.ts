@@ -4,8 +4,8 @@ import { type ZodType } from 'zod';
 import { ValidationError } from '@shared/errors/app-error';
 
 /**
- * Validate body/query/param bằng zod schema đặt cạnh controller.
- * Sai => 400 bad_request, data.errors = [{field, message}] (§4.1 S1).
+ * Validates body/query/param with the zod schema placed next to the controller.
+ * Invalid => 400 bad_request, data.errors = [{field, message}] (§4.1 S1).
  *
  *   @Body(new ZodValidationPipe(createProjectSchema)) body: CreateProjectBody
  */

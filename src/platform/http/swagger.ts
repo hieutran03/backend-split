@@ -6,12 +6,12 @@ import { type AppConfig } from '../config/app-config';
 export const BEARER_AUTH = 'access-token';
 
 /**
- * Swagger UI tại `/docs`, JSON tại `/docs-json` (ngoài prefix /api/v1).
- * Tắt ở production trừ khi SWAGGER_ENABLED=true.
+ * Swagger UI at `/docs`, JSON at `/docs-json` (outside the /api/v1 prefix).
+ * Disabled in production unless SWAGGER_ENABLED=true.
  *
- * Quy ước cho controller:
- *  - `@ApiTags('<module>')` ở class, `@ApiBearerAuth(BEARER_AUTH)` nếu cần token;
- *  - body/query: `@ApiZodBody(schema)` / `@ApiZodQuery(schema)` — cùng schema với ZodValidationPipe;
+ * Controller conventions:
+ *  - `@ApiTags('<module>')` on the class, `@ApiBearerAuth(BEARER_AUTH)` if a token is needed;
+ *  - body/query: `@ApiZodBody(schema)` / `@ApiZodQuery(schema)` — same schema as ZodValidationPipe;
  *  - response: `@ApiEnvelope(viewSchema)` + `@ApiErrors(...)`.
  */
 export function setupSwagger(app: INestApplication, config: AppConfig): void {
@@ -23,14 +23,14 @@ export function setupSwagger(app: INestApplication, config: AppConfig): void {
       .setTitle('Chatbot Backend API')
       .setDescription(
         [
-          'Backend NestJS tách từ chatbot FastAPI (spec: Chatbot Backend Split).',
+          'NestJS backend split out of the FastAPI chatbot (spec: Chatbot Backend Split).',
           '',
-          '- Envelope: `{ success, code, message, data }` — `code` luôn có.',
-          '- Phân trang: `?page=1&limit=20&sort=-updatedAt` → `data: { items, meta }`.',
-          '- Không sở hữu / không tồn tại → **404** (D15). 403 chỉ cho quyền admin.',
-          `- AI Engine hiện tại: **${config.aiEngine.mode}**.`,
+          '- Envelope: `{ success, code, message, data }` — `code` is always present.',
+          '- Pagination: `?page=1&limit=20&sort=-updatedAt` → `data: { items, meta }`.',
+          '- Not owned / not found → **404** (D15). 403 only for admin permission.',
+          `- Current AI Engine: **${config.aiEngine.mode}**.`,
           '',
-          'Lấy token dev: `pnpm -s token:dev`, bấm **Authorize**.',
+          'Get a dev token: `pnpm -s token:dev`, then click **Authorize**.',
         ].join('\n'),
       )
       .setVersion('v1')
