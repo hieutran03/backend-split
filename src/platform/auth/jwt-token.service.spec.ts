@@ -53,4 +53,38 @@ describe('JwtTokenService (Python token compatibility)', () => {
     });
     expect(() => service().verifyAccess(token)).toThrow(UnauthorizedError);
   });
+
+  describe('verifyLegacyRefresh (D19)', () => {
+    it('accepts a Python refresh JWT (type=refresh) and reads ver', () => {
+      const token = jwt.sign({ sub: 'u1', type: 'refresh', ver: 2 }, secret, {
+        algorithm: 'HS256',
+        expiresIn: 60,
+      });
+      expect(service().verifyLegacyRefresh(token)).toEqual({
+        userId: 'u1',
+        tokenVersion: 2,
+      });
+    });
+
+    it.each([
+      ['an access token', { sub: 'u1', type: 'access' }],
+      ['a token without type', { sub: 'u1' }],
+    ])('rejects %s', (_label, claims) => {
+      const token = jwt.sign(claims, secret, { algorithm: 'HS256' });
+      expect(() => service().verifyLegacyRefresh(token)).toThrow(
+        UnauthorizedError,
+      );
+    });
+
+    it('rejects an expired refresh JWT', () => {
+      const token = jwt.sign(
+        { sub: 'u1', type: 'refresh', exp: Math.floor(Date.now() / 1000) - 10 },
+        secret,
+        { algorithm: 'HS256' },
+      );
+      expect(() => service().verifyLegacyRefresh(token)).toThrow(
+        UnauthorizedError,
+      );
+    });
+  });
 });

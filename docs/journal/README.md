@@ -18,6 +18,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 003 | [Quản lý Project](003-projects.md) | F-10 (PJ1–PJ5) | 2026-11-09 | chờ review |
 | 004 | [Tài liệu API (Swagger)](004-swagger.md) | F-16 | 2026-11-09 | chờ review |
 | 005 | [Đăng ký & đăng nhập](005-dang-ky-dang-nhap.md) | AUTH-01 (A1, A2) | 2026-11-09 | chờ review |
+| 006 | [Refresh & logout](006-refresh-logout.md) | AUTH-02 (A3, A4, D19) | 2026-11-09 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -43,6 +44,10 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-18 | Mật khẩu ≤ 72 byte | tạm chọn | 005 |
 | TC-19 | TTL refresh token 30 ngày | chờ Hiếu | 005 |
 | TC-20 | Context `identity` gộp auth + users | tạm chọn | 005 |
+| TC-21 | Refresh song song: nghiêm ngặt hay ân hạn | tạm chọn nghiêm ngặt | 006 |
+| TC-22 | Logout allDevices vô hiệu access token | chờ Hiếu | 006 |
+| TC-23 | Logout vé người khác ⇒ 0 | tạm chọn | 006 |
+| TC-24 | Logout cần access token | tạm chọn | 006 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

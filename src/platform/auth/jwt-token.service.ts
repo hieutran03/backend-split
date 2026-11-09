@@ -71,4 +71,41 @@ export class JwtTokenService {
       legacy: type === undefined,
     };
   }
+
+  /**
+   * Verifies a LEGACY refresh token issued by the Python API: an HS256 JWT with
+   * `type: "refresh"` and `ver` (missing = 0). Used only by the one-time exchange
+   * for a new opaque refresh token during the D19 transition window.
+   */
+  public verifyLegacyRefresh(token: string): {
+    userId: string;
+    tokenVersion: number;
+  } {
+    let payload: jwt.JwtPayload | string;
+    try {
+      payload = jwt.verify(token, this.options.jwtSecret, {
+        algorithms: ['HS256'],
+      });
+    } catch (_error) {
+      throw new UnauthorizedError(
+        'Invalid or expired refresh token',
+        'invalid_refresh_token',
+      );
+    }
+    if (
+      typeof payload === 'string' ||
+      typeof payload.sub !== 'string' ||
+      payload.type !== 'refresh'
+    ) {
+      throw new UnauthorizedError(
+        'Invalid refresh token',
+        'invalid_refresh_token',
+      );
+    }
+    const ver: unknown = payload.ver;
+    return {
+      userId: payload.sub,
+      tokenVersion: typeof ver === 'number' ? ver : 0,
+    };
+  }
 }

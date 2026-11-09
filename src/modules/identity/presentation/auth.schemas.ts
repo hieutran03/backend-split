@@ -70,3 +70,30 @@ export const tokenViewSchema: z.ZodType<TokenView> = z.object({
     .meta({ description: 'accessToken lifetime in seconds', example: 900 }),
   userId: z.uuid(),
 });
+
+// -------------------------------------------------------- refresh / logout
+/** A3: the refresh token now travels in the BODY (Python read it from the Bearer header). */
+export const refreshSchema = z.object({
+  refreshToken: z.string().min(1).max(4096).meta({
+    description:
+      'Opaque refresh token from login/refresh. During the D19 window a legacy Python refresh JWT is also accepted once.',
+  }),
+});
+export type RefreshBody = z.infer<typeof refreshSchema>;
+
+/** A4: revoke one refresh token, or all of the caller's tokens. */
+export const logoutSchema = z.object({
+  refreshToken: z.string().min(1).max(4096).optional(),
+  allDevices: z
+    .boolean()
+    .optional()
+    .meta({ description: 'true => revoke every refresh token of the caller' }),
+});
+export type LogoutBody = z.infer<typeof logoutSchema>;
+
+export const logoutResultSchema = z.object({
+  revokedCount: z.number().int().meta({
+    description:
+      'Refresh tokens revoked by this call. 0 when the token was unknown, already revoked or not yours.',
+  }),
+});

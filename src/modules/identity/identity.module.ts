@@ -9,20 +9,34 @@ import {
   type Clock,
   type IdGenerator,
 } from '@platform/ports/kernel.port';
+import {
+  TRANSACTION_MANAGER,
+  type TransactionManager,
+} from '@platform/ports/transaction-manager.port';
 import { LoginUseCase, SignupUseCase } from './application/auth.use-cases';
 import {
   ACCESS_TOKEN_ISSUER,
   type AccessTokenIssuer,
+  LEGACY_REFRESH_TOKEN_VERIFIER,
+  type LegacyRefreshTokenVerifier,
+  OPAQUE_TOKEN_GENERATOR,
+  type OpaqueTokenGenerator,
   PASSWORD_HASHER,
   type PasswordHasher,
-  REFRESH_TOKEN_STORE,
-  type RefreshTokenStore,
+  REFRESH_TOKEN_REPOSITORY,
+  type RefreshTokenRepository,
   USER_REPOSITORY,
   type UserRepository,
 } from './application/ports';
+import { RefreshTokenIssuer } from './application/refresh-token.issuer';
+import { LogoutUseCase, RefreshUseCase } from './application/session.use-cases';
 import { BcryptPasswordHasher } from './infrastructure/bcrypt-password.hasher';
 import { JwtAccessTokenIssuer } from './infrastructure/jwt-access-token.issuer';
-import { TypeOrmRefreshTokenStore } from './infrastructure/typeorm-refresh-token.store';
+import {
+  CryptoOpaqueTokenGenerator,
+  JwtLegacyRefreshTokenVerifier,
+} from './infrastructure/token-adapters';
+import { TypeOrmRefreshTokenRepository } from './infrastructure/typeorm-refresh-token.repository';
 import { TypeOrmUserRepository } from './infrastructure/typeorm-user.repository';
 import { AuthController } from './presentation/auth.controller';
 
@@ -40,6 +54,12 @@ import { AuthController } from './presentation/auth.controller';
       inject: [DbContext],
     },
     {
+      provide: REFRESH_TOKEN_REPOSITORY,
+      useFactory: (db: DbContext): RefreshTokenRepository =>
+        new TypeOrmRefreshTokenRepository(db),
+      inject: [DbContext],
+    },
+    {
       provide: PASSWORD_HASHER,
       useFactory: (config: AppConfig): PasswordHasher =>
         new BcryptPasswordHasher(config.auth.bcryptCost),
@@ -52,10 +72,36 @@ import { AuthController } from './presentation/auth.controller';
       inject: [JwtTokenService],
     },
     {
-      provide: REFRESH_TOKEN_STORE,
-      useFactory: (db: DbContext, config: AppConfig): RefreshTokenStore =>
-        new TypeOrmRefreshTokenStore(db, config.auth.refreshTtlSeconds),
-      inject: [DbContext, APP_CONFIG],
+      provide: OPAQUE_TOKEN_GENERATOR,
+      useFactory: (): OpaqueTokenGenerator => new CryptoOpaqueTokenGenerator(),
+    },
+    {
+      provide: LEGACY_REFRESH_TOKEN_VERIFIER,
+      useFactory: (jwt: JwtTokenService): LegacyRefreshTokenVerifier =>
+        new JwtLegacyRefreshTokenVerifier(jwt),
+      inject: [JwtTokenService],
+    },
+    // ---- application services
+    {
+      provide: RefreshTokenIssuer,
+      useFactory: (
+        tokens: RefreshTokenRepository,
+        generator: OpaqueTokenGenerator,
+        ids: IdGenerator,
+        config: AppConfig,
+      ) =>
+        new RefreshTokenIssuer(
+          tokens,
+          generator,
+          ids,
+          config.auth.refreshTtlSeconds,
+        ),
+      inject: [
+        REFRESH_TOKEN_REPOSITORY,
+        OPAQUE_TOKEN_GENERATOR,
+        ID_GENERATOR,
+        APP_CONFIG,
+      ],
     },
     // ---- use cases
     {
@@ -74,14 +120,68 @@ import { AuthController } from './presentation/auth.controller';
         users: UserRepository,
         hasher: PasswordHasher,
         access: AccessTokenIssuer,
-        refresh: RefreshTokenStore,
+        issuer: RefreshTokenIssuer,
         clock: Clock,
-      ) => new LoginUseCase(users, hasher, access, refresh, clock),
+      ) => new LoginUseCase(users, hasher, access, issuer, clock),
       inject: [
         USER_REPOSITORY,
         PASSWORD_HASHER,
         ACCESS_TOKEN_ISSUER,
-        REFRESH_TOKEN_STORE,
+        RefreshTokenIssuer,
+        CLOCK,
+      ],
+    },
+    {
+      provide: RefreshUseCase,
+      useFactory: (
+        users: UserRepository,
+        tokens: RefreshTokenRepository,
+        issuer: RefreshTokenIssuer,
+        generator: OpaqueTokenGenerator,
+        legacy: LegacyRefreshTokenVerifier,
+        access: AccessTokenIssuer,
+        transactions: TransactionManager,
+        clock: Clock,
+        ids: IdGenerator,
+        config: AppConfig,
+      ) =>
+        new RefreshUseCase(
+          users,
+          tokens,
+          issuer,
+          generator,
+          legacy,
+          access,
+          transactions,
+          clock,
+          ids,
+          config.auth.legacyRefreshUntil,
+        ),
+      inject: [
+        USER_REPOSITORY,
+        REFRESH_TOKEN_REPOSITORY,
+        RefreshTokenIssuer,
+        OPAQUE_TOKEN_GENERATOR,
+        LEGACY_REFRESH_TOKEN_VERIFIER,
+        ACCESS_TOKEN_ISSUER,
+        TRANSACTION_MANAGER,
+        CLOCK,
+        ID_GENERATOR,
+        APP_CONFIG,
+      ],
+    },
+    {
+      provide: LogoutUseCase,
+      useFactory: (
+        tokens: RefreshTokenRepository,
+        generator: OpaqueTokenGenerator,
+        transactions: TransactionManager,
+        clock: Clock,
+      ) => new LogoutUseCase(tokens, generator, transactions, clock),
+      inject: [
+        REFRESH_TOKEN_REPOSITORY,
+        OPAQUE_TOKEN_GENERATOR,
+        TRANSACTION_MANAGER,
         CLOCK,
       ],
     },

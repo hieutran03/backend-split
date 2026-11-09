@@ -5,9 +5,9 @@ import { User } from '../domain/user';
 import type {
   AccessTokenIssuer,
   PasswordHasher,
-  RefreshTokenStore,
   UserRepository,
 } from './ports';
+import type { RefreshTokenIssuer } from './refresh-token.issuer';
 import { toUserView, type TokenView, type UserView } from './views';
 
 export interface SignupInput {
@@ -77,7 +77,7 @@ export class LoginUseCase {
     private readonly users: UserRepository,
     private readonly hasher: PasswordHasher,
     private readonly accessTokens: AccessTokenIssuer,
-    private readonly refreshTokens: RefreshTokenStore,
+    private readonly refreshTokens: RefreshTokenIssuer,
     private readonly clock: Clock,
   ) {}
 

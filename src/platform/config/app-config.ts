@@ -47,6 +47,11 @@ const schema = z
     JWT_REFRESH_TTL_SECONDS: positiveInt.default(30 * 24 * 3600),
     /** Python uses cost 12 (§11). Tests may lower it to 4 for speed. */
     BCRYPT_COST: z.coerce.number().int().min(4).max(15).default(12),
+    /**
+     * D19: until this instant, a legacy Python refresh JWT can be exchanged ONCE for a
+     * new opaque refresh token. Set it to W1 cutover + 7 days. Unset => legacy refresh disabled.
+     */
+    JWT_LEGACY_REFRESH_UNTIL: z.iso.datetime({ offset: true }).optional(),
     ADMIN_USER_IDS: list,
 
     AI_ENGINE_MODE: z.enum(['mock', 'http']).default('mock'),
@@ -100,6 +105,8 @@ export interface AppConfig {
     readonly acceptLegacyAccess: boolean;
     readonly refreshTtlSeconds: number;
     readonly bcryptCost: number;
+    /** null => legacy refresh JWT exchange disabled. */
+    readonly legacyRefreshUntil: Date | null;
     readonly adminUserIds: readonly string[];
   };
   readonly aiEngine: {
@@ -153,6 +160,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       acceptLegacyAccess: e.JWT_ACCEPT_LEGACY_ACCESS,
       refreshTtlSeconds: e.JWT_REFRESH_TTL_SECONDS,
       bcryptCost: e.BCRYPT_COST,
+      legacyRefreshUntil: e.JWT_LEGACY_REFRESH_UNTIL
+        ? new Date(e.JWT_LEGACY_REFRESH_UNTIL)
+        : null,
       adminUserIds: e.ADMIN_USER_IDS,
     },
     aiEngine: {

@@ -2,8 +2,9 @@ import { FixedClock, SequentialIds } from '@test-support/fakes';
 import {
   FakeAccessTokens,
   FakePasswordHasher,
+  InMemoryRefreshTokenRepository,
   InMemoryUserRepository,
-  RecordingRefreshTokens,
+  SequentialTokenGenerator,
 } from '@test-support/identity-fakes';
 import {
   ConflictError,
@@ -11,12 +12,19 @@ import {
   ValidationError,
 } from '@shared/errors/app-error';
 import { LoginUseCase, SignupUseCase } from './auth.use-cases';
+import { RefreshTokenIssuer } from './refresh-token.issuer';
 
 function setup() {
   const users = new InMemoryUserRepository();
   const hasher = new FakePasswordHasher();
-  const refresh = new RecordingRefreshTokens();
+  const refresh = new InMemoryRefreshTokenRepository();
   const clock = new FixedClock();
+  const issuer = new RefreshTokenIssuer(
+    refresh,
+    new SequentialTokenGenerator(),
+    new SequentialIds(),
+    3600,
+  );
   return {
     users,
     hasher,
@@ -26,7 +34,7 @@ function setup() {
       users,
       hasher,
       new FakeAccessTokens(),
-      refresh,
+      issuer,
       clock,
     ),
   };
@@ -111,12 +119,18 @@ describe('LoginUseCase (A2)', () => {
     });
     expect(tokens).toEqual({
       accessToken: `access:${user.id}:v0`,
-      refreshToken: 'refresh-1',
+      refreshToken: 'rt-1',
       tokenType: 'bearer',
       expiresIn: 900,
       userId: user.id,
     });
-    expect(s.refresh.issued).toEqual([{ userId: user.id, userAgent: 'jest' }]);
+    expect(
+      [...s.refresh.rows.values()].map((t) => ({
+        userId: t.userId,
+        userAgent: t.snapshot().userAgent,
+        tokenHash: t.snapshot().tokenHash,
+      })),
+    ).toEqual([{ userId: user.id, userAgent: 'jest', tokenHash: 'h(rt-1)' }]);
   });
 
   it('email with surrounding whitespace can still log in', async () => {
@@ -163,7 +177,7 @@ describe('LoginUseCase (A2)', () => {
         message: 'Invalid email or password',
       });
     }
-    expect(s.refresh.issued).toHaveLength(0);
+    expect(s.refresh.rows.size).toBe(0);
   });
 
   it('unknown email still "burns" hashing time (prevents email probing via latency)', async () => {
