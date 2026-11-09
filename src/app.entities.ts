@@ -1,3 +1,4 @@
+import { RefreshTokenRecord, UserRecord } from '@modules/identity/public-api';
 import { ProjectRecord } from '@modules/projects/public-api';
 import { OutboxEventRecord } from '@platform/database/outbox/outbox-event.record';
 import { DevBaseline1762646400000 } from '@platform/database/migrations/1762646400000-dev-baseline';
@@ -11,6 +12,9 @@ import { DevBaseline1762646400000 } from '@platform/database/migrations/17626464
 export const ALL_ENTITIES = [
   // platform
   OutboxEventRecord,
+  // identity
+  UserRecord,
+  RefreshTokenRecord,
   // projects
   ProjectRecord,
 ];

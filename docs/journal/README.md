@@ -17,6 +17,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 002 | [AI Engine giả lập (mock)](002-mock-ai-engine.md) | F-07…F-09, F-11 | 2026-11-09 | chờ review |
 | 003 | [Quản lý Project](003-projects.md) | F-10 (PJ1–PJ5) | 2026-11-09 | chờ review |
 | 004 | [Tài liệu API (Swagger)](004-swagger.md) | F-16 | 2026-11-09 | chờ review |
+| 005 | [Đăng ký & đăng nhập](005-dang-ky-dang-nhap.md) | AUTH-01 (A1, A2) | 2026-11-09 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -38,6 +39,10 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-14 | Cầu nối zod→OpenAPI tự viết | tạm chọn | 004 |
 | TC-15 | Bật Swagger ở môi trường nào | tạm chọn | 004 |
 | TC-16 | Response schema lệch dữ liệu thật | tạm chọn | 004 |
+| TC-17 | Email phân biệt hoa/thường | **mở** | 005 |
+| TC-18 | Mật khẩu ≤ 72 byte | tạm chọn | 005 |
+| TC-19 | TTL refresh token 30 ngày | chờ Hiếu | 005 |
+| TC-20 | Context `identity` gộp auth + users | tạm chọn | 005 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

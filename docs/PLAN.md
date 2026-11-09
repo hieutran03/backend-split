@@ -6,7 +6,7 @@
 > Nguồn yêu cầu: artifact "Chatbot Backend Split" (tách phần quản lý/lưu trữ của chatbot
 > FastAPI sang NestJS). Bản trích để tra cứu nằm ở [docs/reference/](reference/).
 
-**Cập nhật lần cuối:** 2026-11-09 · **Giai đoạn hiện tại:** Phase 0 chờ review → tiếp theo Phase 1 (W1)
+**Cập nhật lần cuối:** 2026-11-09 · **Giai đoạn hiện tại:** Phase 1 (W1) — lượt tiếp theo: AUTH-02
 
 ## Cách đọc
 
@@ -17,6 +17,9 @@
 | `[r]` | Code xong, `pnpm verify` xanh — **chờ Hiếu review** tính năng & kiến trúc |
 | `[x]` | Hiếu đã review OK (hoặc đã sửa theo review) |
 | `[!]` | Bị chặn — ghi lý do |
+
+**Lượt (iteration):** mỗi vòng *nhận 1 task → code → test → chạy thật → nhật ký → `[r]` → commit*
+là một **lượt**; kết quả là một **increment** chạy được và review được (một lát cắt dọc qua 4 tầng).
 
 **Quy trình:** Claude lấy task theo thứ tự trong PLAN (WIP = 1) → code + test → `[r]` + commit
 → Hiếu review (comment trực tiếp hoặc ghi vào mục "Ghi chú review" bên dưới) → Claude sửa → `[x]`.
@@ -73,7 +76,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 
 | ID | Task | Route | Owner | Trạng thái |
 |---|---|---|---|---|
-| AUTH-01 | Signup/login: bcrypt cost 12 tương thích `$2b$`, trùng email/username ⇒ 409 | A1, A2 | 🤖 | [ ] |
+| AUTH-01 | Signup/login: bcrypt cost 12 tương thích `$2b$`, trùng email/username ⇒ 409; phát hành refresh token opaque — [nhật ký 005](journal/005-dang-ky-dang-nhap.md) | A1, A2 | 🤖 | [r] |
 | AUTH-02 | Refresh token **opaque** xoay vòng (bảng `refresh_tokens`, SHA-256, `replaced_by_id`, thu hồi cả chuỗi khi dùng lại); logout thu hồi; refresh JWT cũ đổi 1 lần trong 7 ngày (D19) | A3, A4 | 🤖 | [ ] |
 | AUTH-03 | Guard kiểm claim `ver` với `users.token_version` + `deleted_at` (cache ≤ 30 s); admin từ `ADMIN_USER_IDS` → sau này `users.role` | — | 🤖 | [ ] |
 | USR-01 | `GET /users/me` | A5 | 🤖 | [ ] |
@@ -172,6 +175,10 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-10 | Xoá project đang có hội thoại: gỡ / chặn / xoá theo? | **mở** (nghiêng gỡ liên kết) | [003](journal/003-projects.md) |
 | TC-11 | Giới hạn 20.000 ký tự cho instructions | tạm chọn | [003](journal/003-projects.md) |
 | TC-15 | Staging có bật Swagger không? | tạm chọn: không | [004](journal/004-swagger.md) |
+| TC-17 | Email có phân biệt hoa/thường khi đăng nhập? | **mở** — tạm giữ nguyên như DB | [005](journal/005-dang-ky-dang-nhap.md) |
+| TC-18 | Chặn mật khẩu > 72 byte khi đăng ký | tạm chọn | [005](journal/005-dang-ky-dang-nhap.md) |
+| TC-19 | Thời hạn refresh token (đang 30 ngày) | **chờ Hiếu** | [005](journal/005-dang-ky-dang-nhap.md) |
+| TC-20 | Gộp auth + users thành context `identity` | tạm chọn | [005](journal/005-dang-ky-dang-nhap.md) |
 | — | Feedback trùng: 409 `feedback_exists` hay upsert? | mở — sẽ ghi TC khi làm FB-01 | — |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
@@ -186,3 +193,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-09 | 🤖 | Phase 0: skeleton, mock AI Engine, module mẫu projects, tài liệu tra cứu. `pnpm verify` xanh; chạy thật với Postgres: CRUD projects, 401/400/404, outbox `project.deleted`, stream mock qua playground. |
 | 2026-11-09 | 🤖 | Đổi phân vai: Claude làm chính toàn bộ, Hiếu review. Thêm Swagger (F-16). Sửa build: tắt `incremental` trong `tsconfig.build.json` (Nest xoá `dist/` nhưng `.tsbuildinfo` làm tsc không emit). |
 | 2026-11-09 | 🤖 | Thêm nhật ký chức năng `docs/journal/` (001–004) với điểm tranh cãi TC-1…TC-16 + lịch sử phiên bản; PLAN trỏ câu hỏi mở về TC. |
+| 2026-11-09 | 🤖 | Lượt AUTH-01: signup/login, bcrypt `$2b$12$`, refresh token opaque (SHA-256), seed có mật khẩu thật. 33 test, verify xanh, chạy thật 12 kịch bản trên Postgres. |

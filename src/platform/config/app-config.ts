@@ -43,6 +43,10 @@ const schema = z
     JWT_SECRET: z.string().min(1),
     JWT_ACCESS_TTL_SECONDS: positiveInt.default(900),
     JWT_ACCEPT_LEGACY_ACCESS: bool.default(true),
+    /** Refresh token opaque. Mặc định 30 ngày (TC-19). */
+    JWT_REFRESH_TTL_SECONDS: positiveInt.default(30 * 24 * 3600),
+    /** Python dùng cost 12 (§11). Test có thể hạ xuống 4 cho nhanh. */
+    BCRYPT_COST: z.coerce.number().int().min(4).max(15).default(12),
     ADMIN_USER_IDS: list,
 
     AI_ENGINE_MODE: z.enum(['mock', 'http']).default('mock'),
@@ -94,6 +98,8 @@ export interface AppConfig {
     readonly jwtSecret: string;
     readonly accessTtlSeconds: number;
     readonly acceptLegacyAccess: boolean;
+    readonly refreshTtlSeconds: number;
+    readonly bcryptCost: number;
     readonly adminUserIds: readonly string[];
   };
   readonly aiEngine: {
@@ -133,6 +139,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       jwtSecret: e.JWT_SECRET,
       accessTtlSeconds: e.JWT_ACCESS_TTL_SECONDS,
       acceptLegacyAccess: e.JWT_ACCEPT_LEGACY_ACCESS,
+      refreshTtlSeconds: e.JWT_REFRESH_TTL_SECONDS,
+      bcryptCost: e.BCRYPT_COST,
       adminUserIds: e.ADMIN_USER_IDS,
     },
     aiEngine: {

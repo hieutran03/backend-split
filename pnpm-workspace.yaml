@@ -2,3 +2,5 @@ allowBuilds:
   unrs-resolver: true
   '@parcel/watcher': false
   '@scarf/scarf': false
+  # bcrypt 6 dùng prebuild (node-gyp-build), không cần chạy build script
+  bcrypt: false

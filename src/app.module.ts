@@ -3,6 +3,7 @@ import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 import { DevToolsModule } from '@modules/dev-tools/dev-tools.module';
 import { HealthModule } from '@modules/health/health.module';
+import { IdentityModule } from '@modules/identity/public-api';
 import { ProjectsModule } from '@modules/projects/public-api';
 import { CoreModule } from '@platform/core.module';
 import { DatabaseModule } from '@platform/database/database.module';
@@ -19,8 +20,9 @@ import { ALL_ENTITIES } from './app.entities';
  */
 const featureModules: Array<Type | DynamicModule> = [
   HealthModule,
+  IdentityModule,
   ProjectsModule,
-  // W1: AuthModule, UsersModule, ConversationsModule, MessagesModule, FeedbackModule, TaskPlansModule
+  // W1: ConversationsModule, MessagesModule, FeedbackModule, TaskPlansModule
   // W2: ProvidersModule, AgentModelConfigsModule, CustomAgentsModule, McpProxyModule
   // W3: DocumentsModule, MediaModule
   // W4: GenerationsModule, HitlModule
