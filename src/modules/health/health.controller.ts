@@ -12,8 +12,8 @@ type Status = 'ok' | 'degraded' | 'down';
 
 /**
  * H9: GET /api/v1/health — liveness.
- * H10–H13: GET /api/v1/health/dependencies — gộp DB + Engine (E21).
- * TODO(OPS-01): thêm Redis, S3; giới hạn admin hoặc mạng nội bộ.
+ * H10–H13: GET /api/v1/health/dependencies — aggregates DB + Engine (E21).
+ * TODO(OPS-01): add Redis, S3; restrict to admin or internal network.
  */
 @ApiTags('health')
 @Controller('health')
@@ -32,7 +32,7 @@ export class HealthController {
 
   @Public()
   @Get('dependencies')
-  @ApiOperation({ summary: 'Trạng thái PostgreSQL + AI Engine (H10–H13, E21)' })
+  @ApiOperation({ summary: 'PostgreSQL + AI Engine status (H10–H13, E21)' })
   public async dependencies(): Promise<{
     status: Status;
     checks: Record<string, { status: Status; detail?: string }>;

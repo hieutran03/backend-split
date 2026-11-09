@@ -1,11 +1,11 @@
 import { ValidationError } from '@shared/errors/app-error';
 
 /**
- * Aggregate User — bảng `users` (§6).
+ * User aggregate — `users` table (§6).
  *
- * Mật khẩu KHÔNG bao giờ đi vào domain dưới dạng thô: domain chỉ giữ hash
- * (bcrypt `$2b$`, cost 12 — tương thích Python). Băm/so khớp là việc của port
- * PasswordHasher ở application.
+ * The password NEVER enters the domain in raw form: the domain only holds the hash
+ * (bcrypt `$2b$`, cost 12 — Python compatible). Hashing/comparing is the job of the
+ * PasswordHasher port in application.
  */
 export type UserRole = 'user' | 'admin';
 
@@ -15,7 +15,7 @@ export interface UserProps {
   email: string;
   passwordHash: string;
   avatarUrl: string | null;
-  /** Tăng khi xoá mềm / đổi mật khẩu ⇒ vô hiệu mọi token cũ (claim `ver`). */
+  /** Incremented on soft delete / password change ⇒ invalidates all old tokens (claim `ver`). */
   tokenVersion: number;
   role: UserRole;
   readonly createdAt: Date;
@@ -58,9 +58,9 @@ export class User {
   }
 
   /**
-   * Chuẩn hoá email dùng chung cho đăng ký VÀ tra cứu khi đăng nhập: chỉ bỏ
-   * khoảng trắng hai đầu. KHÔNG hạ chữ thường — xem TC-17 (dữ liệu Python có thể
-   * đang phân biệt hoa/thường, unique index của DB cũng phân biệt).
+   * Email normalization shared by signup AND login lookup: only strips
+   * surrounding whitespace. Does NOT lowercase — see TC-17 (Python data may be
+   * case-sensitive, and so is the DB unique index).
    */
   public static normalizeEmail(email: string): string {
     const trimmed = email.trim();

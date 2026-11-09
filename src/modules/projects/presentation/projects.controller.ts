@@ -46,10 +46,10 @@ import {
 } from './projects.schemas';
 
 /**
- * Controller mỏng: validate → gọi use case → trả data (envelope do interceptor bọc).
- * Không có logic nghiệp vụ ở đây.
+ * Thin controller: validate → call use case → return data (envelope added by the interceptor).
+ * No business logic here.
  *
- * Mapping: PJ1–PJ5 (§4.2). PJ6–PJ9 (gắn hội thoại, custom agents) là task PJ-06..09.
+ * Mapping: PJ1–PJ5 (§4.2). PJ6–PJ9 (conversation attachment, custom agents) are tasks PJ-06..09.
  */
 @ApiTags('projects')
 @ApiBearerAuth(BEARER_AUTH)
@@ -68,7 +68,7 @@ export class ProjectsController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Danh sách project của tôi (PJ1)' })
+  @ApiOperation({ summary: 'List my projects (PJ1)' })
   @ApiZodQuery(paginationQuerySchema)
   @ApiEnvelope(projectViewSchema, {
     paginated: true,
@@ -84,7 +84,7 @@ export class ProjectsController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Tạo project (PJ2)' })
+  @ApiOperation({ summary: 'Create project (PJ2)' })
   @ApiZodBody(createProjectSchema)
   @ApiEnvelope(projectViewSchema, {
     status: 201,
@@ -100,7 +100,7 @@ export class ProjectsController {
   }
 
   @Get(':projectId')
-  @ApiOperation({ summary: 'Chi tiết project (PJ3)' })
+  @ApiOperation({ summary: 'Project details (PJ3)' })
   @ApiUuidParam('projectId')
   @ApiEnvelope(projectViewSchema)
   @ApiErrors(400, 401, 404)
@@ -113,7 +113,7 @@ export class ProjectsController {
   }
 
   @Patch(':projectId')
-  @ApiOperation({ summary: 'Sửa project (PJ4)' })
+  @ApiOperation({ summary: 'Update project (PJ4)' })
   @ApiUuidParam('projectId')
   @ApiZodBody(updateProjectSchema)
   @ApiEnvelope(projectViewSchema, { message: 'Updated successfully' })
@@ -130,9 +130,9 @@ export class ProjectsController {
 
   @Delete(':projectId')
   @ApiOperation({
-    summary: 'Xoá mềm project (PJ5)',
+    summary: 'Soft-delete project (PJ5)',
     description:
-      'Ghi outbox `project.deleted` cùng transaction — Engine xoá mềm user_memories của project.',
+      "Writes the `project.deleted` outbox in the same transaction — the Engine soft-deletes the project's user_memories.",
   })
   @ApiUuidParam('projectId')
   @ApiEnvelope(null, { message: 'Deleted successfully' })

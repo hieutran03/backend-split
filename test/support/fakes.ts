@@ -2,7 +2,7 @@ import type { Clock, IdGenerator } from '@platform/ports/kernel.port';
 import type { Outbox, OutboxEvent } from '@platform/ports/outbox.port';
 import type { TransactionManager } from '@platform/ports/transaction-manager.port';
 
-/** Fake dùng chung cho unit test của mọi module. */
+/** Fakes shared by the unit tests of every module. */
 export class FixedClock implements Clock {
   public constructor(private current = new Date('2026-11-09T00:00:00.000Z')) {}
   public now(): Date {
@@ -21,7 +21,7 @@ export class SequentialIds implements IdGenerator {
   }
 }
 
-/** Chạy work ngay, ghi lại số lần gọi — đủ cho unit test use case. */
+/** Runs work immediately and records the call count — enough for use case unit tests. */
 export class ImmediateTransactions implements TransactionManager {
   public runs = 0;
   public run<T>(work: () => Promise<T>): Promise<T> {

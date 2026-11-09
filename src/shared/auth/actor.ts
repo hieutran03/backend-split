@@ -1,6 +1,6 @@
-/** Người gọi đã xác thực — application nhận cái này, không nhận Request. */
+/** Authenticated caller — the application layer receives this, not the Request. */
 export interface Actor {
   readonly userId: string;
-  /** Hiện là ADMIN_USER_IDS trong env; sau S1 là users.role = 'admin'. */
+  /** Currently ADMIN_USER_IDS in env; after S1 it becomes users.role = 'admin'. */
   readonly isAdmin: boolean;
 }

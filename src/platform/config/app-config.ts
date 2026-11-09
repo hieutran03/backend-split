@@ -2,8 +2,8 @@ import 'dotenv/config';
 import { z } from 'zod';
 
 /**
- * Nơi DUY NHẤT đọc `process.env`. Thiếu/sai biến => crash lúc khởi động với
- * thông báo rõ ràng, thay vì `undefined` giữa request.
+ * The ONLY place that reads `process.env`. Missing/invalid variables => crash at startup
+ * with a clear message, instead of `undefined` mid-request.
  */
 const bool = z
   .union([z.boolean(), z.string()])
@@ -31,7 +31,7 @@ const schema = z
     PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
     HTTP_GLOBAL_PREFIX: z.string().default('api/v1'),
     CORS_ORIGINS: list,
-    /** Không đặt => bật ở development/test, tắt ở production. */
+    /** Unset => on in development/test, off in production. */
     SWAGGER_ENABLED: bool.optional(),
 
     DATABASE_URL: z.string().min(1),
@@ -43,9 +43,9 @@ const schema = z
     JWT_SECRET: z.string().min(1),
     JWT_ACCESS_TTL_SECONDS: positiveInt.default(900),
     JWT_ACCEPT_LEGACY_ACCESS: bool.default(true),
-    /** Refresh token opaque. Mặc định 30 ngày (TC-19). */
+    /** Opaque refresh token. Defaults to 30 days (TC-19). */
     JWT_REFRESH_TTL_SECONDS: positiveInt.default(30 * 24 * 3600),
-    /** Python dùng cost 12 (§11). Test có thể hạ xuống 4 cho nhanh. */
+    /** Python uses cost 12 (§11). Tests may lower it to 4 for speed. */
     BCRYPT_COST: z.coerce.number().int().min(4).max(15).default(12),
     ADMIN_USER_IDS: list,
 
@@ -65,7 +65,7 @@ const schema = z
       ctx.addIssue({
         code: 'custom',
         path: ['AI_ENGINE_MODE'],
-        message: 'AI_ENGINE_MODE=mock không được chạy ở production.',
+        message: 'AI_ENGINE_MODE=mock must not run in production.',
       });
     }
     if (
@@ -75,7 +75,7 @@ const schema = z
       ctx.addIssue({
         code: 'custom',
         path: ['JWT_SECRET'],
-        message: 'Đặt JWT_SECRET thật (= SECRET_KEY của Python, R25).',
+        message: 'Set a real JWT_SECRET (= Python SECRET_KEY, R25).',
       });
     }
   });
@@ -113,8 +113,8 @@ export interface AppConfig {
 }
 
 /**
- * Biến để trống (`SWAGGER_ENABLED=` trong .env) được coi là CHƯA ĐẶT ⇒ dùng mặc định.
- * Không có bước này, chuỗi rỗng bị parse thành `false`/`0` và âm thầm tắt tính năng.
+ * Empty variables (`SWAGGER_ENABLED=` in .env) are treated as UNSET ⇒ defaults apply.
+ * Without this step, empty strings get parsed as `false`/`0` and silently disable features.
  */
 function withoutEmptyValues(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   return Object.fromEntries(
@@ -130,7 +130,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     const issues = parsed.error.issues
       .map((i) => `  - ${i.path.join('.')}: ${i.message}`)
       .join('\n');
-    throw new Error(`Cấu hình không hợp lệ:\n${issues}`);
+    throw new Error(`Invalid configuration:\n${issues}`);
   }
   const e = parsed.data;
   return Object.freeze({

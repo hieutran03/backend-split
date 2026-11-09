@@ -2,8 +2,8 @@ import type { Page, PageRequest } from '@shared/pagination/page';
 import type { Project } from '../../domain/project';
 
 /**
- * Port outbound do application định nghĩa — infrastructure implement.
- * Mọi truy vấn đều lọc theo owner + chưa xoá: không sở hữu = không tồn tại (D15).
+ * Outbound port defined by application — implemented by infrastructure.
+ * Every query filters by owner + not deleted: not owned = does not exist (D15).
  */
 export interface ProjectRepository {
   findOwned(id: string, ownerId: string): Promise<Project | null>;

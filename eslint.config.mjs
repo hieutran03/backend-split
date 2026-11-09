@@ -5,15 +5,15 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 /**
- * Ranh giới tầng được kiểm 2 lần:
- *  - ở đây (no-restricted-imports) để editor báo đỏ ngay khi gõ;
- *  - ở .dependency-cruiser.cjs (pnpm test:architecture) để CI chặn.
+ * Layer boundaries are enforced twice:
+ *  - here (no-restricted-imports), so the editor flags a violation while you type;
+ *  - in .dependency-cruiser.cjs (pnpm test:architecture), which fails CI.
  */
 const FRAMEWORK_IMPORTS = [
-  { group: ['@nestjs/**'], message: 'domain/application không được biết NestJS. Khai báo port + token, wiring ở <module>.module.ts.' },
-  { group: ['typeorm', 'typeorm/**', 'pg'], message: 'Không dùng TypeORM trong core. Dùng repository port.' },
-  { group: ['ioredis', 'jsonwebtoken', 'express'], message: 'Hạ tầng phải đi qua port.' },
-  { regex: '^@platform/(?!ports/)', message: 'Core chỉ được import @platform/ports/*.' },
+  { group: ['@nestjs/**'], message: 'domain/application must not know NestJS. Declare a port + token and wire it in <module>.module.ts.' },
+  { group: ['typeorm', 'typeorm/**', 'pg'], message: 'No TypeORM in the core. Use a repository port.' },
+  { group: ['ioredis', 'jsonwebtoken', 'express'], message: 'Infrastructure must be reached through a port.' },
+  { regex: '^@platform/(?!ports/)', message: 'The core may only import @platform/ports/*.' },
 ];
 
 export default tseslint.config(
@@ -35,7 +35,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
       'no-restricted-syntax': [
         'error',
-        { selector: "CallExpression[callee.name='forwardRef']", message: 'forwardRef() che giấu vòng phụ thuộc. Tách bằng port/event.' },
+        { selector: "CallExpression[callee.name='forwardRef']", message: 'forwardRef() hides a dependency cycle. Break it with a port or an event.' },
       ],
     },
   },
@@ -45,7 +45,7 @@ export default tseslint.config(
     rules: { 'no-restricted-imports': ['error', { patterns: FRAMEWORK_IMPORTS }] },
   },
   {
-    // Nest controller/module cần decorator metadata => không được dùng `import type` cho class được inject.
+    // Nest controllers/modules need decorator metadata => injected classes cannot use `import type`.
     files: ['src/**/*.controller.ts', 'src/**/*.module.ts', 'src/platform/http/**/*.ts'],
     rules: { '@typescript-eslint/consistent-type-imports': 'off' },
   },

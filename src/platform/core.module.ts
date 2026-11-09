@@ -17,8 +17,8 @@ import { APP_CONFIG, loadConfig, type AppConfig } from './config/app-config';
 import { JwtTokenService } from './auth/jwt-token.service';
 
 /**
- * Module kỹ thuật dùng chung, @Global để mọi module nghiệp vụ inject được bằng
- * token mà không phải import lại. Chỉ chứa thứ business-agnostic.
+ * Shared technical module, @Global so every business module can inject by
+ * token without re-importing it. Contains only business-agnostic things.
  */
 @Global()
 @Module({

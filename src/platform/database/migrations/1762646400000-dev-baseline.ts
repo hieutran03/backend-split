@@ -1,17 +1,17 @@
 import { type MigrationInterface, type QueryRunner } from 'typeorm';
 
 /**
- * ⚠️ BASELINE CHO DB LOCAL TRỐNG — KHÔNG chạy trên DB dùng chung với Python.
+ * ⚠️ BASELINE FOR AN EMPTY LOCAL DB — DO NOT run on a DB shared with Python.
  *
- * Trên môi trường thật, schema các bảng này thuộc Alembic tới P3 (§6.3 S7).
- * Migration này chỉ tái tạo đúng tên cột/kiểu/index (theo metadata SQLAlchemy ở
- * 905e52f6) để dev NestJS chạy được khi chưa có dump DB thật.
+ * In real environments, the schema of these tables belongs to Alembic until P3 (§6.3 S7).
+ * This migration only recreates the exact column names/types/indexes (per the SQLAlchemy
+ * metadata at 905e52f6) so NestJS dev can run without a real DB dump.
  *
- * Quy ước: mỗi task thêm bảng (CONV-01, MSG-01, ...) viết migration dev riêng,
- * bám đúng §6 của tài liệu backend split. Không dùng synchronize.
+ * Convention: each task that adds tables (CONV-01, MSG-01, ...) writes its own dev migration,
+ * following §6 of the backend split document exactly. Do not use synchronize.
  *
- * Lưu ý: Python KHÔNG đặt DB default cho id/created_at/updated_at — app tự set.
- * Entity TypeORM vì vậy dùng @Column thường và mapper tự gán thời gian.
+ * Note: Python does NOT set DB defaults for id/created_at/updated_at — the app sets them.
+ * TypeORM entities therefore use plain @Column and the mapper assigns timestamps.
  */
 export class DevBaseline1762646400000 implements MigrationInterface {
   public readonly name = 'DevBaseline1762646400000';

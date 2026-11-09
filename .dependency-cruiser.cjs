@@ -1,11 +1,11 @@
 /**
- * Trọng tài kiến trúc (pnpm test:architecture). Bản rút gọn từ repo platform.
+ * Architecture referee (pnpm test:architecture). A trimmed-down version of the platform repo's rules.
  *
- *  1. domain/application thuần TypeScript: không npm (trừ zod ở application), không node builtin.
- *  2. Dependency hướng vào trong: domain <- application <- infrastructure/presentation <- <module>.module.ts.
- *  3. Module không import ruột của module khác. Chỉ qua `src/modules/<x>/public-api.ts`.
- *  4. shared/ và contracts/ không biết gì về modules/ hay platform/ (trừ contracts -> zod).
- *  5. platform/ không import modules/.
+ *  1. domain/application are plain TypeScript: no npm packages (except zod in application), no node builtins.
+ *  2. Dependencies point inwards: domain <- application <- infrastructure/presentation <- <module>.module.ts.
+ *  3. A module never imports another module's internals - only `src/modules/<x>/public-api.ts`.
+ *  4. shared/ and contracts/ know nothing about modules/ or platform/ (contracts may use zod).
+ *  5. platform/ never imports modules/.
  */
 module.exports = {
   forbidden: [
@@ -17,7 +17,7 @@ module.exports = {
     },
     {
       name: 'domain-is-pure',
-      comment: 'domain chỉ được import shared/ và chính domain của module.',
+      comment: 'domain may only import shared/ and its own module domain.',
       severity: 'error',
       from: { path: '^src/modules/([^/]+)/domain/' },
       to: {
@@ -40,7 +40,7 @@ module.exports = {
     },
     {
       name: 'no-cross-module-internals',
-      comment: 'Module khác chỉ được dùng public-api.ts.',
+      comment: 'Other modules may only use public-api.ts.',
       severity: 'error',
       from: { path: '^src/modules/([^/]+)/' },
       to: {

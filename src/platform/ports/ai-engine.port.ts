@@ -18,24 +18,24 @@ import type {
 } from '@contracts/engine/internal-api';
 import type { V3StreamEvent } from '@contracts/engine/v3-events';
 
-/** Scope/actor do backend khẳng định — Engine phải tự kiểm owner của row (§8). */
+/** Scope/actor asserted by the backend — the Engine must check row ownership itself (§8). */
 export interface ActorScope {
   readonly userId: string;
   readonly isAdmin: boolean;
 }
 
 /**
- * Port duy nhất để nói chuyện với AI Engine (/internal/v1, E1–E21).
+ * The single port for talking to the AI Engine (/internal/v1, E1–E21).
  *
- * Hai adapter (chọn bằng AI_ENGINE_MODE):
- *  - `MockAiEngineClient` (mock): giả lập trong tiến trình, dùng khi dev/test.
- *  - `HttpAiEngineClient` (http): gọi Engine Python thật, stream NDJSON.
+ * Two adapters (selected by AI_ENGINE_MODE):
+ *  - `MockAiEngineClient` (mock): in-process simulation, used for dev/test.
+ *  - `HttpAiEngineClient` (http): calls the real Python Engine, streams NDJSON.
  *
- * Stream trả về AsyncIterable, huỷ bằng AbortSignal. Lưu ý D5: client HTTP ngắt
- * kết nối KHÔNG được huỷ stream này; chỉ Stop tường minh (E2) mới huỷ lượt.
+ * Streams return an AsyncIterable, cancelled via AbortSignal. Note D5: an HTTP client
+ * disconnecting must NOT cancel this stream; only an explicit Stop (E2) cancels a turn.
  */
 export interface AiEngineClient {
-  // ---- lượt chat (stream NDJSON V3) ----
+  // ---- chat turns (NDJSON V3 stream) ----
   /** E1 */
   startTurn(
     request: TurnRequestV1,
@@ -59,7 +59,7 @@ export interface AiEngineClient {
     signal?: AbortSignal,
   ): AsyncIterable<V3StreamEvent>;
 
-  // ---- side effect, chỉ gọi từ outbox publisher ----
+  // ---- side effects, called only from the outbox publisher ----
   /** E5 */
   deleteThreads(
     request: DeleteThreadsRequestV1,
@@ -74,7 +74,7 @@ export interface AiEngineClient {
   /** E9 */
   deindexDocument(documentId: string, idempotencyKey: string): Promise<void>;
 
-  // ---- LLM nhỏ ----
+  // ---- small LLM calls ----
   /** E6 */
   generateTitle(
     request: GenerateTitleRequestV1,
@@ -84,7 +84,7 @@ export interface AiEngineClient {
     request: GenerateTaskPlanRequestV1,
   ): Promise<GenerateTaskPlanResponseV1>;
 
-  // ---- đọc dữ liệu Engine sở hữu ----
+  // ---- reading Engine-owned data ----
   /** E10 */
   getToolResult(blobId: string, scope: ActorScope): Promise<ToolResultV1>;
   /** E11 */

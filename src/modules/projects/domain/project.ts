@@ -1,10 +1,10 @@
 import { ValidationError } from '@shared/errors/app-error';
 
 /**
- * Aggregate Project — thuần TypeScript, giữ invariant của project.
+ * Project aggregate — plain TypeScript, holds the project invariants.
  *
- * Bảng `projects` (§6): owner_id, name varchar(255), description, instructions,
- * soft delete. `instructions` đi vào body E1 (projectInstructions).
+ * `projects` table (§6): owner_id, name varchar(255), description, instructions,
+ * soft delete. `instructions` goes into the E1 body (projectInstructions).
  */
 export interface ProjectProps {
   readonly id: string;
@@ -43,7 +43,7 @@ export class Project {
     });
   }
 
-  /** Dựng lại từ DB — không validate lại (dữ liệu cũ có thể không theo luật mới). */
+  /** Rebuilds from the DB — no re-validation (old data may not follow the new rules). */
   public static restore(props: ProjectProps): Project {
     return new Project({ ...props });
   }

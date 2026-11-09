@@ -1,12 +1,12 @@
 /**
- * Lỗi nghiệp vụ/ứng dụng — thuần TypeScript, không biết HTTP.
+ * Business/application error — pure TypeScript, unaware of HTTP.
  *
- * `code` là mã chuẩn của envelope (§4.1 S1): bad_request, unauthorized, forbidden,
+ * `code` is the standard envelope code (§4.1 S1): bad_request, unauthorized, forbidden,
  * not_found, conflict, gone, unprocessable, too_many_requests, bad_gateway,
- * service_unavailable, internal_error. `reason` là lý do nghiệp vụ chi tiết
- * (vd. conversation_turn_conflict), đi vào `data.reason` của response.
+ * service_unavailable, internal_error. `reason` is the detailed business reason
+ * (e.g. conversation_turn_conflict), placed in the response's `data.reason`.
  *
- * Tầng HTTP (platform/http/app-exception.filter.ts) map `code` -> status.
+ * The HTTP layer (platform/http/app-exception.filter.ts) maps `code` -> status.
  */
 export type ErrorCode =
   | 'bad_request'
@@ -33,7 +33,7 @@ export class AppError extends Error {
   }
 }
 
-/** D15: không sở hữu / không tồn tại / đã xoá => luôn 404. */
+/** D15: not owned / not found / deleted => always 404. */
 export class NotFoundError extends AppError {
   public constructor(resource: string, reason = `${resource}_not_found`) {
     super('not_found', `${resource} not found`, reason);
@@ -71,7 +71,7 @@ export class ForbiddenError extends AppError {
   }
 }
 
-/** Lỗi khi gọi AI Engine (mạng, 5xx, stream đứt). */
+/** Error calling the AI Engine (network, 5xx, broken stream). */
 export class UpstreamError extends AppError {
   public constructor(
     message: string,

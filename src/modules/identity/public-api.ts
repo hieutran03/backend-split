@@ -1,6 +1,6 @@
 /**
- * Bề mặt công khai của context identity.
- * AUTH-03 sẽ export thêm port đọc `token_version`/`deleted_at` cho guard.
+ * Public surface of the identity context.
+ * AUTH-03 will also export a port reading `token_version`/`deleted_at` for the guard.
  */
 export { IdentityModule } from './identity.module';
 export { RefreshTokenRecord, UserRecord } from './infrastructure/records';

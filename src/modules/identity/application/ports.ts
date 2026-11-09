@@ -1,19 +1,19 @@
 import type { User } from '../domain/user';
 
 /**
- * Port outbound của context identity. Mỗi port một token; adapter ở infrastructure/.
+ * Outbound ports of the identity context. One token per port; adapters live in infrastructure/.
  */
 
 export interface UserRepository {
-  /** Tìm user CHƯA xoá theo email (khớp chính xác sau trim — TC-17). */
+  /** Finds a NON-deleted user by email (exact match after trim — TC-17). */
   findActiveByEmail(email: string): Promise<User | null>;
   findActiveById(id: string): Promise<User | null>;
-  /** Kiểm trên MỌI row, kể cả đã xoá mềm — vì unique index của DB không lọc deleted_at. */
+  /** Checks EVERY row, soft-deleted included — the DB unique index does not filter deleted_at. */
   emailExists(email: string): Promise<boolean>;
   usernameExists(username: string): Promise<boolean>;
   /**
-   * Ném ConflictError (email_not_available | username_not_available) nếu vi phạm
-   * unique — chặn trường hợp hai request đăng ký trùng chạy song song.
+   * Throws ConflictError (email_not_available | username_not_available) on a unique
+   * violation — covers two duplicate signup requests running concurrently.
    */
   insert(user: User): Promise<void>;
 }
@@ -23,8 +23,8 @@ export interface PasswordHasher {
   hash(plain: string): Promise<string>;
   verify(plain: string, hash: string): Promise<boolean>;
   /**
-   * So khớp với một hash giả để thời gian phản hồi "email không tồn tại" bằng
-   * "sai mật khẩu" — không cho dò email nào đã đăng ký qua độ trễ.
+   * Compares against a dummy hash so the "unknown email" response time matches
+   * "wrong password" — prevents probing registered emails via latency.
    */
   burnTime(plain: string): Promise<void>;
 }
@@ -39,7 +39,7 @@ export interface AccessTokenIssuer {
 export const ACCESS_TOKEN_ISSUER = Symbol('ACCESS_TOKEN_ISSUER');
 
 export interface IssuedRefreshToken {
-  /** Chuỗi opaque trả cho client — CHỈ xuất hiện đúng một lần, DB lưu SHA-256. */
+  /** Opaque string returned to the client — appears EXACTLY once; the DB stores SHA-256. */
   readonly token: string;
   readonly expiresAt: Date;
 }

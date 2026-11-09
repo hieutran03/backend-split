@@ -16,10 +16,10 @@ import {
 } from './decorators';
 
 /**
- * Guard toàn cục cho /api/v1. Mặc định MỌI route cần access token; mở bằng @Public().
+ * Global guard for /api/v1. By default EVERY route needs an access token; opt out with @Public().
  *
- * TODO(AUTH-03): kiểm claim `ver` với users.token_version và users.deleted_at
- * (cache ≤ 30 s) — cần port UserTokenStateReader do module auth cung cấp.
+ * TODO(AUTH-03): check the `ver` claim against users.token_version and users.deleted_at
+ * (cache ≤ 30 s) — needs a UserTokenStateReader port provided by the auth module.
  */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {

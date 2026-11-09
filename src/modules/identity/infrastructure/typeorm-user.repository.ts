@@ -6,7 +6,7 @@ import { User } from '../domain/user';
 import type { UserRepository } from '../application/ports';
 import { UserRecord } from './records';
 
-/** Tên unique index trong DB (Alembic) ⇒ lý do 409 trả cho client. */
+/** DB unique index name (Alembic) ⇒ 409 reason returned to the client. */
 const UNIQUE_REASONS: Record<string, { reason: string; message: string }> = {
   ix_users_email: {
     reason: 'email_not_available',

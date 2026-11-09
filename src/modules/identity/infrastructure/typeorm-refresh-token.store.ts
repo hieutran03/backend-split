@@ -7,15 +7,15 @@ import type {
 } from '../application/ports';
 import { RefreshTokenRecord } from './records';
 
-/** SHA-256 hex của token — dùng chung cho lúc phát hành và lúc tra cứu (AUTH-02). */
+/** Hex SHA-256 of the token — shared by issuing and lookup (AUTH-02). */
 export function hashRefreshToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
 /**
- * Refresh token OPAQUE (A2): 32 byte ngẫu nhiên, base64url (43 ký tự).
- * Không phải JWT ⇒ không tự giải mã được, chỉ có giá trị khi tra trong DB.
- * DB chỉ giữ SHA-256 — lộ DB không lộ token dùng được.
+ * OPAQUE refresh token (A2): 32 random bytes, base64url (43 characters).
+ * Not a JWT ⇒ cannot be self-decoded, only meaningful when looked up in the DB.
+ * The DB keeps only the SHA-256 — a DB leak does not leak usable tokens.
  */
 export class TypeOrmRefreshTokenStore implements RefreshTokenStore {
   public constructor(

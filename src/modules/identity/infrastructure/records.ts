@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
-/** Bảng `users` (§6). `role` là cột mới (§6.3 S1, expand ở P1). */
+/** `users` table (§6). `role` is a new column (§6.3 S1, expanded in P1). */
 @Entity('users')
 export class UserRecord {
   @PrimaryColumn('uuid')
@@ -35,8 +35,8 @@ export class UserRecord {
 }
 
 /**
- * Bảng mới `refresh_tokens` (§6.3 S2): chỉ lưu SHA-256 của token, dùng một lần,
- * xoay vòng qua `replaced_by_id`, thu hồi theo chuỗi (AUTH-02).
+ * New `refresh_tokens` table (§6.3 S2): stores only the token SHA-256, single use,
+ * rotated via `replaced_by_id`, revoked by chain (AUTH-02).
  */
 @Entity('refresh_tokens')
 export class RefreshTokenRecord {

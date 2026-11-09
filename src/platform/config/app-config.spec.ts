@@ -3,7 +3,7 @@ import { loadConfig } from './app-config';
 const base = { DATABASE_URL: 'postgres://x', JWT_SECRET: 'secret' };
 
 describe('loadConfig', () => {
-  it('biến để trống được coi là chưa đặt ⇒ dùng mặc định (lỗi Swagger 404 ngày 2026-11-09)', () => {
+  it('empty variables are treated as unset ⇒ defaults apply (Swagger 404 bug on 2026-11-09)', () => {
     expect(loadConfig({ ...base, SWAGGER_ENABLED: '' }).swagger.enabled).toBe(
       true,
     );
@@ -11,7 +11,7 @@ describe('loadConfig', () => {
     expect(loadConfig({ ...base, BCRYPT_COST: '  ' }).auth.bcryptCost).toBe(12);
   });
 
-  it('SWAGGER_ENABLED: mặc định bật ở dev, tắt ở production, giá trị tường minh thắng', () => {
+  it('SWAGGER_ENABLED: on by default in dev, off in production, explicit value wins', () => {
     expect(loadConfig(base).swagger.enabled).toBe(true);
     expect(
       loadConfig({ ...base, SWAGGER_ENABLED: 'false' }).swagger.enabled,
@@ -28,13 +28,13 @@ describe('loadConfig', () => {
     ).toBe(true);
   });
 
-  it('biến bắt buộc để trống vẫn báo lỗi rõ ràng', () => {
+  it('an empty required variable still fails with a clear error', () => {
     expect(() => loadConfig({ ...base, DATABASE_URL: '' })).toThrow(
       /DATABASE_URL/,
     );
   });
 
-  it('production cấm mock AI Engine', () => {
+  it('production forbids the mock AI Engine', () => {
     expect(() =>
       loadConfig({ ...base, NODE_ENV: 'production', JWT_SECRET: 'real' }),
     ).toThrow(/AI_ENGINE_MODE/);

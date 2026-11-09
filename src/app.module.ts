@@ -14,9 +14,9 @@ import { ALL_ENTITIES } from './app.entities';
 
 /**
  * Composition root.
- *  - Module kỹ thuật (@Global): CoreModule (config, clock, id, jwt, AI engine), DatabaseModule.
- *  - Module nghiệp vụ: mỗi context một module, chỉ import qua public-api.
- *  - Chính sách HTTP toàn cục: JWT guard, envelope, exception filter.
+ *  - Technical modules (@Global): CoreModule (config, clock, id, jwt, AI engine), DatabaseModule.
+ *  - Business modules: one module per context, imported only via public-api.
+ *  - Global HTTP policies: JWT guard, envelope, exception filter.
  */
 const featureModules: Array<Type | DynamicModule> = [
   HealthModule,

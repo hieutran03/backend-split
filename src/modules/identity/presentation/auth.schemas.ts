@@ -10,7 +10,7 @@ import {
 } from '../domain/user';
 
 // ------------------------------------------------------------------ request
-/** Khớp `UserCreate` của Python; luật 72 byte của mật khẩu kiểm ở domain. */
+/** Matches Python `UserCreate`; the password's 72-byte rule is checked in the domain. */
 export const signupSchema = z.object({
   username: z
     .string()
@@ -27,7 +27,7 @@ export const signupSchema = z.object({
 });
 export type SignupBody = z.infer<typeof signupSchema>;
 
-/** Khớp `LoginRequest` của Python. Không áp luật độ dài mật khẩu ở đây. */
+/** Matches Python `LoginRequest`. No password length rules applied here. */
 export const loginSchema = z.object({
   email: z
     .string()
@@ -61,12 +61,12 @@ export const tokenViewSchema: z.ZodType<TokenView> = z.object({
     .meta({ description: 'JWT HS256, claim type=access, ver' }),
   refreshToken: z.string().meta({
     description:
-      'Chuỗi opaque (không phải JWT). Lưu an toàn phía client; dùng cho /auth/refresh.',
+      'Opaque string (not a JWT). Store securely on the client; used for /auth/refresh.',
   }),
   tokenType: z.literal('bearer'),
   expiresIn: z
     .number()
     .int()
-    .meta({ description: 'Số giây sống của accessToken', example: 900 }),
+    .meta({ description: 'accessToken lifetime in seconds', example: 900 }),
   userId: z.uuid(),
 });

@@ -1,9 +1,9 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 /**
- * Bản ghi TypeORM của bảng `projects` — CHỈ là hình dạng bảng, không có logic.
- * Tên cột snake_case giữ nguyên để Engine (SQLAlchemy) đọc chung (§5).
- * Không dùng @CreateDateColumn: DB không có default (Alembic), app tự set.
+ * TypeORM record for the `projects` table — ONLY the table shape, no logic.
+ * snake_case column names are kept so the Engine (SQLAlchemy) can share them (§5).
+ * No @CreateDateColumn: the DB has no default (Alembic), the app sets it.
  */
 @Entity('projects')
 export class ProjectRecord {

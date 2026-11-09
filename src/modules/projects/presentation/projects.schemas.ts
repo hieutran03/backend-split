@@ -4,19 +4,19 @@ import { type ProjectView } from '../application/project.view';
 import { PROJECT_INSTRUCTIONS_MAX, PROJECT_NAME_MAX } from '../domain/project';
 
 // ------------------------------------------------------------------ request
-/** Validate hình dạng request; invariant nghiệp vụ vẫn ở domain. Dùng chung cho Swagger. */
+/** Validates request shape; business invariants stay in the domain. Shared with Swagger. */
 export const createProjectSchema = z.object({
   name: z
     .string()
     .trim()
     .min(1)
     .max(PROJECT_NAME_MAX)
-    .meta({ example: 'Báo cáo Q3' }),
+    .meta({ example: 'Q3 report' }),
   description: z.string().max(5_000).nullish(),
   instructions: z.string().max(PROJECT_INSTRUCTIONS_MAX).nullish().meta({
     description:
-      'Đi vào body E1 (projectInstructions) cho mọi hội thoại của project',
-    example: 'Trả lời ngắn gọn, bằng tiếng Việt',
+      'Goes into the E1 body (projectInstructions) for every conversation in the project',
+    example: 'Answer briefly, in Vietnamese',
   }),
 });
 export type CreateProjectBody = z.infer<typeof createProjectSchema>;
@@ -30,8 +30,8 @@ export type UpdateProjectBody = z.infer<typeof updateProjectSchema>;
 
 // ----------------------------------------------------------------- response
 /**
- * Chỉ dùng cho tài liệu. Kiểu `z.ZodType<ProjectView>` bắt compiler báo lỗi nếu
- * ProjectView đổi mà schema này không đổi theo.
+ * Documentation only. The `z.ZodType<ProjectView>` type makes the compiler fail if
+ * ProjectView changes without this schema changing too.
  */
 export const projectViewSchema: z.ZodType<ProjectView> = z.object({
   id: z.uuid(),

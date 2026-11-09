@@ -42,7 +42,7 @@ export class InMemoryUserRepository implements UserRepository {
   }
 
   public async insert(user: User): Promise<void> {
-    // Mô phỏng unique index của DB (chặn race giữa bước kiểm và bước ghi).
+    // Simulates the DB unique index (blocks races between the check and the write).
     if (await this.emailExists(user.snapshot().email)) {
       throw new ConflictError(
         'Email is already registered',
@@ -52,7 +52,7 @@ export class InMemoryUserRepository implements UserRepository {
     this.rows.set(user.id, User.restore(user.snapshot()));
   }
 
-  /** Tiện cho test: đánh dấu xoá mềm. */
+  /** Test helper: marks as soft-deleted. */
   public softDelete(id: string): void {
     const u = this.rows.get(id);
     if (u)
@@ -63,7 +63,7 @@ export class InMemoryUserRepository implements UserRepository {
   }
 }
 
-/** Hash giả có thể đọc được: "hashed:<plain>". Đếm số lần burnTime để test chống dò email. */
+/** Readable dummy hash: "hashed:<plain>". Counts burnTime calls to test email-probing protection. */
 export class FakePasswordHasher implements PasswordHasher {
   public burned = 0;
   public hash(plain: string): Promise<string> {

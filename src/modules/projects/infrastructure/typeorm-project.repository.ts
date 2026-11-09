@@ -17,7 +17,7 @@ export class TypeOrmProjectRepository implements ProjectRepository {
   public constructor(private readonly db: DbContext) {}
 
   private get repo() {
-    // Luôn lấy qua db.manager để tự tham gia transaction hiện hành.
+    // Always go through db.manager to join the current transaction automatically.
     return this.db.manager.getRepository(ProjectRecord);
   }
 

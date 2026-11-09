@@ -1,6 +1,6 @@
 import type { Project } from '../domain/project';
 
-/** Dữ liệu trả ra ngoài (camelCase, ISO date). Không trả domain object ra controller. */
+/** Outgoing data (camelCase, ISO dates). Never return domain objects to the controller. */
 export interface ProjectView {
   readonly id: string;
   readonly name: string;
