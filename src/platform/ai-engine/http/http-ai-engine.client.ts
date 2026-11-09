@@ -29,19 +29,19 @@ import { readNdjson } from './ndjson';
 export interface HttpAiEngineOptions {
   readonly baseUrl: string;
   readonly serviceToken: string;
-  /** Timeout cho call JSON (không áp cho stream). */
+  /** Timeout for JSON calls (not applied to streams). */
   readonly timeoutMs: number;
-  /** Lấy request id hiện hành để truyền X-Request-Id. */
+  /** Gets the current request id to forward as X-Request-Id. */
   readonly requestId?: () => string | undefined;
 }
 
 type Method = 'GET' | 'POST' | 'DELETE';
 
 /**
- * Adapter gọi AI Engine thật qua /internal/v1 (§8).
+ * Adapter calling the real AI Engine via /internal/v1 (§8).
  *
- * TODO(ENG-03): retry/backoff cho call idempotent, circuit breaker, timeout "im
- * lặng" cho stream (5 s × 3), metrics. Bản này đủ để chạy end-to-end.
+ * TODO(ENG-03): retry/backoff for idempotent calls, circuit breaker, "silence"
+ * timeout for streams (5 s × 3), metrics. This version is enough to run end-to-end.
  */
 export class HttpAiEngineClient implements AiEngineClient {
   public constructor(private readonly options: HttpAiEngineOptions) {}
@@ -333,7 +333,7 @@ export class HttpAiEngineClient implements AiEngineClient {
 
   private async raise(response: Response, path: string): Promise<never> {
     const text = await response.text().catch(() => '');
-    // 404/409 từ Engine giữ nguyên ngữ nghĩa để caller quyết định (outbox §8).
+    // 404/409 from the Engine keep their semantics so the caller can decide (outbox §8).
     if (response.status === 404)
       throw new AppError(
         'not_found',

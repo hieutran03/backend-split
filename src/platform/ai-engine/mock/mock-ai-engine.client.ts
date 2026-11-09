@@ -28,15 +28,15 @@ import type {
 import { parseScenario, type MockScenario } from './mock-scenario';
 
 export interface MockAiEngineOptions {
-  /** Độ trễ giữa 2 event (ms). 0 khi chạy unit test. */
+  /** Delay between 2 events (ms). 0 in unit tests. */
   readonly delayMs: number;
   /**
-   * URL gốc của chính backend để mock gọi callback B1 sau khi "index" xong.
-   * Rỗng => không gọi callback (test tự kiểm qua `documentCallbacks`).
+   * Base URL of the backend itself, for the mock to call callback B1 once "indexing" is done.
+   * Empty => no callback (tests check `documentCallbacks` instead).
    */
   readonly backendCallbackBaseUrl: string;
   readonly serviceToken: string;
-  /** Thời gian giả lập parse + index tài liệu (ms). */
+  /** Simulated document parse + index time (ms). */
   readonly indexDelayMs: number;
   readonly log?: (message: string, meta?: Record<string, unknown>) => void;
 }
@@ -52,13 +52,13 @@ interface InflightTurn {
 }
 
 /**
- * AI Engine giả lập trong tiến trình — thay cho Engine Python khi dev.
+ * In-process simulated AI Engine — stands in for the Python Engine during dev.
  *
- * Mục tiêu: hành vi ĐÚNG HỢP ĐỒNG (seq tăng dần, đúng 1 terminal, heartbeat, stop
- * fence theo version, interrupt/continuation...) để backend code + test được mọi
- * nhánh của TurnOrchestrator mà không cần LLM. Nội dung câu trả lời là giả.
+ * Goal: CONTRACT-CORRECT behavior (increasing seq, exactly 1 terminal, heartbeat, stop
+ * fence by version, interrupt/continuation...) so the backend can implement + test every
+ * branch of TurnOrchestrator without an LLM. The answer content is fake.
  *
- * Chọn kịch bản bằng marker trong message, xem `mock-scenario.ts`.
+ * Pick a scenario with markers in the message, see `mock-scenario.ts`.
  */
 export class MockAiEngineClient implements AiEngineClient {
   private readonly inflight = new Map<string, InflightTurn>();
@@ -97,31 +97,31 @@ export class MockAiEngineClient implements AiEngineClient {
     {
       name: 'read_file',
       serverName: 'filesystem',
-      description: 'Đọc một file (mock)',
+      description: 'Read a file (mock)',
       inputSchema: { type: 'object', properties: { path: { type: 'string' } } },
     },
     {
       name: 'list_dir',
       serverName: 'filesystem',
-      description: 'Liệt kê thư mục (mock)',
+      description: 'List a directory (mock)',
       inputSchema: { type: 'object', properties: { path: { type: 'string' } } },
     },
     {
       name: 'search',
       serverName: 'web-search',
-      description: 'Tìm kiếm web (mock)',
+      description: 'Web search (mock)',
       inputSchema: {
         type: 'object',
         properties: { query: { type: 'string' } },
       },
     },
   ];
-  /** Ghi lại callback B1 đã "gửi" — tiện cho test. */
+  /** Records "sent" B1 callbacks — handy for tests. */
   public readonly documentCallbacks: Array<{
     documentId: string;
     body: DocumentStatusCallbackV1;
   }> = [];
-  /** Ghi lại mọi lời gọi side effect (E5/E8/E9) — tiện cho test outbox. */
+  /** Records every side-effect call (E5/E8/E9) — handy for outbox tests. */
   public readonly calls: Array<{ op: string; args: unknown }> = [];
 
   public constructor(private readonly options: MockAiEngineOptions) {}
@@ -159,8 +159,8 @@ export class MockAiEngineClient implements AiEngineClient {
     const approved = request.decisions.every((d) => d.decision !== 'reject');
     this.interrupts.delete(interruptId);
     const message = approved
-      ? 'Đã được duyệt, tiếp tục thực thi tool [mock:tool]'
-      : 'Người dùng từ chối tool, trả lời không dùng tool';
+      ? 'Approved, continuing tool execution [mock:tool]'
+      : 'User rejected the tool, answering without it';
     return this.runTurn(
       request.generationId,
       request.assistantMessageId,
@@ -181,7 +181,7 @@ export class MockAiEngineClient implements AiEngineClient {
       request.assistantMessageId,
       request.executionEpoch,
       `continue:${request.continuationId}`,
-      'Tiếp tục phần trả lời còn dở',
+      'Continuing the unfinished answer',
       signal,
     );
   }
@@ -205,8 +205,8 @@ export class MockAiEngineClient implements AiEngineClient {
       op: 'indexDocument',
       args: { documentId, request, idempotencyKey },
     });
-    this.log('E8 indexDocument (mock) — sẽ callback B1', { documentId });
-    // Giả lập Celery parse + index rồi callback B1. Tên file chứa "fail" => failed.
+    this.log('E8 indexDocument (mock) — will call back B1', { documentId });
+    // Simulates Celery parse + index, then callback B1. File name containing "fail" => failed.
     const timer = setTimeout(() => {
       const failed = /fail/i.test(request.filename);
       const body: DocumentStatusCallbackV1 = failed
@@ -245,7 +245,7 @@ export class MockAiEngineClient implements AiEngineClient {
     const clean = parseScenario(request.message).cleanMessage;
     const words = clean.split(' ').filter(Boolean).slice(0, 6).join(' ');
     return Promise.resolve({
-      title: words.length > 0 ? words : 'Cuộc trò chuyện mới',
+      title: words.length > 0 ? words : 'New conversation',
     });
   }
 
@@ -255,9 +255,9 @@ export class MockAiEngineClient implements AiEngineClient {
     const goal = parseScenario(request.goal).cleanMessage;
     return Promise.resolve({
       tasks: [
-        { title: `Phân tích yêu cầu: ${goal}`, description: null, order: 1 },
-        { title: 'Thu thập dữ liệu cần thiết', description: null, order: 2 },
-        { title: 'Tổng hợp và trả lời', description: null, order: 3 },
+        { title: `Analyze the request: ${goal}`, description: null, order: 1 },
+        { title: 'Gather the necessary data', description: null, order: 2 },
+        { title: 'Synthesize and answer', description: null, order: 3 },
       ],
     });
   }
@@ -270,7 +270,7 @@ export class MockAiEngineClient implements AiEngineClient {
     return Promise.resolve({
       blobId,
       contentType: 'text/plain; charset=utf-8',
-      content: `[mock] Nội dung tool result ${blobId} của user ${scope.userId}`,
+      content: `[mock] Content of tool result ${blobId} for user ${scope.userId}`,
     });
   }
 
@@ -418,7 +418,7 @@ export class MockAiEngineClient implements AiEngineClient {
       });
 
       if (scenario.withReasoning) {
-        for (const delta of ['Đang suy nghĩ ', 'về câu hỏi... ']) {
+        for (const delta of ['Thinking ', 'about the question... ']) {
           await this.sleep(delay, signal);
           yield emit({
             type: 'reasoning_delta',
@@ -434,7 +434,7 @@ export class MockAiEngineClient implements AiEngineClient {
           data: {
             subagentId,
             agentId: 'planning_worker',
-            task: 'Nghiên cứu phụ',
+            task: 'Side research',
           },
         });
         await this.sleep(delay, signal);
@@ -481,7 +481,7 @@ export class MockAiEngineClient implements AiEngineClient {
           type: 'message_delta',
           data: { messageId: assistantMessageId, delta },
         });
-        // Heartbeat giả lập mỗi 10 token để consumer test được nhánh heartbeat.
+        // Simulated heartbeat every 10 tokens so consumers can test the heartbeat branch.
         if (i > 0 && i % 10 === 0) yield emit({ type: 'heartbeat', data: {} });
       }
 
@@ -495,7 +495,7 @@ export class MockAiEngineClient implements AiEngineClient {
 
       switch (scenario.terminal) {
         case 'disconnect':
-          // Cố tình kết thúc stream không có terminal.
+          // Deliberately end the stream without a terminal.
           return;
         case 'error':
           yield emit({
@@ -503,7 +503,7 @@ export class MockAiEngineClient implements AiEngineClient {
             data: {
               schema: 'error.v1',
               code: 'mock_failure',
-              message: 'Lỗi giả lập từ mock AI Engine',
+              message: 'Simulated error from the mock AI Engine',
               partialText: text,
               retryable: true,
             },
@@ -525,7 +525,7 @@ export class MockAiEngineClient implements AiEngineClient {
                   toolName: 'run_shell',
                   toolOrigin: 'client',
                   args: { command: 'ls -la' },
-                  description: 'Chạy lệnh trên máy người dùng (cần duyệt)',
+                  description: 'Run a command on the user machine (requires approval)',
                 },
               ],
               deviceId: null,
@@ -554,7 +554,7 @@ export class MockAiEngineClient implements AiEngineClient {
                 sources: [
                   {
                     id: 's1',
-                    title: 'Nguồn giả lập',
+                    title: 'Simulated source',
                     url: 'https://example.com/mock',
                   },
                 ],
@@ -595,11 +595,11 @@ export class MockAiEngineClient implements AiEngineClient {
       webImageRefs: [],
       todoUpdates: scenario.withTodos
         ? [
-            { title: 'Bước 1 (mock)', status: 'completed', order: 1 },
-            { title: 'Bước 2 (mock)', status: 'pending', order: 2 },
+            { title: 'Step 1 (mock)', status: 'completed', order: 1 },
+            { title: 'Step 2 (mock)', status: 'pending', order: 2 },
           ]
         : [],
-      suggestions: ['Bạn có thể giải thích thêm?', 'Cho ví dụ cụ thể?'],
+      suggestions: ['Can you explain further?', 'Can you give a concrete example?'],
       usage: {
         inputTokens: Math.ceil(scenario.cleanMessage.length / 4),
         outputTokens: Math.ceil(text.length / 4),
@@ -609,10 +609,10 @@ export class MockAiEngineClient implements AiEngineClient {
   }
 
   private answerTokens(scenario: MockScenario): string[] {
-    const base = `Đây là câu trả lời giả lập từ mock AI Engine cho: "${scenario.cleanMessage || '(trống)'}". `;
+    const base = `This is a simulated answer from the mock AI Engine for: "${scenario.cleanMessage || '(empty)'}". `;
     const body = scenario.long
-      ? base + 'Nội dung dài để kiểm tra stream, lease và nút Stop. '.repeat(20)
-      : base + 'Khi có AI Engine thật, đặt AI_ENGINE_MODE=http.';
+      ? base + 'Long content to test streaming, lease and the Stop button. '.repeat(20)
+      : base + 'With a real AI Engine, set AI_ENGINE_MODE=http.';
     return body.match(/\S+\s*/g) ?? [body];
   }
 

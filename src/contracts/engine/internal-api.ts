@@ -1,9 +1,9 @@
 /**
- * Body/response của /internal/v1 (§8). Engine KHÔNG nhận JWT user: userId là dữ
- * liệu do backend khẳng định sau khi đã kiểm ownership.
+ * Bodies/responses of /internal/v1 (§8). The Engine does NOT receive the user JWT: userId is
+ * data asserted by the backend after it has checked ownership.
  *
- * ⚠️ DRAFT — đối chiếu với `app/schemas/workflow.py` (WorkflowExecutionRequest)
- * và apis/ai-engine-internal-api.md (task ENG-01) trước khi freeze.
+ * ⚠️ DRAFT — reconcile with `app/schemas/workflow.py` (WorkflowExecutionRequest)
+ * and apis/ai-engine-internal-api.md (task ENG-01) before freezing.
  */
 
 /** E1 POST /internal/v1/turns */
@@ -14,7 +14,7 @@ export interface TurnRequestV1 {
   readonly conversationId: string;
   readonly userId: string;
   readonly userMessageId: string;
-  /** UUID đặt trước; = messageId trong stream AI SDK. FK chỉ gán khi row tồn tại (R19). */
+  /** Pre-reserved UUID; = messageId in the AI SDK stream. FK is set only once the row exists (R19). */
   readonly assistantMessageId: string;
   readonly checkpointThreadId: string;
   readonly message: string;
@@ -128,7 +128,7 @@ export interface IndexDocumentRequestV1 {
   readonly mimeType: string;
 }
 
-/** B1 POST /internal/v1/documents/{documentId}/status — Engine gọi NGƯỢC backend. */
+/** B1 POST /internal/v1/documents/{documentId}/status — the Engine calls BACK into the backend. */
 export interface DocumentStatusCallbackV1 {
   readonly attemptId: string;
   readonly indexGenerationId: string | null;
@@ -165,7 +165,7 @@ export interface McpServerV1 {
   readonly enabled: boolean;
   readonly status: 'connected' | 'disconnected' | 'error';
   readonly toolCount: number;
-  /** env/headers luôn bị che (***) trước khi trả ra ngoài. */
+  /** env/headers are always masked (***) before being returned. */
   readonly config: Record<string, unknown>;
 }
 export interface McpToolV1 {
