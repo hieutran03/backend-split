@@ -29,6 +29,8 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 4. Migration dev cho bảng mới (nếu có), tên cột khớp [database-schema.md](reference/database-schema.md).
 5. Side effect chéo miền đi qua **outbox trong cùng transaction**, không gọi Engine trực tiếp.
 6. `pnpm verify` xanh. Chưa chạy thì ghi là chưa chạy, không tick khống.
+7. **Nhật ký** `docs/journal/NNN-*.md`: phần dễ hiểu + kỹ thuật (code, request/response thật) +
+   điểm tranh cãi `TC-n` + lịch sử phiên bản. Xem [journal/README.md](journal/README.md).
 
 ## Phân vai (chốt 2026-11-09)
 
@@ -159,12 +161,19 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 
 ## Câu hỏi / quyết định đang mở
 
-1. **Quyền đọc repo chatbot Python** — cần cho ENG-01, MSG-02, GLD-01 (golden transcript).
-2. **D5**: client ngắt kết nối có huỷ lượt không? Spec nói không, code Python hiện vẫn huỷ ⇒ chốt với FE.
-3. **Feedback trùng**: 409 `feedback_exists` (đề xuất, khớp unique DB) hay upsert?
-4. **Kiến trúc**: tài liệu split gợi ý Layered (Controller → Service → Repository) theo chuẩn team;
-   repo này dùng clean architecture "vừa phải" theo yêu cầu. Nếu team bắt buộc chuẩn Layered thì báo sớm.
-5. Nguồn khoá JWT/Fernet (R25): env cho mọi service — NestJS **không** tự sinh khoá.
+Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật ký (`TC-n`). Danh sách đầy đủ: [journal/README.md](journal/README.md#điểm-tranh-cãi).
+
+| TC | Câu hỏi | Trạng thái | Nhật ký |
+|---|---|---|---|
+| TC-1 | Layered (chuẩn team) hay clean architecture? | tạm chọn clean — **chờ Hiếu** | [001](journal/001-nen-tang-kien-truc.md) |
+| TC-2 | Mỗi context một Nest module hay 1 composition root? | tạm chọn module | [001](journal/001-nen-tang-kien-truc.md) |
+| TC-7 | Hợp đồng V3/E1 là DRAFT — cần code Python để đối chiếu | **mở — cần Hiếu cung cấp** | [002](journal/002-mock-ai-engine.md) |
+| TC-9 | D5: client ngắt kết nối có huỷ lượt không? | **mở — chốt với FE trước W4** | [002](journal/002-mock-ai-engine.md) |
+| TC-10 | Xoá project đang có hội thoại: gỡ / chặn / xoá theo? | **mở** (nghiêng gỡ liên kết) | [003](journal/003-projects.md) |
+| TC-11 | Giới hạn 20.000 ký tự cho instructions | tạm chọn | [003](journal/003-projects.md) |
+| TC-15 | Staging có bật Swagger không? | tạm chọn: không | [004](journal/004-swagger.md) |
+| — | Feedback trùng: 409 `feedback_exists` hay upsert? | mở — sẽ ghi TC khi làm FB-01 | — |
+| — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
 ## Ghi chú review
 
@@ -176,3 +185,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 |---|---|---|
 | 2026-11-09 | 🤖 | Phase 0: skeleton, mock AI Engine, module mẫu projects, tài liệu tra cứu. `pnpm verify` xanh; chạy thật với Postgres: CRUD projects, 401/400/404, outbox `project.deleted`, stream mock qua playground. |
 | 2026-11-09 | 🤖 | Đổi phân vai: Claude làm chính toàn bộ, Hiếu review. Thêm Swagger (F-16). Sửa build: tắt `incremental` trong `tsconfig.build.json` (Nest xoá `dist/` nhưng `.tsbuildinfo` làm tsc không emit). |
+| 2026-11-09 | 🤖 | Thêm nhật ký chức năng `docs/journal/` (001–004) với điểm tranh cãi TC-1…TC-16 + lịch sử phiên bản; PLAN trỏ câu hỏi mở về TC. |

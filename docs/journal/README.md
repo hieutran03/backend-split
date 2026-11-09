@@ -1,0 +1,91 @@
+# Nhật ký chức năng
+
+Mỗi chức năng làm xong có **một file riêng** ở đây. Mỗi file có 2 lớp:
+
+1. **Phần dễ hiểu** — viết bằng lời thường: chức năng này để làm gì, người dùng thấy gì,
+   giải quyết vấn đề gì. Người không đọc code cũng hiểu.
+2. **Phần kỹ thuật** — file nào, code chính, request/response thật, cách thử, giới hạn còn lại.
+
+File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. Task ID khớp với
+[PLAN.md](../PLAN.md).
+
+## Danh sách
+
+| # | Chức năng | Task | Ngày | Trạng thái |
+|---|---|---|---|---|
+| 001 | [Nền tảng & kiến trúc](001-nen-tang-kien-truc.md) | F-01…F-06, F-12 | 2026-11-09 | chờ review |
+| 002 | [AI Engine giả lập (mock)](002-mock-ai-engine.md) | F-07…F-09, F-11 | 2026-11-09 | chờ review |
+| 003 | [Quản lý Project](003-projects.md) | F-10 (PJ1–PJ5) | 2026-11-09 | chờ review |
+| 004 | [Tài liệu API (Swagger)](004-swagger.md) | F-16 | 2026-11-09 | chờ review |
+
+## Điểm tranh cãi
+
+| TC | Câu hỏi | Trạng thái | File |
+|---|---|---|---|
+| TC-1 | Layered hay clean architecture | tạm chọn, chờ Hiếu | 001 |
+| TC-2 | Module mỗi context hay 1 composition root | tạm chọn | 001 |
+| TC-3 | zod hay class-validator | tạm chọn | 001 |
+| TC-4 | TypeORM có quản schema không | chốt: không | 001 |
+| TC-5 | Chấp nhận token cũ không `type` | chốt (D19) | 001 |
+| TC-6 | Mock in-process hay HTTP server | tạm chọn in-process | 002 |
+| TC-7 | Hợp đồng V3 DRAFT | **mở** | 002 |
+| TC-8 | Marker trong tin nhắn hay header | tạm chọn marker | 002 |
+| TC-9 | Client ngắt có huỷ lượt (D5) | **mở** | 002 |
+| TC-10 | Xoá project có hội thoại | **mở** | 003 |
+| TC-11 | Giới hạn instructions | tạm chọn | 003 |
+| TC-12 | Luôn 404 khi không sở hữu | chốt (D15) | 003 |
+| TC-13 | Báo Engine khi xoá project | chốt: outbox | 003 |
+| TC-14 | Cầu nối zod→OpenAPI tự viết | tạm chọn | 004 |
+| TC-15 | Bật Swagger ở môi trường nào | tạm chọn | 004 |
+| TC-16 | Response schema lệch dữ liệu thật | tạm chọn | 004 |
+
+Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
+
+## Mẫu cho file mới
+
+```markdown
+# NNN — <Tên chức năng>
+
+> Task: <ID trong PLAN> · Ngày: <YYYY-MM-DD> · Trạng thái: chờ review / đã review
+
+## Tóm tắt dễ hiểu
+<2–5 câu: chức năng này làm gì, ai dùng, khác gì so với trước>
+
+## Vấn đề cần giải quyết
+<Vì sao phải làm; ràng buộc từ spec>
+
+## Đã giải quyết thế nào
+<Lời thường, có thể dùng ví dụ đời thường>
+
+## Chi tiết kỹ thuật
+### File chính
+### Code then chốt
+### Request / Response mẫu (lấy từ lần chạy thật)
+
+## Cách thử
+
+## Giới hạn & việc còn lại
+
+## Điểm tranh cãi & quyết định
+Mỗi điểm một khối, đủ để người đọc hiểu bối cảnh mà không cần mở spec:
+
+### TC-n — <Câu hỏi ngắn>
+- **Bối cảnh:** <vì sao phải chọn; spec/Python đang làm gì>
+- **Phương án:** A) … B) … (ưu / nhược ngắn gọn)
+- **Đang chọn:** <A/B> — <lý do>
+- **Trạng thái:** đã chốt (ai, ngày) / tạm chọn, chờ Hiếu chốt / mở
+- **Nếu đổi ý:** <phải sửa những gì>
+
+## Lịch sử phiên bản
+| Phiên bản | Ngày | Thay đổi | Lý do |
+|---|---|---|---|
+| v1 | YYYY-MM-DD | Bản đầu | — |
+
+## Gợi ý review
+```
+
+Quy ước:
+- Mỗi lần sửa chức năng sau review ⇒ thêm 1 dòng **Lịch sử phiên bản** (v1.1, v2…) và cập nhật
+  trạng thái của **TC** liên quan, không xoá nội dung cũ (gạch đi nếu bị thay thế) — để đọc lại vẫn
+  thấy vì sao từng đổi ý.
+- Điểm tranh cãi chưa chốt cũng được liệt kê ở mục "Câu hỏi / quyết định đang mở" của PLAN, trỏ về `TC-n`.

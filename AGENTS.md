@@ -6,7 +6,8 @@
 2. **Kiến trúc** ([docs/architecture.md](docs/architecture.md)): `domain/`, `application/` không
    import NestJS/TypeORM/npm hạ tầng; module chỉ dùng `public-api.ts` của module khác;
    side effect chéo miền chỉ qua outbox trong transaction. Máy canh: `pnpm test:architecture`.
-3. **`pnpm verify` xanh** trước khi đánh `[x]`. Chưa chạy thì nói chưa chạy.
+3. **`pnpm verify` xanh** trước khi đánh `[r]`/`[x]`. Chưa chạy thì nói chưa chạy.
+   Mỗi chức năng xong ⇒ viết/cập nhật **nhật ký** `docs/journal/` (dễ hiểu + kỹ thuật + `TC-n` + lịch sử phiên bản).
 4. **Contract trước code**: đổi API/hợp đồng Engine ⇒ sửa `src/contracts/` và `docs/reference/` trước.
 5. **Spec là nguồn sự thật**: route theo [route-mapping.md](docs/reference/route-mapping.md), cột theo
    [database-schema.md](docs/reference/database-schema.md). Tên cột snake_case giữ nguyên.
