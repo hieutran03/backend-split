@@ -24,6 +24,8 @@ pnpm dev                # http://localhost:3000/api/v1
 pnpm -s token:dev       # access token cho user dev
 ```
 
+Swagger UI: **http://localhost:3000/docs** (JSON: `/docs-json`) — bấm *Authorize*, dán token.
+
 ```bash
 T=$(pnpm -s token:dev)
 curl -s localhost:3000/api/v1/projects -H "authorization: Bearer $T"

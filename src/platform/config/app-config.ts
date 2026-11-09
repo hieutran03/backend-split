@@ -31,6 +31,8 @@ const schema = z
     PORT: z.coerce.number().int().min(1).max(65_535).default(3000),
     HTTP_GLOBAL_PREFIX: z.string().default('api/v1'),
     CORS_ORIGINS: list,
+    /** Không đặt => bật ở development/test, tắt ở production. */
+    SWAGGER_ENABLED: bool.optional(),
 
     DATABASE_URL: z.string().min(1),
     DATABASE_POOL_MAX: positiveInt.default(10),
@@ -87,6 +89,7 @@ export interface AppConfig {
     readonly logQueries: boolean;
   };
   readonly redis: { readonly url: string };
+  readonly swagger: { readonly enabled: boolean };
   readonly auth: {
     readonly jwtSecret: string;
     readonly accessTtlSeconds: number;
@@ -125,6 +128,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       logQueries: e.DATABASE_LOG_QUERIES,
     },
     redis: { url: e.REDIS_URL },
+    swagger: { enabled: e.SWAGGER_ENABLED ?? e.NODE_ENV !== 'production' },
     auth: {
       jwtSecret: e.JWT_SECRET,
       accessTtlSeconds: e.JWT_ACCESS_TTL_SECONDS,

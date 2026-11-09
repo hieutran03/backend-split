@@ -29,6 +29,22 @@ src/modules/feedback/
   public-api.ts
 ```
 
+## 3b. Swagger
+
+Controller dùng chính schema zod để sinh tài liệu (không viết DTO class):
+
+```ts
+@ApiTags('feedback') @ApiBearerAuth(BEARER_AUTH) @Controller(...)
+...
+@Post()
+@ApiOperation({ summary: 'Gửi feedback (A30)' })
+@ApiZodBody(createFeedbackSchema)                    // cùng schema với ZodValidationPipe
+@ApiEnvelope(feedbackViewSchema, { status: 201 })    // z.ZodType<FeedbackView> để compiler canh lệch
+@ApiErrors(400, 401, 404, 409)
+```
+
+Kiểm tra trên `/docs` sau khi `pnpm dev`.
+
 ## 4. Đăng ký
 
 - `src/app.entities.ts`: thêm `FeedbackRecord` vào `ALL_ENTITIES`.

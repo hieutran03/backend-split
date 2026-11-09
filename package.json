@@ -30,6 +30,7 @@
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^12.1.1",
     "dotenv": "^16.4.7",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.0",

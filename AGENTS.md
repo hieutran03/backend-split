@@ -1,7 +1,8 @@
 # AGENTS.md — luật chung cho mọi agent và người
 
-1. **Anchor là [docs/PLAN.md](docs/PLAN.md).** Đầu mỗi buổi: `git pull`, đọc PLAN. Bắt đầu/xong
-   task ⇒ sửa trạng thái trong PLAN trong cùng commit. WIP = 1 task `[~]` mỗi người.
+1. **Anchor là [docs/PLAN.md](docs/PLAN.md).** Claude làm chính, Hiếu review. Đầu mỗi buổi đọc
+   PLAN (+ mục "Ghi chú review"). Bắt đầu/xong task ⇒ sửa trạng thái (`[~]` → `[r]`) trong cùng
+   commit. WIP = 1. Chỉ Hiếu chuyển `[r]` → `[x]` (hoặc Claude sau khi đã sửa theo review).
 2. **Kiến trúc** ([docs/architecture.md](docs/architecture.md)): `domain/`, `application/` không
    import NestJS/TypeORM/npm hạ tầng; module chỉ dùng `public-api.ts` của module khác;
    side effect chéo miền chỉ qua outbox trong transaction. Máy canh: `pnpm test:architecture`.
