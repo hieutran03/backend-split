@@ -1,0 +1,79 @@
+import { Module } from '@nestjs/common';
+
+import { DbContext } from '@platform/database/db-context';
+import {
+  CLOCK,
+  ID_GENERATOR,
+  type Clock,
+  type IdGenerator,
+} from '@platform/ports/kernel.port';
+import { OUTBOX, type Outbox } from '@platform/ports/outbox.port';
+import {
+  TRANSACTION_MANAGER,
+  type TransactionManager,
+} from '@platform/ports/transaction-manager.port';
+import {
+  PROJECT_REPOSITORY,
+  type ProjectRepository,
+} from './application/ports/project.repository';
+import {
+  CreateProjectUseCase,
+  DeleteProjectUseCase,
+  GetProjectUseCase,
+  ListProjectsUseCase,
+  UpdateProjectUseCase,
+} from './application/project.use-cases';
+import { TypeOrmProjectRepository } from './infrastructure/typeorm-project.repository';
+import { ProjectsController } from './presentation/projects.controller';
+
+/**
+ * Wiring của module projects — nơi DUY NHẤT core gặp NestJS.
+ * Đọc từ trên xuống: adapter → use case. Mọi thứ là `useFactory` + `new`, nên
+ * nhìn một file là biết cái gì được inject vào đâu.
+ */
+@Module({
+  controllers: [ProjectsController],
+  providers: [
+    // ---- adapters
+    {
+      provide: PROJECT_REPOSITORY,
+      useFactory: (db: DbContext): ProjectRepository =>
+        new TypeOrmProjectRepository(db),
+      inject: [DbContext],
+    },
+    // ---- use cases
+    {
+      provide: CreateProjectUseCase,
+      useFactory: (repo: ProjectRepository, clock: Clock, ids: IdGenerator) =>
+        new CreateProjectUseCase(repo, clock, ids),
+      inject: [PROJECT_REPOSITORY, CLOCK, ID_GENERATOR],
+    },
+    {
+      provide: ListProjectsUseCase,
+      useFactory: (repo: ProjectRepository) => new ListProjectsUseCase(repo),
+      inject: [PROJECT_REPOSITORY],
+    },
+    {
+      provide: GetProjectUseCase,
+      useFactory: (repo: ProjectRepository) => new GetProjectUseCase(repo),
+      inject: [PROJECT_REPOSITORY],
+    },
+    {
+      provide: UpdateProjectUseCase,
+      useFactory: (repo: ProjectRepository, clock: Clock) =>
+        new UpdateProjectUseCase(repo, clock),
+      inject: [PROJECT_REPOSITORY, CLOCK],
+    },
+    {
+      provide: DeleteProjectUseCase,
+      useFactory: (
+        repo: ProjectRepository,
+        outbox: Outbox,
+        tx: TransactionManager,
+        clock: Clock,
+      ) => new DeleteProjectUseCase(repo, outbox, tx, clock),
+      inject: [PROJECT_REPOSITORY, OUTBOX, TRANSACTION_MANAGER, CLOCK],
+    },
+  ],
+})
+export class ProjectsModule {}
