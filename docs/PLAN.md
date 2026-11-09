@@ -194,3 +194,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-09 | 🤖 | Đổi phân vai: Claude làm chính toàn bộ, Hiếu review. Thêm Swagger (F-16). Sửa build: tắt `incremental` trong `tsconfig.build.json` (Nest xoá `dist/` nhưng `.tsbuildinfo` làm tsc không emit). |
 | 2026-11-09 | 🤖 | Thêm nhật ký chức năng `docs/journal/` (001–004) với điểm tranh cãi TC-1…TC-16 + lịch sử phiên bản; PLAN trỏ câu hỏi mở về TC. |
 | 2026-11-09 | 🤖 | Lượt AUTH-01: signup/login, bcrypt `$2b$12$`, refresh token opaque (SHA-256), seed có mật khẩu thật. 33 test, verify xanh, chạy thật 12 kịch bản trên Postgres. |
+| 2026-11-09 | 🤖 | Sửa `/docs` 404: biến env để trống bị parse thành `false`; giờ env rỗng = chưa đặt. Nhật ký 004 v1.1. |

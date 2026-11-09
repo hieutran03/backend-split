@@ -103,6 +103,8 @@ pnpm dev
 
 ## Giới hạn & việc còn lại
 
+- Nếu `/docs` trả 404: kiểm `SWAGGER_ENABLED` và `NODE_ENV` — production tắt mặc định; xem log khởi động có dòng `Swagger UI: …`.
+
 - `/docs` nằm ngoài prefix `/api/v1` và không cần token (chỉ là tài liệu); production tắt mặc định.
 - Response stream (SSE, AI SDK) chỉ mô tả bằng chữ — OpenAPI không mô tả được từng frame.
 - Các module sau phải tự gắn decorator — đã ghi vào [how-to-add-a-module.md](../how-to-add-a-module.md) §3b.
@@ -133,6 +135,7 @@ pnpm dev
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-09 | Swagger `/docs`, cầu nối zod, annotate projects/health/dev; sửa build `incremental` | Hiếu yêu cầu |
+| v1.1 | 2026-11-09 | **Sửa lỗi `/docs` trả 404.** `.env` có dòng `SWAGGER_ENABLED=` (để trống) ⇒ zod parse chuỗi rỗng thành `false` ⇒ Swagger bị tắt âm thầm. Sửa ở `loadConfig`: mọi biến để trống được coi là chưa đặt (dùng mặc định). Thêm 4 test config. | Hiếu báo docs không lên |
 
 ## Gợi ý review
 

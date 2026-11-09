@@ -112,8 +112,20 @@ export interface AppConfig {
   };
 }
 
+/**
+ * Biến để trống (`SWAGGER_ENABLED=` trong .env) được coi là CHƯA ĐẶT ⇒ dùng mặc định.
+ * Không có bước này, chuỗi rỗng bị parse thành `false`/`0` và âm thầm tắt tính năng.
+ */
+function withoutEmptyValues(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  return Object.fromEntries(
+    Object.entries(env).filter(
+      ([, value]) => value !== undefined && value.trim() !== '',
+    ),
+  );
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
-  const parsed = schema.safeParse(env);
+  const parsed = schema.safeParse(withoutEmptyValues(env));
   if (!parsed.success) {
     const issues = parsed.error.issues
       .map((i) => `  - ${i.path.join('.')}: ${i.message}`)
