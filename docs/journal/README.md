@@ -19,6 +19,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 004 | [Tài liệu API (Swagger)](004-swagger.md) | F-16 | 2026-11-09 | chờ review |
 | 005 | [Đăng ký & đăng nhập](005-dang-ky-dang-nhap.md) | AUTH-01 (A1, A2) | 2026-11-09 | chờ review |
 | 006 | [Refresh & logout](006-refresh-logout.md) | AUTH-02 (A3, A4, D19) | 2026-11-09 | chờ review |
+| 007 | [Guard kiểm phiên bản token](007-guard-token-version.md) | AUTH-03 | 2026-11-09 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -48,6 +49,9 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-22 | Logout allDevices vô hiệu access token | chờ Hiếu | 006 |
 | TC-23 | Logout vé người khác ⇒ 0 | tạm chọn | 006 |
 | TC-24 | Logout cần access token | tạm chọn | 006 |
+| TC-25 | Lý do lỗi tách `user_inactive` / `token_revoked` | tạm chọn | 007 |
+| TC-26 | Cache trong process hay Redis | tạm chọn process | 007 |
+| TC-27 | Token thiếu `ver` = 0 | theo spec | 007 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

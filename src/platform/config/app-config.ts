@@ -53,6 +53,13 @@ const schema = z
      */
     JWT_LEGACY_REFRESH_UNTIL: z.iso.datetime({ offset: true }).optional(),
     ADMIN_USER_IDS: list,
+    /** Cache for users.token_version/deleted_at read by the guard. Spec: at most 30 s (§11). */
+    AUTH_USER_STATE_CACHE_SECONDS: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .max(30)
+      .default(30),
 
     AI_ENGINE_MODE: z.enum(['mock', 'http']).default('mock'),
     AI_ENGINE_BASE_URL: z.string().default('http://localhost:8001'),
@@ -108,6 +115,8 @@ export interface AppConfig {
     /** null => legacy refresh JWT exchange disabled. */
     readonly legacyRefreshUntil: Date | null;
     readonly adminUserIds: readonly string[];
+    /** 0 disables the cache (every request hits the DB). */
+    readonly userStateCacheSeconds: number;
   };
   readonly aiEngine: {
     readonly mode: 'mock' | 'http';
@@ -164,6 +173,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
         ? new Date(e.JWT_LEGACY_REFRESH_UNTIL)
         : null,
       adminUserIds: e.ADMIN_USER_IDS,
+      userStateCacheSeconds: e.AUTH_USER_STATE_CACHE_SECONDS,
     },
     aiEngine: {
       mode: e.AI_ENGINE_MODE,

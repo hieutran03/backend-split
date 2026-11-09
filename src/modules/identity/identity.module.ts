@@ -13,6 +13,10 @@ import {
   TRANSACTION_MANAGER,
   type TransactionManager,
 } from '@platform/ports/transaction-manager.port';
+import {
+  USER_TOKEN_STATE_READER,
+  type UserTokenStateReader,
+} from '@platform/ports/user-token-state.port';
 import { LoginUseCase, SignupUseCase } from './application/auth.use-cases';
 import {
   ACCESS_TOKEN_ISSUER,
@@ -38,15 +42,37 @@ import {
 } from './infrastructure/token-adapters';
 import { TypeOrmRefreshTokenRepository } from './infrastructure/typeorm-refresh-token.repository';
 import { TypeOrmUserRepository } from './infrastructure/typeorm-user.repository';
+import {
+  CachedUserTokenStateReader,
+  TypeOrmUserTokenStateReader,
+} from './infrastructure/user-token-state.readers';
 import { AuthController } from './presentation/auth.controller';
 
 /**
  * Identity context: users + refresh_tokens. Covers auth (A1–A4) and users/me (A5).
+ *
+ * Exports USER_TOKEN_STATE_READER: the global JwtAuthGuard (platform) depends on that
+ * port, and this module is the one that owns the `users` table.
  */
 @Module({
   controllers: [AuthController],
   providers: [
     // ---- adapters
+    {
+      provide: USER_TOKEN_STATE_READER,
+      useFactory: (
+        db: DbContext,
+        clock: Clock,
+        config: AppConfig,
+      ): UserTokenStateReader => {
+        const reader = new TypeOrmUserTokenStateReader(db);
+        const ttlMs = config.auth.userStateCacheSeconds * 1000;
+        return ttlMs > 0
+          ? new CachedUserTokenStateReader(reader, clock, ttlMs)
+          : reader;
+      },
+      inject: [DbContext, CLOCK, APP_CONFIG],
+    },
     {
       provide: USER_REPOSITORY,
       useFactory: (db: DbContext): UserRepository =>
@@ -186,5 +212,6 @@ import { AuthController } from './presentation/auth.controller';
       ],
     },
   ],
+  exports: [USER_TOKEN_STATE_READER],
 })
 export class IdentityModule {}

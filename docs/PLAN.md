@@ -6,7 +6,7 @@
 > Nguồn yêu cầu: artifact "Chatbot Backend Split" (tách phần quản lý/lưu trữ của chatbot
 > FastAPI sang NestJS). Bản trích để tra cứu nằm ở [docs/reference/](reference/).
 
-**Cập nhật lần cuối:** 2026-11-09 · **Giai đoạn hiện tại:** Phase 1 (W1) — lượt tiếp theo: AUTH-03
+**Cập nhật lần cuối:** 2026-11-09 · **Giai đoạn hiện tại:** Phase 1 (W1) — lượt tiếp theo: USR-01
 
 ## Cách đọc
 
@@ -78,7 +78,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 |---|---|---|---|---|
 | AUTH-01 | Signup/login: bcrypt cost 12 tương thích `$2b$`, trùng email/username ⇒ 409; phát hành refresh token opaque — [nhật ký 005](journal/005-dang-ky-dang-nhap.md) | A1, A2 | 🤖 | [r] |
 | AUTH-02 | Refresh token **opaque** xoay vòng (bảng `refresh_tokens`, SHA-256, `replaced_by_id`, thu hồi cả chuỗi khi dùng lại); logout thu hồi; refresh JWT cũ đổi 1 lần trong 7 ngày (D19) — [nhật ký 006](journal/006-refresh-logout.md) | A3, A4 | 🤖 | [r] |
-| AUTH-03 | Guard kiểm claim `ver` với `users.token_version` + `deleted_at` (cache ≤ 30 s); admin từ `ADMIN_USER_IDS` → sau này `users.role` | — | 🤖 | [ ] |
+| AUTH-03 | Guard kiểm claim `ver` với `users.token_version` + `deleted_at` (cache ≤ 30 s); admin từ `ADMIN_USER_IDS` → sau này `users.role` — [nhật ký 007](journal/007-guard-token-version.md) | — | 🤖 | [r] |
 | USR-01 | `GET /users/me` | A5 | 🤖 | [ ] |
 | CONV-01 | Conversations CRUD + list phân trang + soft delete; migration dev | A7–A11, A21–A24 | 🤖 | [ ] |
 | CONV-02 | Xoá hội thoại: 409 nếu có lượt active (D24) + outbox `conversation.deleted` (đủ threadIds) | A12, A25 | 🤖 | [ ] |
@@ -183,6 +183,9 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-22 | Logout `allDevices` có vô hiệu luôn access token (tăng `token_version`)? | **chờ Hiếu** | [006](journal/006-refresh-logout.md) |
 | TC-23 | Logout bằng vé người khác ⇒ 200 `revokedCount: 0` | tạm chọn | [006](journal/006-refresh-logout.md) |
 | TC-24 | Logout cần access token | tạm chọn | [006](journal/006-refresh-logout.md) |
+| TC-25 | Hai lý do lỗi `user_inactive` / `token_revoked` | tạm chọn | [007](journal/007-guard-token-version.md) |
+| TC-26 | Cache trạng thái user trong process (30 s) hay Redis | tạm chọn process | [007](journal/007-guard-token-version.md) |
+| TC-27 | Token Python không có `ver` ⇒ coi là 0 | theo spec | [007](journal/007-guard-token-version.md) |
 | — | Feedback trùng: 409 `feedback_exists` hay upsert? | mở — sẽ ghi TC khi làm FB-01 | — |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
@@ -201,3 +204,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-09 | 🤖 | Sửa `/docs` 404: biến env để trống bị parse thành `false`; giờ env rỗng = chưa đặt. Nhật ký 004 v1.1. |
 | 2026-11-09 | 🤖 | Chuyển comment, chuỗi text trong code, file cấu hình sang tiếng Anh (tài liệu giữ tiếng Việt) — luật số 9 trong AGENTS.md. Sửa 3 file lệch prettier lọt vào `1b0a276`. |
 | 2026-11-09 | 🤖 | Lượt AUTH-02: refresh xoay vòng + phát hiện dùng lại (thu hồi chuỗi), logout thu hồi thật, đổi refresh JWT cũ một lần (D19). 58 test; chạy thật 18 kịch bản + test đồng thời 5 request × 3 lần trên Postgres. |
+| 2026-11-09 | 🤖 | Lượt AUTH-03: guard kiểm `deleted_at` + `token_version` qua port `UserTokenStateReader` (identity cài đặt, cache ≤ 30 s có giới hạn). 70 test; chạy thật 9 kịch bản trên 2 instance (có/không cache). |
