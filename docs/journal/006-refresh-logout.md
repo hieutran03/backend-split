@@ -1,6 +1,6 @@
 # 006 — Làm mới phiên (refresh) & đăng xuất (logout)
 
-> Task: AUTH-02 (route A3, A4) · Ngày: 2026-11-09 · Trạng thái: chờ review
+> Task: AUTH-02 (route A3, A4) · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
 
 ## Tóm tắt dễ hiểu
 

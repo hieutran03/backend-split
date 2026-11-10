@@ -1,6 +1,6 @@
 # 007 — Guard kiểm phiên bản token & tài khoản đã xoá
 
-> Task: AUTH-03 · Ngày: 2026-11-09 · Trạng thái: chờ review
+> Task: AUTH-03 · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
 
 ## Tóm tắt dễ hiểu
 

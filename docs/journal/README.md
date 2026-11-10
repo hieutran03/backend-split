@@ -13,14 +13,14 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 
 | # | Chức năng | Task | Ngày | Trạng thái |
 |---|---|---|---|---|
-| 001 | [Nền tảng & kiến trúc](001-nen-tang-kien-truc.md) | F-01…F-06, F-12 | 2026-11-09 | chờ review |
-| 002 | [AI Engine giả lập (mock)](002-mock-ai-engine.md) | F-07…F-09, F-11 | 2026-11-09 | chờ review |
-| 003 | [Quản lý Project](003-projects.md) | F-10 (PJ1–PJ5) | 2026-11-09 | chờ review |
-| 004 | [Tài liệu API (Swagger)](004-swagger.md) | F-16 | 2026-11-09 | chờ review |
-| 005 | [Đăng ký & đăng nhập](005-dang-ky-dang-nhap.md) | AUTH-01 (A1, A2) | 2026-11-09 | chờ review |
-| 006 | [Refresh & logout](006-refresh-logout.md) | AUTH-02 (A3, A4, D19) | 2026-11-09 | chờ review |
-| 007 | [Guard kiểm phiên bản token](007-guard-token-version.md) | AUTH-03 | 2026-11-09 | chờ review |
-| 008 | [Hồ sơ của tôi](008-users-me.md) | USR-01 (A5) | 2026-11-09 | chờ review |
+| 001 | [Nền tảng & kiến trúc](001-nen-tang-kien-truc.md) | F-01…F-06, F-12 | 2026-11-09 | đã review |
+| 002 | [AI Engine giả lập (mock)](002-mock-ai-engine.md) | F-07…F-09, F-11 | 2026-11-09 | đã review |
+| 003 | [Quản lý Project](003-projects.md) | F-10 (PJ1–PJ5) | 2026-11-09 | đã review |
+| 004 | [Tài liệu API (Swagger)](004-swagger.md) | F-16 | 2026-11-09 | đã review |
+| 005 | [Đăng ký & đăng nhập](005-dang-ky-dang-nhap.md) | AUTH-01 (A1, A2) | 2026-11-09 | đã review |
+| 006 | [Refresh & logout](006-refresh-logout.md) | AUTH-02 (A3, A4, D19) | 2026-11-09 | đã review |
+| 007 | [Guard kiểm phiên bản token](007-guard-token-version.md) | AUTH-03 | 2026-11-09 | đã review |
+| 008 | [Hồ sơ của tôi](008-users-me.md) | USR-01 (A5) | 2026-11-09 | đã review |
 
 ## Điểm tranh cãi
 

@@ -1,6 +1,6 @@
 # 002 — AI Engine giả lập (mock)
 
-> Task: F-07, F-08, F-09, F-11 · Ngày: 2026-11-09 · Trạng thái: chờ review
+> Task: F-07, F-08, F-09, F-11 · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
 
 ## Tóm tắt dễ hiểu
 

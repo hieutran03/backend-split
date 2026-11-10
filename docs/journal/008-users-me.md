@@ -1,6 +1,6 @@
 # 008 — Hồ sơ của tôi (`GET /users/me`)
 
-> Task: USR-01 (route A5) · Ngày: 2026-11-09 · Trạng thái: chờ review
+> Task: USR-01 (route A5) · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
 
 ## Tóm tắt dễ hiểu
 

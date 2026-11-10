@@ -51,24 +51,24 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 
 ---
 
-## Phase 0 — Nền tảng & template (chờ review)
+## Phase 0 — Nền tảng & template ✅
 
 | ID | Task | Owner | Trạng thái |
 |---|---|---|---|
-| F-01 | Khởi tạo NestJS 11 + pnpm + TS strict, alias `@shared @contracts @platform @modules` | 🤖 | [r] |
-| F-02 | Kiến trúc sạch "vừa phải" + luật dependency-cruiser + ESLint chặn framework trong core | 🤖 | [r] |
-| F-03 | Config zod (đọc env một chỗ), CoreModule (clock, id, JWT, AI engine) | 🤖 | [r] |
-| F-04 | Database: TypeORM DataSource, `DbContext` (transaction qua AsyncLocalStorage), `backend_migrations` | 🤖 | [r] |
-| F-05 | HTTP: envelope `{success, code, message, data}`, exception filter, ZodValidationPipe, JWT guard toàn cục, `@Public` `@AdminOnly` `@CurrentActor` `@RawResponse` | 🤖 | [r] |
-| F-06 | Outbox port + `TypeOrmOutbox` (enqueue trong transaction) + bảng `outbox_events` | 🤖 | [r] |
-| F-07 | Hợp đồng Engine (DRAFT): `TurnRequestV1`, `V3StreamEvent`, payload terminal, port `AiEngineClient` E1–E21 | 🤖 | [r] |
-| F-08 | **Mock AI Engine** in-process, kịch bản bằng marker `[mock:*]` (xem [ai-engine-mock.md](ai-engine-mock.md)) | 🤖 | [r] |
-| F-09 | `HttpAiEngineClient` (NDJSON reader, service token, X-Request-Id) — bản cơ bản | 🤖 | [r] |
-| F-10 | Module mẫu **projects** PJ1–PJ5 đủ 4 tầng + unit test → **template để copy** | 🤖 | [r] |
-| F-11 | Health `/health`, `/health/dependencies`; dev playground `POST /dev/engine/turns` | 🤖 | [r] |
-| F-12 | docker-compose (Postgres 16, Redis 7, MinIO), migration dev baseline, seed 2 user, `token:dev` | 🤖 | [r] |
-| F-13 | Tài liệu tra cứu sinh từ spec: route mapping, DB schema, engine contract | 🤖 | [r] |
-| F-16 | **Swagger** `/docs` + `/docs-json`: schema sinh từ chính zod (`@ApiZodBody`, `@ApiZodQuery`, `@ApiEnvelope`, `@ApiErrors`), bearer auth; tắt ở production trừ khi `SWAGGER_ENABLED=true` | 🤖 | [r] |
+| F-01 | Khởi tạo NestJS 11 + pnpm + TS strict, alias `@shared @contracts @platform @modules` | 🤖 | [x] |
+| F-02 | Kiến trúc sạch "vừa phải" + luật dependency-cruiser + ESLint chặn framework trong core | 🤖 | [x] |
+| F-03 | Config zod (đọc env một chỗ), CoreModule (clock, id, JWT, AI engine) | 🤖 | [x] |
+| F-04 | Database: TypeORM DataSource, `DbContext` (transaction qua AsyncLocalStorage), `backend_migrations` | 🤖 | [x] |
+| F-05 | HTTP: envelope `{success, code, message, data}`, exception filter, ZodValidationPipe, JWT guard toàn cục, `@Public` `@AdminOnly` `@CurrentActor` `@RawResponse` | 🤖 | [x] |
+| F-06 | Outbox port + `TypeOrmOutbox` (enqueue trong transaction) + bảng `outbox_events` | 🤖 | [x] |
+| F-07 | Hợp đồng Engine (DRAFT): `TurnRequestV1`, `V3StreamEvent`, payload terminal, port `AiEngineClient` E1–E21 | 🤖 | [x] |
+| F-08 | **Mock AI Engine** in-process, kịch bản bằng marker `[mock:*]` (xem [ai-engine-mock.md](ai-engine-mock.md)) | 🤖 | [x] |
+| F-09 | `HttpAiEngineClient` (NDJSON reader, service token, X-Request-Id) — bản cơ bản | 🤖 | [x] |
+| F-10 | Module mẫu **projects** PJ1–PJ5 đủ 4 tầng + unit test → **template để copy** | 🤖 | [x] |
+| F-11 | Health `/health`, `/health/dependencies`; dev playground `POST /dev/engine/turns` | 🤖 | [x] |
+| F-12 | docker-compose (Postgres 16, Redis 7, MinIO), migration dev baseline, seed 2 user, `token:dev` | 🤖 | [x] |
+| F-13 | Tài liệu tra cứu sinh từ spec: route mapping, DB schema, engine contract | 🤖 | [x] |
+| F-16 | **Swagger** `/docs` + `/docs-json`: schema sinh từ chính zod (`@ApiZodBody`, `@ApiZodQuery`, `@ApiEnvelope`, `@ApiErrors`), bearer auth; tắt ở production trừ khi `SWAGGER_ENABLED=true` | 🤖 | [x] |
 | F-14 | Integration test với Postgres thật (testcontainers hoặc docker compose) + CI (GitHub Actions/GitLab) | 🤖 | [ ] |
 | F-15 | Request id middleware + log JSON (pino) + truyền `X-Request-Id` sang Engine | 🤖 | [ ] |
 
@@ -76,10 +76,10 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 
 | ID | Task | Route | Owner | Trạng thái |
 |---|---|---|---|---|
-| AUTH-01 | Signup/login: bcrypt cost 12 tương thích `$2b$`, trùng email/username ⇒ 409; phát hành refresh token opaque — [nhật ký 005](journal/005-dang-ky-dang-nhap.md) | A1, A2 | 🤖 | [r] |
-| AUTH-02 | Refresh token **opaque** xoay vòng (bảng `refresh_tokens`, SHA-256, `replaced_by_id`, thu hồi cả chuỗi khi dùng lại); logout thu hồi; refresh JWT cũ đổi 1 lần trong 7 ngày (D19) — [nhật ký 006](journal/006-refresh-logout.md) | A3, A4 | 🤖 | [r] |
-| AUTH-03 | Guard kiểm claim `ver` với `users.token_version` + `deleted_at` (cache ≤ 30 s); admin từ `ADMIN_USER_IDS` → sau này `users.role` — [nhật ký 007](journal/007-guard-token-version.md) | — | 🤖 | [r] |
-| USR-01 | `GET /users/me` — [nhật ký 008](journal/008-users-me.md) | A5 | 🤖 | [r] |
+| AUTH-01 | Signup/login: bcrypt cost 12 tương thích `$2b$`, trùng email/username ⇒ 409; phát hành refresh token opaque — [nhật ký 005](journal/005-dang-ky-dang-nhap.md) | A1, A2 | 🤖 | [x] |
+| AUTH-02 | Refresh token **opaque** xoay vòng (bảng `refresh_tokens`, SHA-256, `replaced_by_id`, thu hồi cả chuỗi khi dùng lại); logout thu hồi; refresh JWT cũ đổi 1 lần trong 7 ngày (D19) — [nhật ký 006](journal/006-refresh-logout.md) | A3, A4 | 🤖 | [x] |
+| AUTH-03 | Guard kiểm claim `ver` với `users.token_version` + `deleted_at` (cache ≤ 30 s); admin từ `ADMIN_USER_IDS` → sau này `users.role` — [nhật ký 007](journal/007-guard-token-version.md) | — | 🤖 | [x] |
+| USR-01 | `GET /users/me` — [nhật ký 008](journal/008-users-me.md) | A5 | 🤖 | [x] |
 | CONV-01 | Conversations CRUD + list phân trang + soft delete; migration dev | A7–A11, A21–A24 | 🤖 | [ ] |
 | CONV-02 | Xoá hội thoại: 409 nếu có lượt active (D24) + outbox `conversation.deleted` (đủ threadIds) | A12, A25 | 🤖 | [ ] |
 | CONV-03 | Fork: REPEATABLE READ dưới khoá lượt nguồn, fingerprint sha256, unique `(owner_id, fork_request_id)`, replay 200/409/410, outbox `conversation.forked` | A12a | 🤖 | [ ] |

@@ -1,6 +1,6 @@
 # 005 — Đăng ký & đăng nhập
 
-> Task: AUTH-01 (route A1, A2) · Ngày: 2026-11-09 · Trạng thái: chờ review
+> Task: AUTH-01 (route A1, A2) · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
 
 ## Tóm tắt dễ hiểu
 

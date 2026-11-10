@@ -1,6 +1,6 @@
 # 001 — Nền tảng & kiến trúc
 
-> Task: F-01 … F-06, F-12 · Ngày: 2026-11-09 · Trạng thái: chờ review
+> Task: F-01 … F-06, F-12 · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
 
 ## Tóm tắt dễ hiểu
 

@@ -1,6 +1,6 @@
 # 003 — Quản lý Project
 
-> Task: F-10 (route PJ1–PJ5) · Ngày: 2026-11-09 · Trạng thái: chờ review
+> Task: F-10 (route PJ1–PJ5) · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
 
 ## Tóm tắt dễ hiểu
 

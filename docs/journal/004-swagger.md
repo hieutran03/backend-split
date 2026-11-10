@@ -1,6 +1,6 @@
 # 004 — Tài liệu API (Swagger)
 
-> Task: F-16 · Ngày: 2026-11-09 · Trạng thái: chờ review
+> Task: F-16 · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
 
 ## Tóm tắt dễ hiểu
 
