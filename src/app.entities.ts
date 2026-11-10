@@ -1,3 +1,4 @@
+import { ConversationRecord } from '@modules/conversations/public-api';
 import { RefreshTokenRecord, UserRecord } from '@modules/identity/public-api';
 import { ProjectRecord } from '@modules/projects/public-api';
 import { OutboxEventRecord } from '@platform/database/outbox/outbox-event.record';
@@ -18,4 +19,6 @@ export const ALL_ENTITIES = [
   RefreshTokenRecord,
   // projects
   ProjectRecord,
+  // conversations
+  ConversationRecord,
 ];

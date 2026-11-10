@@ -1,6 +1,7 @@
 import { type DynamicModule, Module, type Type } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
+import { ConversationsModule } from '@modules/conversations/public-api';
 import { DevToolsModule } from '@modules/dev-tools/dev-tools.module';
 import { HealthModule } from '@modules/health/health.module';
 import { IdentityModule } from '@modules/identity/public-api';
@@ -22,7 +23,8 @@ const featureModules: Array<Type | DynamicModule> = [
   HealthModule,
   IdentityModule,
   ProjectsModule,
-  // W1: ConversationsModule, MessagesModule, FeedbackModule, TaskPlansModule
+  ConversationsModule,
+  // W1: MessagesModule, FeedbackModule, TaskPlansModule
   // W2: ProvidersModule, AgentModelConfigsModule, CustomAgentsModule, McpProxyModule
   // W3: DocumentsModule, MediaModule
   // W4: GenerationsModule, HitlModule

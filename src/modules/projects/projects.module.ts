@@ -23,6 +23,11 @@ import {
   ListProjectsUseCase,
   UpdateProjectUseCase,
 } from './application/project.use-cases';
+import {
+  PROJECT_LOOKUP,
+  type ProjectLookup,
+  RepositoryProjectLookup,
+} from './application/project-lookup';
 import { TypeOrmProjectRepository } from './infrastructure/typeorm-project.repository';
 import { ProjectsController } from './presentation/projects.controller';
 
@@ -74,6 +79,14 @@ import { ProjectsController } from './presentation/projects.controller';
       ) => new DeleteProjectUseCase(repo, outbox, tx, clock),
       inject: [PROJECT_REPOSITORY, OUTBOX, TRANSACTION_MANAGER, CLOCK],
     },
+    // ---- public query for other contexts (exported)
+    {
+      provide: PROJECT_LOOKUP,
+      useFactory: (repo: ProjectRepository): ProjectLookup =>
+        new RepositoryProjectLookup(repo),
+      inject: [PROJECT_REPOSITORY],
+    },
   ],
+  exports: [PROJECT_LOOKUP],
 })
 export class ProjectsModule {}

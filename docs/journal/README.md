@@ -22,6 +22,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 007 | [Guard kiểm phiên bản token](007-guard-token-version.md) | AUTH-03 | 2026-11-09 | đã review |
 | 008 | [Hồ sơ của tôi](008-users-me.md) | USR-01 (A5) | 2026-11-09 | đã review |
 | 009 | [Migration sinh bằng script](009-migration-sinh-bang-script.md) | F-17 | 2026-11-10 | chờ review |
+| 010 | [Hội thoại: tạo/xem/sửa/danh sách](010-hoi-thoai-crud.md) | CONV-01 | 2026-11-10 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -57,6 +58,8 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-28 | `aggregate_id` varchar | tạm chọn | 009 |
 | TC-29 | CHECK fork_request_fields_together | **mở** | 009 |
 | TC-30 | Giữ nguyên file migration sinh ra | tạm chọn | 009 |
+| TC-31 | Tìm hội thoại chỉ theo tiêu đề | tạm chọn | 010 |
+| TC-32 | `planningModeEnabled: null` ⇒ 400 | tạm chọn | 010 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

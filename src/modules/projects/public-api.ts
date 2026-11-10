@@ -6,4 +6,8 @@
  * => export a query port here, do NOT let generations read the projects table directly.
  */
 export { ProjectsModule } from './projects.module';
+export {
+  PROJECT_LOOKUP,
+  type ProjectLookup,
+} from './application/project-lookup';
 export { ProjectRecord } from './infrastructure/project.record';
