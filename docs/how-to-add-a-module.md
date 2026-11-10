@@ -49,8 +49,10 @@ Kiểm tra trên `/docs` sau khi `pnpm dev`.
 
 - `src/app.entities.ts`: thêm `FeedbackRecord` vào `ALL_ENTITIES`.
 - `src/app.module.ts`: thêm `FeedbackModule` vào `featureModules`.
-- Bảng chưa có trong baseline ⇒ thêm migration dev `src/platform/database/migrations/<ts>-<name>.ts`
-  và đưa vào `ALL_MIGRATIONS`.
+- Bảng mới / cột mới ⇒ **sinh** migration, không viết tay:
+  `pnpm db:migrate:generate AddFeedback` → đọc file sinh ra, đối chiếu spec →
+  `pnpm db:migrate && pnpm db:migrate:check` (phải báo không còn khác biệt) →
+  `pnpm db:migrate:revert && pnpm db:migrate`. Xem [journal/009](journal/009-migration-sinh-bang-script.md).
 
 ## 5. Cần dữ liệu của module khác?
 

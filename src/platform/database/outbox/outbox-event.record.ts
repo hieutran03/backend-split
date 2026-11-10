@@ -4,7 +4,7 @@ import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 @Entity('outbox_events')
 @Index('ix_outbox_events_status_available', ['status', 'availableAt'])
 export class OutboxEventRecord {
-  @PrimaryColumn('uuid')
+  @PrimaryColumn('uuid', { primaryKeyConstraintName: 'outbox_events_pkey' })
   public id!: string;
 
   @Column({ name: 'event_type', type: 'varchar', length: 64 })

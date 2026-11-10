@@ -23,6 +23,8 @@
     "db:migrate": "node scripts/typeorm.js migration:run -d src/data-source.ts",
     "db:migrate:revert": "node scripts/typeorm.js migration:revert -d src/data-source.ts",
     "db:migrate:show": "node scripts/typeorm.js migration:show -d src/data-source.ts",
+    "db:migrate:generate": "node scripts/migration-generate.js",
+    "db:migrate:check": "node scripts/typeorm.js migration:generate --check -d src/data-source.ts src/platform/database/migrations/Check",
     "db:seed": "ts-node -r tsconfig-paths/register scripts/seed-dev.ts",
     "token:dev": "ts-node -r tsconfig-paths/register scripts/dev-token.ts"
   },

@@ -29,7 +29,9 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 1. Endpoint `/api/v1/...` đúng bảng [route-mapping.md](reference/route-mapping.md), envelope chuẩn.
 2. Unit test use case (fake repo) — gồm test **user khác ⇒ 404**; route admin ⇒ 403 với user thường.
 3. Domain/application không import framework (`pnpm test:architecture` xanh).
-4. Migration dev cho bảng mới (nếu có), tên cột khớp [database-schema.md](reference/database-schema.md).
+4. Migration cho bảng mới **sinh bằng `pnpm db:migrate:generate`** (không viết tay), đọc lại đối chiếu
+   [database-schema.md](reference/database-schema.md); `pnpm db:migrate:check` phải báo không còn khác biệt;
+   `db:migrate:revert` rồi `db:migrate` chạy được.
 5. Side effect chéo miền đi qua **outbox trong cùng transaction**, không gọi Engine trực tiếp.
 6. `pnpm verify` xanh. Chưa chạy thì ghi là chưa chạy, không tick khống.
 7. **Nhật ký** `docs/journal/NNN-*.md`: phần dễ hiểu + kỹ thuật (code, request/response thật) +
@@ -69,6 +71,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | F-12 | docker-compose (Postgres 16, Redis 7, MinIO), migration dev baseline, seed 2 user, `token:dev` | 🤖 | [x] |
 | F-13 | Tài liệu tra cứu sinh từ spec: route mapping, DB schema, engine contract | 🤖 | [x] |
 | F-16 | **Swagger** `/docs` + `/docs-json`: schema sinh từ chính zod (`@ApiZodBody`, `@ApiZodQuery`, `@ApiEnvelope`, `@ApiErrors`), bearer auth; tắt ở production trừ khi `SWAGGER_ENABLED=true` | 🤖 | [x] |
+| F-17 | **Migration sinh bằng script** từ entity (`db:migrate:generate`, `db:migrate:check`), bỏ baseline viết tay; Record khai đủ tên PK/FK/index — [nhật ký 009](journal/009-migration-sinh-bang-script.md) | 🤖 | [r] |
 | F-14 | Integration test với Postgres thật (testcontainers hoặc docker compose) + CI (GitHub Actions/GitLab) | 🤖 | [ ] |
 | F-15 | Request id middleware + log JSON (pino) + truyền `X-Request-Id` sang Engine | 🤖 | [ ] |
 
@@ -186,6 +189,9 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-25 | Hai lý do lỗi `user_inactive` / `token_revoked` | tạm chọn | [007](journal/007-guard-token-version.md) |
 | TC-26 | Cache trạng thái user trong process (30 s) hay Redis | tạm chọn process | [007](journal/007-guard-token-version.md) |
 | TC-27 | Token Python không có `ver` ⇒ coi là 0 | theo spec | [007](journal/007-guard-token-version.md) |
+| TC-28 | `outbox_events.aggregate_id` varchar thay vì uuid | tạm chọn | [009](journal/009-migration-sinh-bang-script.md) |
+| TC-29 | Biểu thức CHECK `ck_conversations_fork_request_fields_together` | **mở — cần định nghĩa thật** | [009](journal/009-migration-sinh-bang-script.md) |
+| TC-30 | Không format lại file migration sinh ra | tạm chọn | [009](journal/009-migration-sinh-bang-script.md) |
 | — | Feedback trùng: 409 `feedback_exists` hay upsert? | mở — sẽ ghi TC khi làm FB-01 | — |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
@@ -206,3 +212,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-09 | 🤖 | Lượt AUTH-02: refresh xoay vòng + phát hiện dùng lại (thu hồi chuỗi), logout thu hồi thật, đổi refresh JWT cũ một lần (D19). 58 test; chạy thật 18 kịch bản + test đồng thời 5 request × 3 lần trên Postgres. |
 | 2026-11-09 | 🤖 | Lượt AUTH-03: guard kiểm `deleted_at` + `token_version` qua port `UserTokenStateReader` (identity cài đặt, cache ≤ 30 s có giới hạn). 70 test; chạy thật 9 kịch bản trên 2 instance (có/không cache). |
 | 2026-11-09 | 🤖 | Lượt USR-01: `GET /users/me`. Cụm tài khoản W1 (A1–A5) đủ. 72 test; chạy thật. |
+| 2026-11-10 | 🤖 | Hiếu duyệt Phase 0 + AUTH-01..03 + USR-01. F-17: migration sinh bằng script; reset DB local; `InitialSchema` đi qua migrate → check → revert → migrate → check. |

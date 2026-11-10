@@ -21,6 +21,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 006 | [Refresh & logout](006-refresh-logout.md) | AUTH-02 (A3, A4, D19) | 2026-11-09 | đã review |
 | 007 | [Guard kiểm phiên bản token](007-guard-token-version.md) | AUTH-03 | 2026-11-09 | đã review |
 | 008 | [Hồ sơ của tôi](008-users-me.md) | USR-01 (A5) | 2026-11-09 | đã review |
+| 009 | [Migration sinh bằng script](009-migration-sinh-bang-script.md) | F-17 | 2026-11-10 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -53,6 +54,9 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-25 | Lý do lỗi tách `user_inactive` / `token_revoked` | tạm chọn | 007 |
 | TC-26 | Cache trong process hay Redis | tạm chọn process | 007 |
 | TC-27 | Token thiếu `ver` = 0 | theo spec | 007 |
+| TC-28 | `aggregate_id` varchar | tạm chọn | 009 |
+| TC-29 | CHECK fork_request_fields_together | **mở** | 009 |
+| TC-30 | Giữ nguyên file migration sinh ra | tạm chọn | 009 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 
