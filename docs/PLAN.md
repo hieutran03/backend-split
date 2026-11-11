@@ -6,7 +6,7 @@
 > Nguồn yêu cầu: artifact "Chatbot Backend Split" (tách phần quản lý/lưu trữ của chatbot
 > FastAPI sang NestJS). Bản trích để tra cứu nằm ở [docs/reference/](reference/).
 
-**Cập nhật lần cuối:** 2026-11-11 · **Giai đoạn hiện tại:** Phase 1 (W1) — lượt tiếp theo: CONV-03
+**Cập nhật lần cuối:** 2026-11-11 · **Giai đoạn hiện tại:** Phase 1 (W1) — lượt tiếp theo: CONV-04
 
 ## Cách đọc
 
@@ -86,7 +86,8 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | CONV-01 | Conversations CRUD (tạo, xem, sửa, danh sách phân trang / lọc project / tìm tiêu đề); migration sinh bằng script — [nhật ký 010](journal/010-hoi-thoai-crud.md). Xoá ⇒ CONV-02 | A7–A9, A11, A21–A24 | 🤖 | [r] |
 | CONV-02 | Xoá hội thoại: xoá mềm + outbox `conversation.deleted` (threadIds), khoá dòng chống xoá trùng; lượt active **không** chặn (TC-33) — [nhật ký 011](journal/011-xoa-hoi-thoai.md) | A12, A25 | 🤖 | [r] |
 | CONV-03 | Fork: REPEATABLE READ dưới khoá lượt nguồn, fingerprint sha256, unique `(owner_id, fork_request_id)`, replay 200/409/410, outbox `conversation.forked` | A12a | 🤖 | [ ] |
-| MSG-01 | Messages đọc: `GET /messages/{id}`, list theo hội thoại (cursor theo `sequence` bigint), `sender` số ⇒ chuỗi | A10, A19, A20 | 🤖 | [ ] |
+| MSG-01 | Messages đọc: `GET /messages/{id}`, list theo hội thoại (S2, mặc định `-sequence` — TC-39), list của tôi, `sender` số ⇒ chuỗi; bảng `messages` sinh bằng script — [nhật ký 012](journal/012-doc-tin-nhan.md) | A10, A19, A20 | 🤖 | [r] |
+| CONV-04 | Danh sách hội thoại: `include=messages` + `latestMessages` (0..20), `messageCount`, `include=feedback` ⇒ 400, tìm cả nội dung tin nhắn (TC-31, TC-36) | A9 | 🤖 | [ ] |
 | MSG-02 | Projection UIMessage cho AI SDK (`?format=ui-message`) — port `ai_sdk_projection.py` | A26 | 🤖 | [!] cần code Python |
 | FB-01 | Feedback: 1 feedback/message, rating 1–5, 409 `feedback_exists`, ownership qua message | A30, A32–A34 | 🤖 | [ ] |
 | TP-01 | Task plans CRUD + complete + planning-status; mọi thay đổi tính lại `conversations.plan_lifecycle`; reorder dùng unique DEFERRABLE | A36–A42 | 🤖 | [ ] |
@@ -192,10 +193,15 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-28 | `outbox_events.aggregate_id` varchar thay vì uuid | tạm chọn | [009](journal/009-migration-sinh-bang-script.md) |
 | TC-29 | Biểu thức CHECK `ck_conversations_fork_request_fields_together` | **mở — cần định nghĩa thật** | [009](journal/009-migration-sinh-bang-script.md) |
 | TC-30 | Không format lại file migration sinh ra | tạm chọn | [009](journal/009-migration-sinh-bang-script.md) |
-| TC-31 | Tìm hội thoại chỉ theo tiêu đề tới MSG-01 | tạm chọn | [010](journal/010-hoi-thoai-crud.md) |
+| TC-31 | Tìm hội thoại chỉ theo tiêu đề tới CONV-04 | tạm chọn | [010](journal/010-hoi-thoai-crud.md) |
 | TC-32 | `planningModeEnabled: null` khi sửa ⇒ 400 | tạm chọn | [010](journal/010-hoi-thoai-crud.md) |
 | TC-33 | Xoá hội thoại đang có lượt active: không chặn (A12) hay 409 (D24)? | tạm chọn không chặn — **chờ Hiếu** | [011](journal/011-xoa-hoi-thoai.md) |
 | TC-34 | `threadIds` chụp lúc xoá (trong payload) hay bộ phát tự truy vấn | tạm chọn lúc xoá | [011](journal/011-xoa-hoi-thoai.md) |
+| TC-35 | Module messages join thẳng bảng `conversations` (chỉ đọc) để kiểm sở hữu | tạm chọn — **Hiếu xem** | [012](journal/012-doc-tin-nhan.md) |
+| TC-36 | Index FTS `idx_messages_content_simple_fts`: cần biểu thức thật + cho phép 1 migration viết tay | **mở — cần Hiếu** | [012](journal/012-doc-tin-nhan.md) |
+| TC-37 | MessageView: thêm `sequence`; chưa có `feedback`/`interrupt`/`suggestedQuestions` | tạm chọn | [012](journal/012-doc-tin-nhan.md) |
+| TC-38 | `include=feedback` ⇒ 400 tới FB-01 | tạm chọn | [012](journal/012-doc-tin-nhan.md) |
+| TC-39 | Tin nhắn phân trang S2 thay vì cursor | theo spec | [012](journal/012-doc-tin-nhan.md) |
 | — | Feedback trùng: 409 `feedback_exists` hay upsert? | mở — sẽ ghi TC khi làm FB-01 | — |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
@@ -219,3 +225,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-10 | 🤖 | Hiếu duyệt Phase 0 + AUTH-01..03 + USR-01. F-17: migration sinh bằng script; reset DB local; `InitialSchema` đi qua migrate → check → revert → migrate → check. |
 | 2026-11-10 | 🤖 | Lượt CONV-01: hội thoại A7/A8/A9/A11; `ProjectLookup` công khai + adapter (giao tiếp module qua port); migration `AddConversations` sinh bằng script, qua check/revert. 79 test; chạy thật 14 kịch bản. |
 | 2026-11-11 | 🤖 | Lượt CONV-02: xoá hội thoại (A12/A25) — xoá mềm + outbox `conversation.deleted` trong 1 transaction, `FOR UPDATE` chống ghi 2 event; không đổi schema (`db:migrate:check` sạch). 81 test; chạy thật 6 kịch bản + 5 lệnh xoá đồng thời × 3 lần ⇒ đúng 1 event. |
+| 2026-11-11 | 🤖 | Lượt MSG-01: module `messages` (A10/A19/A20, chỉ đọc), `sender` số ⇒ chuỗi (S4); migration `AddMessages` (+ FK `forked_from_message_id`) sinh bằng script, qua check/revert. 88 test; chạy thật 14 kịch bản. Tách phần mở rộng A9 thành CONV-04. |

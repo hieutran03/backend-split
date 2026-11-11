@@ -25,8 +25,6 @@ const bigintAsNumber: ValueTransformer = {
  * identity/infrastructure/records.ts. Migrations are generated from this class.
  *
  * Not declared on purpose:
- *  - FK forked_from_message_id -> messages: the messages table arrives with MSG-01,
- *    the FK will be generated then.
  *  - CHECK ck_conversations_fork_request_fields_together: the spec only gives its
  *    name, not its expression (TC-29) — not guessed.
  * No DB defaults on next_message_sequence / planning_mode_enabled: like the Python
@@ -95,6 +93,10 @@ export class ConversationRecord {
   public forkedFromConversationId!: string | null;
 
   @Column({ name: 'forked_from_message_id', type: 'uuid', nullable: true })
+  @ForeignKey('messages', {
+    name: 'conversations_forked_from_message_id_fkey',
+    onDelete: 'SET NULL',
+  })
   public forkedFromMessageId!: string | null;
 
   @Column({

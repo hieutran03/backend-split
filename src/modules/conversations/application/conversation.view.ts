@@ -3,7 +3,7 @@ import type { Conversation, PlanLifecycle } from '../domain/conversation';
 /**
  * Field names follow Python `ConversationRead`. Changes vs Python (A8/A9):
  *  - `customAgents` removed (never populated; use GET /conversations/{id}/custom-agents).
- *  - `messages` / `messageCount` arrive with MSG-01 (messages table).
+ *  - `messages` / `messageCount` arrive with CONV-04 (A9 include=messages).
  */
 export interface ConversationView {
   readonly id: string;

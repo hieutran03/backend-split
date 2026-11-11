@@ -24,6 +24,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 009 | [Migration sinh bằng script](009-migration-sinh-bang-script.md) | F-17 | 2026-11-10 | chờ review |
 | 010 | [Hội thoại: tạo/xem/sửa/danh sách](010-hoi-thoai-crud.md) | CONV-01 | 2026-11-10 | chờ review |
 | 011 | [Xoá hội thoại](011-xoa-hoi-thoai.md) | CONV-02 (A12, A25) | 2026-11-11 | chờ review |
+| 012 | [Đọc tin nhắn](012-doc-tin-nhan.md) | MSG-01 (A10, A19, A20) | 2026-11-11 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -63,6 +64,11 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-32 | `planningModeEnabled: null` ⇒ 400 | tạm chọn | 010 |
 | TC-33 | Lượt active không chặn xoá hội thoại (A12 vs D24) | **chờ Hiếu** | 011 |
 | TC-34 | `threadIds` chụp lúc xoá | tạm chọn | 011 |
+| TC-35 | messages join thẳng bảng `conversations` | tạm chọn — **Hiếu xem** | 012 |
+| TC-36 | Index FTS tin nhắn chưa tạo | **mở** | 012 |
+| TC-37 | Trường MessageView so với Python | tạm chọn | 012 |
+| TC-38 | `include=feedback` ⇒ 400 tới FB-01 | tạm chọn | 012 |
+| TC-39 | Phân trang S2, không cursor | theo spec | 012 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 
