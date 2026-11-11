@@ -1,9 +1,10 @@
 import type { Conversation, PlanLifecycle } from '../domain/conversation';
+import type { ConversationMessageView } from './ports';
 
 /**
  * Field names follow Python `ConversationRead`. Changes vs Python (A8/A9):
  *  - `customAgents` removed (never populated; use GET /conversations/{id}/custom-agents).
- *  - `messages` / `messageCount` arrive with CONV-04 (A9 include=messages).
+ *  - `messages` / `messageCount` only in the list (A9), see ConversationListItemView.
  */
 export interface ConversationView {
   readonly id: string;
@@ -38,4 +39,13 @@ export function toConversationView(c: Conversation): ConversationView {
     updatedAt: p.updatedAt.toISOString(),
     deletedAt: p.deletedAt ? p.deletedAt.toISOString() : null,
   };
+}
+
+/**
+ * A9 list item. `messageCount` is always set (non-deleted messages, TC-40);
+ * `messages` only with include=messages (latest first, TC-41).
+ */
+export interface ConversationListItemView extends ConversationView {
+  readonly messageCount: number;
+  readonly messages?: ConversationMessageView[];
 }

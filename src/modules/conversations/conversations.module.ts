@@ -5,6 +5,11 @@ import {
   type ProjectLookup,
   ProjectsModule,
 } from '@modules/projects/public-api';
+import {
+  CONVERSATION_MESSAGE_DIGEST,
+  type ConversationMessageDigest,
+  MessagesModule,
+} from '@modules/messages/public-api';
 import { DbContext } from '@platform/database/db-context';
 import {
   CLOCK,
@@ -25,24 +30,28 @@ import {
   UpdateConversationUseCase,
 } from './application/conversation.use-cases';
 import {
+  CONVERSATION_MESSAGES,
   CONVERSATION_REPOSITORY,
   CONVERSATION_THREAD_SOURCE,
+  type ConversationMessages,
   type ConversationRepository,
   type ConversationThreadSource,
   PROJECT_ACCESS,
   type ProjectAccess,
 } from './application/ports';
+import { MessageDigestAdapter } from './infrastructure/message-digest.adapter';
 import { NoThreadSourceYet } from './infrastructure/no-thread-source';
 import { ProjectLookupAccessAdapter } from './infrastructure/project-access.adapter';
 import { TypeOrmConversationRepository } from './infrastructure/typeorm-conversation.repository';
 import { ConversationsController } from './presentation/conversations.controller';
 
 /**
- * Conversations context (CONV-*). Depends on the projects context only through
- * its public query (PROJECT_LOOKUP), adapted to this context's own ProjectAccess port.
+ * Conversations context (CONV-*). Depends on the projects and messages contexts
+ * only through their public queries (PROJECT_LOOKUP, CONVERSATION_MESSAGE_DIGEST),
+ * adapted to this context's own ports (ProjectAccess, ConversationMessages).
  */
 @Module({
-  imports: [ProjectsModule],
+  imports: [ProjectsModule, MessagesModule],
   controllers: [ConversationsController],
   providers: [
     // ---- adapters
@@ -57,6 +66,12 @@ import { ConversationsController } from './presentation/conversations.controller
       useFactory: (projects: ProjectLookup): ProjectAccess =>
         new ProjectLookupAccessAdapter(projects),
       inject: [PROJECT_LOOKUP],
+    },
+    {
+      provide: CONVERSATION_MESSAGES,
+      useFactory: (digest: ConversationMessageDigest): ConversationMessages =>
+        new MessageDigestAdapter(digest),
+      inject: [CONVERSATION_MESSAGE_DIGEST],
     },
     {
       provide: CONVERSATION_THREAD_SOURCE,
@@ -75,9 +90,11 @@ import { ConversationsController } from './presentation/conversations.controller
     },
     {
       provide: ListConversationsUseCase,
-      useFactory: (repo: ConversationRepository) =>
-        new ListConversationsUseCase(repo),
-      inject: [CONVERSATION_REPOSITORY],
+      useFactory: (
+        repo: ConversationRepository,
+        messages: ConversationMessages,
+      ) => new ListConversationsUseCase(repo, messages),
+      inject: [CONVERSATION_REPOSITORY, CONVERSATION_MESSAGES],
     },
     {
       provide: GetConversationUseCase,

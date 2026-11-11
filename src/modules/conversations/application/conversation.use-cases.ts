@@ -7,11 +7,16 @@ import type { TransactionManager } from '@platform/ports/transaction-manager.por
 import { Conversation } from '../domain/conversation';
 import type {
   ConversationListFilter,
+  ConversationMessages,
   ConversationRepository,
   ConversationThreadSource,
   ProjectAccess,
 } from './ports';
-import { toConversationView, type ConversationView } from './conversation.view';
+import {
+  toConversationView,
+  type ConversationListItemView,
+  type ConversationView,
+} from './conversation.view';
 
 export interface CreateConversationInput {
   readonly title: string;
@@ -56,21 +61,52 @@ export class CreateConversationUseCase {
   }
 }
 
-/** A9 — List the caller's conversations (S2 pagination, default sort -updatedAt). */
+export interface ListConversationsOptions {
+  /** include=messages: attach the latest `latestMessages` messages to each item. */
+  readonly includeMessages: boolean;
+  /** 0..20 (A9). */
+  readonly latestMessages: number;
+}
+
+/**
+ * A9 — List the caller's conversations (S2 pagination, default sort -updatedAt).
+ * Message data for the whole page comes from two set-based queries, not one per item.
+ */
 export class ListConversationsUseCase {
-  public constructor(private readonly conversations: ConversationRepository) {}
+  public constructor(
+    private readonly conversations: ConversationRepository,
+    private readonly messages: ConversationMessages,
+  ) {}
 
   public async execute(
     actor: Actor,
     filter: ConversationListFilter,
     page: PageRequest,
-  ): Promise<Page<ConversationView>> {
+    options: ListConversationsOptions = {
+      includeMessages: false,
+      latestMessages: 0,
+    },
+  ): Promise<Page<ConversationListItemView>> {
     const result = await this.conversations.listOwned(
       actor.userId,
       filter,
       page,
     );
-    return mapPage(result, toConversationView);
+    const ids = result.items.map((c) => c.id);
+    const counts = await this.messages.countByConversation(ids);
+    const latest =
+      options.includeMessages && options.latestMessages > 0
+        ? await this.messages.latestByConversation(ids, options.latestMessages)
+        : new Map<string, never[]>();
+    return mapPage(result, (conversation) => {
+      const view = {
+        ...toConversationView(conversation),
+        messageCount: counts.get(conversation.id) ?? 0,
+      };
+      return options.includeMessages
+        ? { ...view, messages: latest.get(conversation.id) ?? [] }
+        : view;
+    });
   }
 }
 

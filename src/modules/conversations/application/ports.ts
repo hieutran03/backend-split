@@ -3,7 +3,10 @@ import type { Conversation } from '../domain/conversation';
 
 export interface ConversationListFilter {
   readonly projectId?: string | undefined;
-  /** Case-insensitive match on the title (message content search comes with MSG-01). */
+  /**
+   * Case-insensitive substring match on the title OR on the content of a
+   * non-deleted message (Python: "conversation title or message search").
+   */
   readonly search?: string | undefined;
 }
 
@@ -46,3 +49,30 @@ export interface ConversationThreadSource {
   threadIdsOf(conversationId: string): Promise<string[]>;
 }
 export const CONVERSATION_THREAD_SOURCE = Symbol('CONVERSATION_THREAD_SOURCE');
+
+/** A message as shown inside the conversation list (same fields as A10 items). */
+export interface ConversationMessageView {
+  readonly id: string;
+  readonly conversationId: string;
+  readonly sender: 'user' | 'assistant';
+  readonly content: string;
+  readonly messageMetadata: Record<string, unknown> | null;
+  readonly sequence: number;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly deletedAt: string | null;
+}
+
+/**
+ * What the conversation list needs from the messages context. Called only with
+ * ids of conversations the caller owns.
+ */
+export interface ConversationMessages {
+  countByConversation(conversationIds: string[]): Promise<Map<string, number>>;
+  /** Newest first (-sequence). */
+  latestByConversation(
+    conversationIds: string[],
+    perConversation: number,
+  ): Promise<Map<string, ConversationMessageView[]>>;
+}
+export const CONVERSATION_MESSAGES = Symbol('CONVERSATION_MESSAGES');

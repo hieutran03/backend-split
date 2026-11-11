@@ -32,10 +32,14 @@ import {
   ListConversationsUseCase,
   UpdateConversationUseCase,
 } from '../application/conversation.use-cases';
-import { type ConversationView } from '../application/conversation.view';
+import {
+  type ConversationListItemView,
+  type ConversationView,
+} from '../application/conversation.view';
 import {
   type CreateConversationBody,
   createConversationSchema,
+  conversationListItemSchema,
   conversationViewSchema,
   type ListConversationsQuery,
   listConversationsQuerySchema,
@@ -65,9 +69,13 @@ export class ConversationsController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'List my conversations (A9)' })
+  @ApiOperation({
+    summary: 'List my conversations (A9)',
+    description:
+      'Each item has `messageCount`; `include=messages` adds the latest `latestMessages` (0..20, default 3) messages, newest first. `search` matches the title or a message content.',
+  })
   @ApiZodQuery(listConversationsQuerySchema)
-  @ApiEnvelope(conversationViewSchema, {
+  @ApiEnvelope(conversationListItemSchema, {
     paginated: true,
     message: 'Get data successfully',
   })
@@ -77,9 +85,15 @@ export class ConversationsController {
     @CurrentActor() actor: Actor,
     @Query(new ZodValidationPipe(listConversationsQuerySchema))
     query: ListConversationsQuery,
-  ): Promise<Page<ConversationView>> {
-    const { projectId, search, ...page } = query;
-    return this.listConversations.execute(actor, { projectId, search }, page);
+  ): Promise<Page<ConversationListItemView>> {
+    const { projectId, search, include, latestMessages, page, limit, sort } =
+      query;
+    return this.listConversations.execute(
+      actor,
+      { projectId, search },
+      { page, limit, sort },
+      { includeMessages: include.includes('messages'), latestMessages },
+    );
   }
 
   @Post()

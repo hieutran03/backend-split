@@ -5,6 +5,7 @@ import {
   SequentialIds,
 } from '@test-support/fakes';
 import {
+  FakeConversationMessages,
   FakeProjectAccess,
   FakeThreadSource,
   InMemoryConversationRepository,
@@ -28,6 +29,8 @@ function setup(threads: Record<string, string[]> = {}) {
   const clock = new FixedClock();
   const outbox = new RecordingOutbox();
   const tx = new ImmediateTransactions();
+  const messages = new FakeConversationMessages();
+  repo.contentsOf = messages.contentsOf;
   const projects = new FakeProjectAccess({
     alice: ['p-alice'],
     bob: ['p-bob'],
@@ -37,13 +40,14 @@ function setup(threads: Record<string, string[]> = {}) {
     clock,
     outbox,
     tx,
+    messages,
     create: new CreateConversationUseCase(
       repo,
       projects,
       clock,
       new SequentialIds(),
     ),
-    list: new ListConversationsUseCase(repo),
+    list: new ListConversationsUseCase(repo, messages),
     get: new GetConversationUseCase(repo),
     update: new UpdateConversationUseCase(repo, clock),
     remove: new DeleteConversationUseCase(
@@ -207,5 +211,63 @@ describe('conversation use cases', () => {
       NotFoundError,
     );
     expect(s.outbox.events).toHaveLength(1);
+  });
+
+  it('A9: messageCount on every item; messages only with include=messages, newest first, capped', async () => {
+    const s = setup();
+    const busy = await s.create.execute(alice, { title: 'Busy' });
+    const empty = await s.create.execute(alice, { title: 'Empty' });
+    for (const seq of [1, 2, 3, 4]) s.messages.add(busy.id, seq, `m${seq}`);
+
+    const plain = await s.list.execute(alice, {}, { page: 1, limit: 20 });
+    const byId = new Map(plain.items.map((c) => [c.id, c]));
+    expect(byId.get(busy.id)?.messageCount).toBe(4);
+    expect(byId.get(empty.id)?.messageCount).toBe(0);
+    expect(byId.get(busy.id)).not.toHaveProperty('messages');
+    expect(s.messages.latestCalls).toBe(0);
+
+    const withMessages = await s.list.execute(
+      alice,
+      {},
+      { page: 1, limit: 20 },
+      { includeMessages: true, latestMessages: 2 },
+    );
+    const items = new Map(withMessages.items.map((c) => [c.id, c]));
+    expect(items.get(busy.id)?.messages?.map((m) => m.sequence)).toEqual([
+      4, 3,
+    ]);
+    expect(items.get(empty.id)?.messages).toEqual([]);
+  });
+
+  it('A9: latestMessages=0 with include=messages ⇒ empty arrays, no message query', async () => {
+    const s = setup();
+    const c = await s.create.execute(alice, { title: 'C' });
+    s.messages.add(c.id, 1, 'hello');
+    const page = await s.list.execute(
+      alice,
+      {},
+      { page: 1, limit: 20 },
+      { includeMessages: true, latestMessages: 0 },
+    );
+    expect(page.items[0]?.messages).toEqual([]);
+    expect(page.items[0]?.messageCount).toBe(1);
+    expect(s.messages.latestCalls).toBe(0);
+  });
+
+  it('A9: search matches the title OR a message content', async () => {
+    const s = setup();
+    const byTitle = await s.create.execute(alice, { title: 'Invoice March' });
+    const byContent = await s.create.execute(alice, { title: 'Untitled' });
+    await s.create.execute(alice, { title: 'Nothing here' });
+    s.messages.add(byContent.id, 1, 'please check the INVOICE total');
+
+    const found = await s.list.execute(
+      alice,
+      { search: 'invoice' },
+      { page: 1, limit: 20 },
+    );
+    expect(found.items.map((c) => c.id).sort()).toEqual(
+      [byTitle.id, byContent.id].sort(),
+    );
   });
 });

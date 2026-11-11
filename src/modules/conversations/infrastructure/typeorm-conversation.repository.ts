@@ -1,4 +1,4 @@
-import { type FindOptionsWhere, ILike, IsNull } from 'typeorm';
+import { IsNull } from 'typeorm';
 
 import { type DbContext } from '@platform/database/db-context';
 import {
@@ -16,6 +16,10 @@ import { ConversationRecord } from './conversation.record';
 
 /** Same sortable fields as Python `ConversationOrderBy`. */
 const SORTABLE = ['updatedAt', 'createdAt'] as const;
+const SORT_COLUMN: Record<(typeof SORTABLE)[number], string> = {
+  updatedAt: 'c.updated_at',
+  createdAt: 'c.created_at',
+};
 
 export class TypeOrmConversationRepository implements ConversationRepository {
   public constructor(private readonly db: DbContext) {}
@@ -52,19 +56,32 @@ export class TypeOrmConversationRepository implements ConversationRepository {
       field: 'updatedAt',
       direction: 'DESC',
     });
-    const where: FindOptionsWhere<ConversationRecord> = {
-      ownerId,
-      deletedAt: IsNull(),
-    };
-    if (filter.projectId) where.projectId = filter.projectId;
-    if (filter.search) where.title = ILike(`%${escapeLike(filter.search)}%`);
-
-    const [records, total] = await this.repo.findAndCount({
-      where,
-      order: { [sort.field]: sort.direction, id: 'ASC' },
-      skip: (page.page - 1) * page.limit,
-      take: page.limit,
-    });
+    const query = this.repo
+      .createQueryBuilder('c')
+      .where('c.owner_id = :ownerId AND c.deleted_at IS NULL', { ownerId });
+    if (filter.projectId) {
+      query.andWhere('c.project_id = :projectId', {
+        projectId: filter.projectId,
+      });
+    }
+    if (filter.search) {
+      // Title OR the content of a live message. The messages table is read by
+      // name (read-only), like the messages context reads conversations (TC-35).
+      // No FTS index yet (TC-36): substring ILIKE, as Python's description says.
+      query.andWhere(
+        `(c.title ILIKE :pattern OR EXISTS (
+            SELECT 1 FROM messages m
+             WHERE m.conversation_id = c.id AND m.deleted_at IS NULL
+               AND m.content ILIKE :pattern))`,
+        { pattern: `%${escapeLike(filter.search)}%` },
+      );
+    }
+    const [records, total] = await query
+      .orderBy(SORT_COLUMN[sort.field], sort.direction)
+      .addOrderBy('c.id', 'ASC')
+      .skip((page.page - 1) * page.limit)
+      .take(page.limit)
+      .getManyAndCount();
     return toPage(records.map(toDomain), total, page);
   }
 
