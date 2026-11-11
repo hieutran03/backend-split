@@ -10,6 +10,7 @@ import {
 import { Message, senderFromCode } from '../domain/message';
 import {
   MESSAGE_SORTABLE,
+  type MessageFeedbackView,
   type MessageListFilter,
   type MessageRepository,
   type MessageSort,
@@ -82,6 +83,45 @@ export class TypeOrmMessageRepository implements MessageRepository {
       .getManyAndCount();
     return toPage(records.map(toDomain), total, page);
   }
+
+  public async feedbackFor(
+    messageIds: string[],
+    userId: string,
+  ): Promise<Map<string, MessageFeedbackView>> {
+    if (messageIds.length === 0) return new Map();
+    const rows: FeedbackRow[] = await this.db.manager.query(
+      `SELECT id, message_id, user_id, rating, comment, created_at, updated_at, deleted_at
+         FROM feedbacks
+        WHERE message_id = ANY($1::uuid[]) AND user_id = $2 AND deleted_at IS NULL`,
+      [messageIds, userId],
+    );
+    return new Map(
+      rows.map((f) => [
+        f.message_id,
+        {
+          id: f.id,
+          messageId: f.message_id,
+          userId: f.user_id,
+          rating: f.rating,
+          comment: f.comment,
+          createdAt: f.created_at.toISOString(),
+          updatedAt: f.updated_at.toISOString(),
+          deletedAt: f.deleted_at ? f.deleted_at.toISOString() : null,
+        },
+      ]),
+    );
+  }
+}
+
+interface FeedbackRow {
+  id: string;
+  message_id: string;
+  user_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: Date;
+  updated_at: Date;
+  deleted_at: Date | null;
 }
 
 function toDomain(r: MessageRecord): Message {

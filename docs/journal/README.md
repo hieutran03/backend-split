@@ -26,6 +26,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 011 | [Xoá hội thoại](011-xoa-hoi-thoai.md) | CONV-02 (A12, A25) | 2026-11-11 | chờ review |
 | 012 | [Đọc tin nhắn](012-doc-tin-nhan.md) | MSG-01 (A10, A19, A20) | 2026-11-11 | chờ review |
 | 013 | [Danh sách hội thoại kèm tin nhắn](013-danh-sach-hoi-thoai-kem-tin-nhan.md) | CONV-04 (A9) | 2026-11-11 | chờ review |
+| 014 | [Đánh giá câu trả lời](014-feedback.md) | FB-01 (A30, A32–A34) | 2026-11-11 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -68,10 +69,12 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-35 | messages join thẳng bảng `conversations` | tạm chọn — **Hiếu xem** | 012 |
 | TC-36 | Index FTS tin nhắn chưa tạo | **mở** | 012 |
 | TC-37 | Trường MessageView so với Python | tạm chọn | 012 |
-| TC-38 | `include=feedback` ⇒ 400 tới FB-01 | tạm chọn | 012 |
+| TC-38 | `include=feedback` ⇒ 400 tới FB-01 | **đóng** (FB-01) | 012, 014 |
 | TC-39 | Phân trang S2, không cursor | theo spec | 012 |
 | TC-40 | `messageCount` luôn có | tạm chọn | 013 |
 | TC-41 | Tin trong item: mới nhất trước | tạm chọn | 013 |
+| TC-42 | CHECK rating 1–5 | tạm chọn | 014 |
+| TC-43 | Unique `message_id` không partial | theo spec | 014 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

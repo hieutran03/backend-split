@@ -1,4 +1,5 @@
 import { ConversationRecord } from '@modules/conversations/public-api';
+import { FeedbackRecord } from '@modules/feedback/public-api';
 import { RefreshTokenRecord, UserRecord } from '@modules/identity/public-api';
 import { MessageRecord } from '@modules/messages/public-api';
 import { ProjectRecord } from '@modules/projects/public-api';
@@ -24,4 +25,6 @@ export const ALL_ENTITIES = [
   ConversationRecord,
   // messages
   MessageRecord,
+  // feedback
+  FeedbackRecord,
 ];

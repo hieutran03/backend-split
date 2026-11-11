@@ -61,12 +61,13 @@ export class MessagesController {
     @Query(new ZodValidationPipe(listConversationMessagesQuerySchema))
     query: ListConversationMessagesQuery,
   ): Promise<Page<MessageView>> {
-    const { page, limit, sort } = query;
-    return this.listConversationMessages.execute(actor, conversationId, {
-      page,
-      limit,
-      sort,
-    });
+    const { page, limit, sort, include } = query;
+    return this.listConversationMessages.execute(
+      actor,
+      conversationId,
+      { page, limit, sort },
+      include.includes('feedback'),
+    );
   }
 
   @Get('messages')
@@ -82,11 +83,12 @@ export class MessagesController {
     @Query(new ZodValidationPipe(listMessagesQuerySchema))
     query: ListMessagesQuery,
   ): Promise<Page<MessageView>> {
-    const { page, limit, sort, conversationId } = query;
+    const { page, limit, sort, conversationId, include } = query;
     return this.listMyMessages.execute(
       actor,
       { conversationId },
       { page, limit, sort },
+      include.includes('feedback'),
     );
   }
 

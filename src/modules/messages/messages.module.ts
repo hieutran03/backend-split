@@ -8,6 +8,10 @@ import {
 } from './application/message.use-cases';
 import { CONVERSATION_MESSAGE_DIGEST } from './application/message-digest';
 import {
+  MESSAGE_OWNERSHIP,
+  RepositoryMessageOwnership,
+} from './application/message-ownership';
+import {
   MESSAGE_REPOSITORY,
   type MessageRepository,
 } from './application/ports';
@@ -17,7 +21,8 @@ import { MessagesController } from './presentation/messages.controller';
 
 /**
  * Messages context (MSG-*): read-only API over the `messages` table.
- * Exports CONVERSATION_MESSAGE_DIGEST for the conversation list (A9).
+ * Exports CONVERSATION_MESSAGE_DIGEST (conversation list, A9) and
+ * MESSAGE_OWNERSHIP (feedback).
  */
 @Module({
   controllers: [MessagesController],
@@ -32,6 +37,12 @@ import { MessagesController } from './presentation/messages.controller';
       useFactory: (db: DbContext): MessageRepository =>
         new TypeOrmMessageRepository(db),
       inject: [DbContext],
+    },
+    {
+      provide: MESSAGE_OWNERSHIP,
+      useFactory: (repo: MessageRepository) =>
+        new RepositoryMessageOwnership(repo),
+      inject: [MESSAGE_REPOSITORY],
     },
     {
       provide: GetMessageUseCase,
@@ -50,6 +61,6 @@ import { MessagesController } from './presentation/messages.controller';
       inject: [MESSAGE_REPOSITORY],
     },
   ],
-  exports: [CONVERSATION_MESSAGE_DIGEST],
+  exports: [CONVERSATION_MESSAGE_DIGEST, MESSAGE_OWNERSHIP],
 })
 export class MessagesModule {}

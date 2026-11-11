@@ -1,6 +1,7 @@
 import type { Actor } from '@shared/auth/actor';
 import { NotFoundError } from '@shared/errors/app-error';
 import { mapPage, type Page, type PageRequest } from '@shared/pagination/page';
+import type { Message } from '../domain/message';
 import type { MessageRepository, MessageSort } from './ports';
 import { toMessageView, type MessageView } from './message.view';
 
@@ -29,6 +30,7 @@ export class ListConversationMessagesUseCase {
     actor: Actor,
     conversationId: string,
     page: PageRequest,
+    includeFeedback = false,
   ): Promise<Page<MessageView>> {
     if (!(await this.messages.ownsConversation(conversationId, actor.userId))) {
       throw new NotFoundError('conversation');
@@ -39,7 +41,7 @@ export class ListConversationMessagesUseCase {
       page,
       CONVERSATION_DEFAULT_SORT,
     );
-    return mapPage(result, toMessageView);
+    return withFeedback(this.messages, result, actor, includeFeedback);
   }
 }
 
@@ -60,6 +62,7 @@ export class ListMyMessagesUseCase {
     actor: Actor,
     filter: { conversationId?: string | undefined },
     page: PageRequest,
+    includeFeedback = false,
   ): Promise<Page<MessageView>> {
     const result = await this.messages.listOwned(
       actor.userId,
@@ -67,6 +70,24 @@ export class ListMyMessagesUseCase {
       page,
       MY_MESSAGES_DEFAULT_SORT,
     );
-    return mapPage(result, toMessageView);
+    return withFeedback(this.messages, result, actor, includeFeedback);
   }
+}
+
+/** include=feedback: one query for the whole page; `feedback: null` when none. */
+async function withFeedback(
+  messages: MessageRepository,
+  page: Page<Message>,
+  actor: Actor,
+  includeFeedback: boolean,
+): Promise<Page<MessageView>> {
+  if (!includeFeedback) return mapPage(page, toMessageView);
+  const feedback = await messages.feedbackFor(
+    page.items.map((m) => m.id),
+    actor.userId,
+  );
+  return mapPage(page, (m) => ({
+    ...toMessageView(m),
+    feedback: feedback.get(m.id) ?? null,
+  }));
 }

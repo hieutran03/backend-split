@@ -149,7 +149,7 @@ Thêm 7 unit test, tổng cộng 88:
   - `include=messages` + `latestMessages` (0..20);
   - `messageCount`;
   - tìm theo **nội dung tin nhắn** (TC-31).
-- `include=feedback` ⇒ FB-01. `format=ui-message` (A26) ⇒ MSG-02, đang bị chặn vì cần code Python.
+- `include=feedback` ⇒ đã có ở FB-01. `format=ui-message` (A26) ⇒ MSG-02, đang bị chặn vì cần code Python.
 - `interrupt` trong MessageRead ⇒ W4 (HITL).
 - FK `messages.conversation_id` không có `ON DELETE`. Spec không ghi, nên giữ mặc định `NO ACTION`.
   Hội thoại chỉ bị xoá mềm nên không ảnh hưởng.
@@ -190,7 +190,7 @@ Thêm 7 unit test, tổng cộng 88:
 ### TC-38 — `include=feedback` trả 400 tới khi có FB-01
 - **Bối cảnh:** spec giữ tham số này cho A10. Bỏ qua lặng lẽ thì FE tưởng tin nhắn không có feedback.
 - **Đang chọn:** 400 với lý do rõ ràng. FB-01 sẽ bật lên.
-- **Trạng thái:** tạm chọn.
+- **Trạng thái:** **đóng** — FB-01 đã bật `include=feedback` ([nhật ký 014](014-feedback.md)).
 
 ### TC-39 — Phân trang theo trang (S2), không theo cursor
 - **Bối cảnh:** PLAN ban đầu ghi "cursor theo `sequence`", nhưng route-mapping A10 ghi "S2" (page/limit)

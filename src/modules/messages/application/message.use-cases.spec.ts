@@ -132,4 +132,34 @@ describe('message use cases', () => {
     );
     expect(foreign.meta.total).toBe(0);
   });
+
+  it('include=feedback: my feedback per message, null when none; absent without include', async () => {
+    const s = setup();
+    const rated = s.add('c-alice', 1, 'assistant');
+    s.add('c-alice', 2, 'assistant');
+    s.repo.feedback.set(`${rated}:alice`, {
+      id: 'f-1',
+      messageId: rated,
+      userId: 'alice',
+      rating: 5,
+      comment: null,
+      createdAt: '2026-11-11T00:00:00.000Z',
+      updatedAt: '2026-11-11T00:00:00.000Z',
+      deletedAt: null,
+    });
+
+    const page = await s.listInConversation.execute(
+      alice,
+      'c-alice',
+      PAGE,
+      true,
+    );
+    expect(page.items.map((m) => m.feedback?.rating ?? null)).toEqual([
+      null,
+      5,
+    ]);
+
+    const plain = await s.listMine.execute(alice, {}, PAGE);
+    expect(plain.items[0]).not.toHaveProperty('feedback');
+  });
 });

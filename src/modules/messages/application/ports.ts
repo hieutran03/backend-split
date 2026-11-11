@@ -15,6 +15,26 @@ export interface MessageRepository {
     page: PageRequest,
     defaultSort: MessageSort,
   ): Promise<Page<Message>>;
+  /**
+   * include=feedback: the live feedback `userId` gave on each message (reads the
+   * `feedbacks` table by name, like `conversations` — TC-35). Missing key ⇒ none.
+   */
+  feedbackFor(
+    messageIds: string[],
+    userId: string,
+  ): Promise<Map<string, MessageFeedbackView>>;
+}
+
+/** Same fields as the feedback context's FeedbackView (Python FeedbackRead). */
+export interface MessageFeedbackView {
+  readonly id: string;
+  readonly messageId: string;
+  readonly userId: string;
+  readonly rating: number;
+  readonly comment: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly deletedAt: string | null;
 }
 export const MESSAGE_REPOSITORY = Symbol('MESSAGE_REPOSITORY');
 

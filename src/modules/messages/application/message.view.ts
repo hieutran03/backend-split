@@ -1,9 +1,11 @@
 import type { Message, MessageSender } from '../domain/message';
+import type { MessageFeedbackView } from './ports';
 
 /**
  * Field names follow Python `MessageRead`, with S4 applied (`sender` is a string).
- * Not here yet: `feedback` (include=feedback, FB-01), `interrupt` (W4, HITL),
- * `suggestedQuestions` (source not confirmed — TC-37).
+ * `feedback` only with include=feedback (null = no feedback yet).
+ * Not here yet: `interrupt` (W4, HITL), `suggestedQuestions` (source not
+ * confirmed — TC-37).
  */
 export interface MessageView {
   readonly id: string;
@@ -15,6 +17,7 @@ export interface MessageView {
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly deletedAt: string | null;
+  readonly feedback?: MessageFeedbackView | null;
 }
 
 export function toMessageView(m: Message): MessageView {

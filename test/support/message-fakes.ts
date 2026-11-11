@@ -1,5 +1,6 @@
 import {
   MESSAGE_SORTABLE,
+  type MessageFeedbackView,
   type MessageListFilter,
   type MessageRepository,
   type MessageSort,
@@ -21,6 +22,8 @@ interface FakeConversation {
 export class InMemoryMessageRepository implements MessageRepository {
   public readonly conversations = new Map<string, FakeConversation>();
   public readonly rows: MessageProps[] = [];
+  /** include=feedback: feedback by `${messageId}:${userId}`. */
+  public readonly feedback = new Map<string, MessageFeedbackView>();
 
   public addConversation(id: string, ownerId: string): void {
     this.conversations.set(id, { ownerId, deleted: false });
@@ -76,5 +79,17 @@ export class InMemoryMessageRepository implements MessageRepository {
       .slice((page.page - 1) * page.limit, page.page * page.limit)
       .map((m) => Message.restore(m));
     return Promise.resolve(toPage(items, all.length, page));
+  }
+
+  public feedbackFor(
+    messageIds: string[],
+    userId: string,
+  ): Promise<Map<string, MessageFeedbackView>> {
+    const found = new Map<string, MessageFeedbackView>();
+    for (const id of messageIds) {
+      const f = this.feedback.get(`${id}:${userId}`);
+      if (f) found.set(id, f);
+    }
+    return Promise.resolve(found);
   }
 }
