@@ -32,6 +32,17 @@ export class TypeOrmConversationRepository implements ConversationRepository {
     return r ? toDomain(r) : null;
   }
 
+  public async findOwnedForUpdate(
+    id: string,
+    ownerId: string,
+  ): Promise<Conversation | null> {
+    const r = await this.repo.findOne({
+      where: { id, ownerId, deletedAt: IsNull() },
+      lock: { mode: 'pessimistic_write' },
+    });
+    return r ? toDomain(r) : null;
+  }
+
   public async listOwned(
     ownerId: string,
     filter: ConversationListFilter,

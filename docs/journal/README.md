@@ -23,6 +23,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 008 | [Hồ sơ của tôi](008-users-me.md) | USR-01 (A5) | 2026-11-09 | đã review |
 | 009 | [Migration sinh bằng script](009-migration-sinh-bang-script.md) | F-17 | 2026-11-10 | chờ review |
 | 010 | [Hội thoại: tạo/xem/sửa/danh sách](010-hoi-thoai-crud.md) | CONV-01 | 2026-11-10 | chờ review |
+| 011 | [Xoá hội thoại](011-xoa-hoi-thoai.md) | CONV-02 (A12, A25) | 2026-11-11 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -60,6 +61,8 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-30 | Giữ nguyên file migration sinh ra | tạm chọn | 009 |
 | TC-31 | Tìm hội thoại chỉ theo tiêu đề | tạm chọn | 010 |
 | TC-32 | `planningModeEnabled: null` ⇒ 400 | tạm chọn | 010 |
+| TC-33 | Lượt active không chặn xoá hội thoại (A12 vs D24) | **chờ Hiếu** | 011 |
+| TC-34 | `threadIds` chụp lúc xoá | tạm chọn | 011 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

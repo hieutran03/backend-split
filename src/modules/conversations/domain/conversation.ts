@@ -95,6 +95,16 @@ export class Conversation {
     this.props.updatedAt = now;
   }
 
+  /**
+   * A12 — soft delete. Fork children are left untouched (spec A12). Deleting an
+   * already deleted conversation is a no-op (the repository hides it anyway).
+   */
+  public softDelete(now: Date): void {
+    if (this.props.deletedAt !== null) return;
+    this.props.deletedAt = now;
+    this.props.updatedAt = now;
+  }
+
   public snapshot(): Readonly<ConversationProps> {
     return { ...this.props };
   }

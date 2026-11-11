@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Inject,
   Param,
   Patch,
@@ -25,6 +27,7 @@ import { BEARER_AUTH } from '@platform/http/swagger';
 import { ZodValidationPipe } from '@platform/http/zod-validation.pipe';
 import {
   CreateConversationUseCase,
+  DeleteConversationUseCase,
   GetConversationUseCase,
   ListConversationsUseCase,
   UpdateConversationUseCase,
@@ -41,8 +44,8 @@ import {
 } from './conversations.schemas';
 
 /**
- * A7, A8, A9, A11 (+ the duplicate /ai/conversations* routes A21–A24 fold into these).
- * DELETE (A12) is CONV-02; GET …/messages (A10) is MSG-01.
+ * A7, A8, A9, A11, A12 (+ the duplicate /ai/conversations* routes A21–A25 fold
+ * into these). GET …/messages (A10) is MSG-01.
  */
 @ApiTags('conversations')
 @ApiBearerAuth(BEARER_AUTH)
@@ -57,6 +60,8 @@ export class ConversationsController {
     private readonly getConversation: GetConversationUseCase,
     @Inject(UpdateConversationUseCase)
     private readonly updateConversation: UpdateConversationUseCase,
+    @Inject(DeleteConversationUseCase)
+    private readonly deleteConversation: DeleteConversationUseCase,
   ) {}
 
   @Get()
@@ -126,5 +131,25 @@ export class ConversationsController {
     body: UpdateConversationBody,
   ): Promise<ConversationView> {
     return this.updateConversation.execute(actor, conversationId, body);
+  }
+
+  @Delete(':conversationId')
+  @ApiOperation({
+    summary: 'Soft-delete a conversation (A12)',
+    description:
+      'Writes the `conversation.deleted` outbox in the same transaction; the Engine checkpoint threads are deleted (with retries) through E5. An active turn does not block the delete. Fork children are kept.',
+  })
+  @ApiUuidParam('conversationId')
+  @ApiEnvelope(null, { message: 'Deleted successfully' })
+  @ApiErrors(400, 401, 404)
+  @HttpCode(200)
+  @ResponseMessage('Deleted successfully')
+  public async remove(
+    @CurrentActor() actor: Actor,
+    @Param('conversationId', new ZodValidationPipe(uuidParamSchema))
+    conversationId: string,
+  ): Promise<null> {
+    await this.deleteConversation.execute(actor, conversationId);
+    return null;
   }
 }

@@ -142,7 +142,7 @@ toàn khoảng trắng ⇒ 400; danh sách chỉ của mình, lọc project, tì
 ## Giới hạn & việc còn lại
 
 - `include=messages`, `latestMessages`, `messageCount`, tìm trong **nội dung tin nhắn** ⇒ MSG-01 (cần bảng messages).
-- Xoá hội thoại (A12) ⇒ CONV-02 (xoá mềm + outbox; spec: lượt chat đang chạy **không** chặn xoá mà bị dừng qua E2).
+- Xoá hội thoại (A12) ⇒ CONV-02, xem [nhật ký 011](011-xoa-hoi-thoai.md).
 - Chuyển hội thoại giữa các project ⇒ PJ-06.
 - Sửa hội thoại cũng nên **khoá** để không đè lên thao tác khác cùng lúc (lost update) — chưa cần khi chưa có
   lượt chat ghi vào bảng; sẽ xem lại ở W4.

@@ -10,6 +10,11 @@ export interface ConversationListFilter {
 /** Every query is scoped to owner + not deleted: not owned = does not exist (D15). */
 export interface ConversationRepository {
   findOwned(id: string, ownerId: string): Promise<Conversation | null>;
+  /**
+   * Same as findOwned but takes a row lock (SELECT … FOR UPDATE) until the
+   * transaction ends. Must be called inside TransactionManager.run().
+   */
+  findOwnedForUpdate(id: string, ownerId: string): Promise<Conversation | null>;
   listOwned(
     ownerId: string,
     filter: ConversationListFilter,
@@ -30,3 +35,14 @@ export interface ProjectAccess {
   ownsActiveProject(ownerId: string, projectId: string): Promise<boolean>;
 }
 export const PROJECT_ACCESS = Symbol('PROJECT_ACCESS');
+
+/**
+ * Engine checkpoint threads that belong to a conversation, i.e.
+ * generations.checkpoint_thread_id ∪ hitl_interrupts.thread_id (engine-contract,
+ * outbox `conversation.deleted`). Read inside the delete transaction so the outbox
+ * payload is self-contained.
+ */
+export interface ConversationThreadSource {
+  threadIdsOf(conversationId: string): Promise<string[]>;
+}
+export const CONVERSATION_THREAD_SOURCE = Symbol('CONVERSATION_THREAD_SOURCE');

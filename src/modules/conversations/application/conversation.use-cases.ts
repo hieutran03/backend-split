@@ -2,10 +2,13 @@ import type { Actor } from '@shared/auth/actor';
 import { NotFoundError } from '@shared/errors/app-error';
 import { mapPage, type Page, type PageRequest } from '@shared/pagination/page';
 import type { Clock, IdGenerator } from '@platform/ports/kernel.port';
+import type { Outbox } from '@platform/ports/outbox.port';
+import type { TransactionManager } from '@platform/ports/transaction-manager.port';
 import { Conversation } from '../domain/conversation';
 import type {
   ConversationListFilter,
   ConversationRepository,
+  ConversationThreadSource,
   ProjectAccess,
 } from './ports';
 import { toConversationView, type ConversationView } from './conversation.view';
@@ -114,5 +117,55 @@ export class UpdateConversationUseCase {
     conversation.update(input, this.clock.now());
     await this.conversations.save(conversation);
     return toConversationView(conversation);
+  }
+}
+
+/** Payload of the `conversation.deleted` outbox event (consumed by OBX-02). */
+export interface ConversationDeletedPayload {
+  readonly conversationId: string;
+  readonly ownerId: string;
+  /** Checkpoint threads to delete through E5 (may be empty). */
+  readonly threadIds: string[];
+}
+
+/**
+ * A12 (+ A25 folded in) — soft delete + `conversation.deleted` outbox in ONE
+ * transaction (D9). The row is locked first so two concurrent deletes cannot both
+ * enqueue an event: the second one waits, then sees the row deleted ⇒ 404.
+ *
+ * An active turn does NOT block the delete (spec A12, TC-33): the publisher stops it
+ * through E2 before calling E5. Fork children are kept.
+ */
+export class DeleteConversationUseCase {
+  public constructor(
+    private readonly conversations: ConversationRepository,
+    private readonly threads: ConversationThreadSource,
+    private readonly outbox: Outbox,
+    private readonly transactions: TransactionManager,
+    private readonly clock: Clock,
+  ) {}
+
+  public async execute(actor: Actor, conversationId: string): Promise<void> {
+    await this.transactions.run(async () => {
+      const conversation = await this.conversations.findOwnedForUpdate(
+        conversationId,
+        actor.userId,
+      );
+      if (!conversation) throw new NotFoundError('conversation');
+      conversation.softDelete(this.clock.now());
+      await this.conversations.save(conversation);
+
+      const payload: ConversationDeletedPayload = {
+        conversationId: conversation.id,
+        ownerId: actor.userId,
+        threadIds: await this.threads.threadIdsOf(conversation.id),
+      };
+      await this.outbox.enqueue({
+        eventType: 'conversation.deleted',
+        aggregateType: 'conversation',
+        aggregateId: conversation.id,
+        payload: { ...payload },
+      });
+    });
   }
 }

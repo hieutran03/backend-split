@@ -1,11 +1,18 @@
-import { FixedClock, SequentialIds } from '@test-support/fakes';
+import {
+  FixedClock,
+  ImmediateTransactions,
+  RecordingOutbox,
+  SequentialIds,
+} from '@test-support/fakes';
 import {
   FakeProjectAccess,
+  FakeThreadSource,
   InMemoryConversationRepository,
 } from '@test-support/conversation-fakes';
 import { NotFoundError, ValidationError } from '@shared/errors/app-error';
 import {
   CreateConversationUseCase,
+  DeleteConversationUseCase,
   GetConversationUseCase,
   ListConversationsUseCase,
   UpdateConversationUseCase,
@@ -13,10 +20,14 @@ import {
 
 const alice = { userId: 'alice', isAdmin: false };
 const bob = { userId: 'bob', isAdmin: false };
+/** First id handed out by SequentialIds. */
+const FIRST_ID = '00000000-0000-4000-8000-000000000001';
 
-function setup() {
+function setup(threads: Record<string, string[]> = {}) {
   const repo = new InMemoryConversationRepository();
   const clock = new FixedClock();
+  const outbox = new RecordingOutbox();
+  const tx = new ImmediateTransactions();
   const projects = new FakeProjectAccess({
     alice: ['p-alice'],
     bob: ['p-bob'],
@@ -24,6 +35,8 @@ function setup() {
   return {
     repo,
     clock,
+    outbox,
+    tx,
     create: new CreateConversationUseCase(
       repo,
       projects,
@@ -33,6 +46,13 @@ function setup() {
     list: new ListConversationsUseCase(repo),
     get: new GetConversationUseCase(repo),
     update: new UpdateConversationUseCase(repo, clock),
+    remove: new DeleteConversationUseCase(
+      repo,
+      new FakeThreadSource(threads),
+      outbox,
+      tx,
+      clock,
+    ),
   };
 }
 
@@ -139,5 +159,53 @@ describe('conversation use cases', () => {
       { page: 1, limit: 20 },
     );
     expect(bySearch.items.map((c) => c.title)).toEqual(['Budget review']);
+  });
+
+  it('A12: soft delete + conversation.deleted outbox (with threadIds) in 1 transaction', async () => {
+    const s = setup({ [FIRST_ID]: ['thread-a', 'thread-b'] });
+    const created = await s.create.execute(alice, { title: 'Gone' });
+    expect(created.id).toBe(FIRST_ID);
+    s.clock.advance(1000);
+
+    await s.remove.execute(alice, created.id);
+
+    expect(s.tx.runs).toBe(1);
+    expect(s.outbox.events).toEqual([
+      {
+        eventType: 'conversation.deleted',
+        aggregateType: 'conversation',
+        aggregateId: created.id,
+        payload: {
+          conversationId: created.id,
+          ownerId: 'alice',
+          threadIds: ['thread-a', 'thread-b'],
+        },
+      },
+    ]);
+    const row = s.repo.rows.get(created.id)?.snapshot();
+    expect(row?.deletedAt).toEqual(s.clock.now());
+    await expect(s.get.execute(alice, created.id)).rejects.toBeInstanceOf(
+      NotFoundError,
+    );
+    const list = await s.list.execute(alice, {}, { page: 1, limit: 20 });
+    expect(list.meta.total).toBe(0);
+  });
+
+  it('A12: deleting someone else’s or an already deleted conversation ⇒ 404, no event', async () => {
+    const s = setup();
+    const created = await s.create.execute(alice, { title: 'Mine' });
+
+    const byBob = await s.remove
+      .execute(bob, created.id)
+      .catch((e: unknown) => e);
+    expect(byBob).toBeInstanceOf(NotFoundError);
+    expect((byBob as NotFoundError).reason).toBe('conversation_not_found');
+    expect(s.repo.rows.get(created.id)?.snapshot().deletedAt).toBeNull();
+
+    await s.remove.execute(alice, created.id);
+    await expect(s.remove.execute(alice, created.id)).rejects.toBeInstanceOf(
+      NotFoundError,
+    );
+    expect(s.outbox.events).toHaveLength(1);
   });
 });
