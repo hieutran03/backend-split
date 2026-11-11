@@ -8,10 +8,17 @@
 export type IsolationLevel =
   'READ COMMITTED' | 'REPEATABLE READ' | 'SERIALIZABLE';
 
+export interface TransactionOptions {
+  readonly isolation?: IsolationLevel;
+  /**
+   * REPEATABLE READ / SERIALIZABLE only: rerun the WHOLE `work` in a new
+   * transaction when Postgres aborts it with a serialization failure (40001),
+   * at most this many extra times. `work` must therefore be safe to rerun.
+   */
+  readonly retriesOnSerializationFailure?: number;
+}
+
 export interface TransactionManager {
-  run<T>(
-    work: () => Promise<T>,
-    options?: { isolation?: IsolationLevel },
-  ): Promise<T>;
+  run<T>(work: () => Promise<T>, options?: TransactionOptions): Promise<T>;
 }
 export const TRANSACTION_MANAGER = Symbol('TRANSACTION_MANAGER');

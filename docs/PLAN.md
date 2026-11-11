@@ -6,7 +6,7 @@
 > Nguồn yêu cầu: artifact "Chatbot Backend Split" (tách phần quản lý/lưu trữ của chatbot
 > FastAPI sang NestJS). Bản trích để tra cứu nằm ở [docs/reference/](reference/).
 
-**Cập nhật lần cuối:** 2026-11-11 · **Giai đoạn hiện tại:** Phase 1 (W1) — lượt tiếp theo: CONV-03
+**Cập nhật lần cuối:** 2026-11-11 · **Giai đoạn hiện tại:** Phase 1 (W1) — Phase 1 xong phần làm được — **chờ Hiếu review**; còn [!] MSG-02, TP-02
 
 ## Cách đọc
 
@@ -85,7 +85,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | USR-01 | `GET /users/me` — [nhật ký 008](journal/008-users-me.md) | A5 | 🤖 | [x] |
 | CONV-01 | Conversations CRUD (tạo, xem, sửa, danh sách phân trang / lọc project / tìm tiêu đề); migration sinh bằng script — [nhật ký 010](journal/010-hoi-thoai-crud.md). Xoá ⇒ CONV-02 | A7–A9, A11, A21–A24 | 🤖 | [r] |
 | CONV-02 | Xoá hội thoại: xoá mềm + outbox `conversation.deleted` (threadIds), khoá dòng chống xoá trùng; lượt active **không** chặn (TC-33) — [nhật ký 011](journal/011-xoa-hoi-thoai.md) | A12, A25 | 🤖 | [r] |
-| CONV-03 | Fork: REPEATABLE READ dưới khoá lượt nguồn, fingerprint sha256, unique `(owner_id, fork_request_id)`, replay 200/409/410, outbox `conversation.forked` | A12a | 🤖 | [ ] |
+| CONV-03 | Fork: REPEATABLE READ (retry 40001) dưới khoá lượt nguồn (advisory lock dùng chung với Python), fingerprint sha256, replay 200/409/410, 413, outbox `conversation.forked` — [nhật ký 017](journal/017-fork-hoi-thoai.md) | A12a | 🤖 | [r] |
 | MSG-01 | Messages đọc: `GET /messages/{id}`, list theo hội thoại (S2, mặc định `-sequence` — TC-39), list của tôi, `sender` số ⇒ chuỗi; bảng `messages` sinh bằng script — [nhật ký 012](journal/012-doc-tin-nhan.md) | A10, A19, A20 | 🤖 | [r] |
 | CONV-04 | Danh sách hội thoại: `include=messages` + `latestMessages` (0..20), `messageCount`, `include=feedback` ⇒ 400, tìm cả nội dung tin nhắn (TC-31, TC-36) — [nhật ký 013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) | A9 | 🤖 | [r] |
 | MSG-02 | Projection UIMessage cho AI SDK (`?format=ui-message`) — port `ai_sdk_projection.py` | A26 | 🤖 | [!] cần code Python |
@@ -216,6 +216,12 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-50 | Xoá task không đánh lại `task_order` | tạm chọn | [016](journal/016-task-plans.md) |
 | TC-51 | `task_order` bắt đầu từ 1 | tạm chọn | [016](journal/016-task-plans.md) |
 | TC-52 | A36/A37 trả mảng, không phân trang | tạm chọn | [016](journal/016-task-plans.md) |
+| TC-53 | Cách ghép chuỗi fingerprint fork (JSON array → sha256 hex) | tạm chọn — cần code Python | [017](journal/017-fork-hoi-thoai.md) |
+| TC-54 | Con copy persona, planning flag, project; tiêu đề mặc định = nguồn | tạm chọn | [017](journal/017-fork-hoi-thoai.md) |
+| TC-55 | "32 MB" = content + metadata text (bytes) | tạm chọn | [017](journal/017-fork-hoi-thoai.md) |
+| TC-56 | Fork: kiểm generation active / documents / copy custom agent khi có bảng (W2–W4) | hoãn | [017](journal/017-fork-hoi-thoai.md) |
+| TC-57 | Chờ khoá lượt > 30 s ⇒ 409 `conversation_busy` | tạm chọn | [017](journal/017-fork-hoi-thoai.md) |
+| TC-58 | Fork trả `message: "OK"` cho cả 201 và 200 | tạm chọn | [017](journal/017-fork-hoi-thoai.md) |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
 ## Ghi chú review
@@ -243,3 +249,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-11 | 🤖 | Lượt FB-01: module `feedback` (A30, A32–A34; A31 bỏ), 409 `feedback_exists` (kiểm trước + unique index), `include=feedback` cho A10/A20; migration `AddFeedbacks` sinh bằng script, qua check/revert. 98 test; chạy thật 13 kịch bản + 5 POST đồng thời ⇒ 1 dòng. |
 | 2026-11-11 | 🤖 | Lượt PJ-06 + PJ-05: gắn/gỡ hội thoại; xoá project gỡ mọi hội thoại trong cùng transaction (khoá project → hội thoại); A7 khoá project khi tạo trong project. 102 test; chạy thật 11 kịch bản + race xoá/gắn/tạo × 3 ⇒ 0 hội thoại trỏ vào project đã xoá. |
 | 2026-11-11 | 🤖 | Lượt TP-01: module `task-plans` (A36–A42), `completedAt` theo `status`, khoá hội thoại khi thêm việc; migration `AddTaskPlans` sinh bằng script (enum + unique deferrable), qua check/revert. Tách TP-02 [!] (tính `plan_lifecycle`, cần Python). 108 test; chạy thật 14 kịch bản + 5 lệnh thêm đồng thời ⇒ thứ tự 1..12 không trùng. |
+| 2026-11-11 | 🤖 | Lượt CONV-03: fork A12a; port `ConversationTurnLock` (advisory lock §11, connection riêng) + retry 40001 trong `TransactionManager`; copy prefix qua public API của messages; mã lỗi 413. 116 test; chạy thật 13 kịch bản (race 5 request ⇒ 1 con; chờ khoá do psql giữ ≈ 2,7 s; 413 ở 5.002 tin). |

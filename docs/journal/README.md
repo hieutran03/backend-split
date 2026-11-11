@@ -29,6 +29,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 014 | [Đánh giá câu trả lời](014-feedback.md) | FB-01 (A30, A32–A34) | 2026-11-11 | chờ review |
 | 015 | [Gắn hội thoại vào project, xoá project](015-project-va-hoi-thoai.md) | PJ-06, PJ-05 (PJ5–PJ7) | 2026-11-11 | chờ review |
 | 016 | [Kế hoạch công việc](016-task-plans.md) | TP-01 (A36–A42) | 2026-11-11 | chờ review |
+| 017 | [Fork hội thoại](017-fork-hoi-thoai.md) | CONV-03 (A12a) | 2026-11-11 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -86,6 +87,12 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-50 | Xoá không đánh lại thứ tự | tạm chọn | 016 |
 | TC-51 | `task_order` từ 1 | tạm chọn | 016 |
 | TC-52 | Task list không phân trang | tạm chọn | 016 |
+| TC-53 | Fingerprint fork | tạm chọn | 017 |
+| TC-54 | Con copy gì | tạm chọn | 017 |
+| TC-55 | Đo 32 MB | tạm chọn | 017 |
+| TC-56 | Kiểm generation/documents/agents khi có bảng | hoãn | 017 |
+| TC-57 | Chờ khoá > 30 s ⇒ 409 | tạm chọn | 017 |
+| TC-58 | Fork message "OK" | tạm chọn | 017 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

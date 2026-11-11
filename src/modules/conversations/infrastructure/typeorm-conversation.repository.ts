@@ -1,4 +1,4 @@
-import { IsNull } from 'typeorm';
+import { IsNull, QueryFailedError } from 'typeorm';
 
 import { type DbContext } from '@platform/database/db-context';
 import {
@@ -8,9 +8,10 @@ import {
   type PageRequest,
 } from '@shared/pagination/page';
 import { Conversation } from '../domain/conversation';
-import type {
-  ConversationListFilter,
-  ConversationRepository,
+import {
+  type ConversationListFilter,
+  type ConversationRepository,
+  ForkRequestTakenError,
 } from '../application/ports';
 import { ConversationRecord } from './conversation.record';
 
@@ -92,6 +93,40 @@ export class TypeOrmConversationRepository implements ConversationRepository {
       forkRequestId: null,
       forkRequestFingerprint: null,
     });
+  }
+
+  public async findForkRequest(
+    ownerId: string,
+    requestId: string,
+  ): Promise<{ child: Conversation; fingerprint: string } | null> {
+    const r = await this.repo.findOneBy({ ownerId, forkRequestId: requestId });
+    return r
+      ? { child: toDomain(r), fingerprint: r.forkRequestFingerprint ?? '' }
+      : null;
+  }
+
+  public async insertFork(
+    child: Conversation,
+    request: { requestId: string; fingerprint: string },
+  ): Promise<void> {
+    try {
+      await this.repo.insert({
+        ...child.snapshot(),
+        forkRequestId: request.requestId,
+        forkRequestFingerprint: request.fingerprint,
+      });
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error.driverError as { code?: string; constraint?: string }).code ===
+          '23505' &&
+        (error.driverError as { constraint?: string }).constraint ===
+          'uq_conversations_owner_fork_request'
+      ) {
+        throw new ForkRequestTakenError();
+      }
+      throw error;
+    }
   }
 
   public async save(conversation: Conversation): Promise<void> {

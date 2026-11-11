@@ -4,8 +4,11 @@ import type {
   ConversationMessageView,
   ConversationRepository,
   ConversationThreadSource,
+  ForkFingerprint,
+  ForkMessages,
   ProjectAccess,
 } from '@modules/conversations/application/ports';
+import { ForkRequestTakenError } from '@modules/conversations/application/ports';
 import { Conversation } from '@modules/conversations/domain/conversation';
 import { toPage, type Page, type PageRequest } from '@shared/pagination/page';
 
@@ -61,6 +64,49 @@ export class InMemoryConversationRepository implements ConversationRepository {
 
   public save(conversation: Conversation): Promise<void> {
     return this.insert(conversation);
+  }
+
+  /** `${ownerId}:${requestId}` ⇒ child id + fingerprint (mirrors the unique index). */
+  public readonly forkRequests = new Map<
+    string,
+    { childId: string; fingerprint: string }
+  >();
+
+  public findForkRequest(
+    ownerId: string,
+    requestId: string,
+  ): Promise<{ child: Conversation; fingerprint: string } | null> {
+    const hit = this.forkRequests.get(`${ownerId}:${requestId}`);
+    const child = hit && this.rows.get(hit.childId);
+    return Promise.resolve(
+      hit && child
+        ? {
+            child: Conversation.restore(child.snapshot()),
+            fingerprint: hit.fingerprint,
+          }
+        : null,
+    );
+  }
+
+  public insertFork(
+    child: Conversation,
+    request: { requestId: string; fingerprint: string },
+  ): Promise<void> {
+    const key = `${child.snapshot().ownerId}:${request.requestId}`;
+    if (this.forkRequests.has(key)) {
+      return Promise.reject(new ForkRequestTakenError());
+    }
+    this.forkRequests.set(key, {
+      childId: child.id,
+      fingerprint: request.fingerprint,
+    });
+    return this.insert(child);
+  }
+
+  /** Test helper: soft-delete a row directly. */
+  public markDeleted(id: string, at: Date): void {
+    const c = this.rows.get(id);
+    if (c) c.softDelete(at);
   }
 }
 
@@ -141,5 +187,77 @@ export class FakeConversationMessages implements ConversationMessages {
           ]),
       ),
     );
+  }
+}
+
+interface FakeMessage {
+  readonly sequence: number;
+  readonly sender: 'user' | 'assistant';
+  readonly bytes: number;
+}
+
+/** Messages per conversation by id; copy records what was copied. */
+export class FakeForkMessages implements ForkMessages {
+  public readonly byConversation = new Map<string, Map<string, FakeMessage>>();
+  public readonly copies: Array<{
+    sourceId: string;
+    childId: string;
+    through: number;
+  }> = [];
+
+  public add(
+    conversationId: string,
+    messageId: string,
+    sequence: number,
+    sender: 'user' | 'assistant',
+    bytes = 10,
+  ): void {
+    const list =
+      this.byConversation.get(conversationId) ?? new Map<string, FakeMessage>();
+    list.set(messageId, { sequence, sender, bytes });
+    this.byConversation.set(conversationId, list);
+  }
+
+  public findMessage(conversationId: string, messageId: string) {
+    const m = this.byConversation.get(conversationId)?.get(messageId);
+    return Promise.resolve(
+      m ? { sequence: m.sequence, sender: m.sender } : null,
+    );
+  }
+
+  public prefixSize(conversationId: string, through: number) {
+    const prefix = [
+      ...(this.byConversation.get(conversationId)?.values() ?? []),
+    ].filter((m) => m.sequence <= through);
+    return Promise.resolve({
+      count: prefix.length,
+      bytes: prefix.reduce((sum, m) => sum + m.bytes, 0),
+    });
+  }
+
+  public async copyPrefix(sourceId: string, childId: string, through: number) {
+    this.copies.push({ sourceId, childId, through });
+    return (await this.prefixSize(sourceId, through)).count;
+  }
+}
+
+/** Deterministic, readable fingerprint for tests. */
+export class FakeForkFingerprint implements ForkFingerprint {
+  public of(input: {
+    sourceConversationId: string;
+    messageId: string;
+    title: string | null;
+  }): string {
+    return `${input.sourceConversationId}|${input.messageId}|${input.title ?? ''}`;
+  }
+}
+
+/** Runs work immediately; records which conversations were locked. */
+export class FakeTurnLock {
+  public readonly locked: string[] = [];
+
+  public withLock<T>(conversationId: string, work: () => Promise<T>) {
+    this.locked.push(conversationId);
+    return work();
   }
 }

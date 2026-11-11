@@ -9,7 +9,9 @@ import {
   Patch,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { type Actor } from '@shared/auth/actor';
@@ -32,6 +34,7 @@ import {
   ListConversationsUseCase,
   UpdateConversationUseCase,
 } from '../application/conversation.use-cases';
+import { ForkConversationUseCase } from '../application/fork.use-case';
 import {
   type ConversationListItemView,
   type ConversationView,
@@ -39,6 +42,8 @@ import {
 import {
   type CreateConversationBody,
   createConversationSchema,
+  type ForkConversationBody,
+  forkConversationSchema,
   conversationListItemSchema,
   conversationViewSchema,
   type ListConversationsQuery,
@@ -48,7 +53,7 @@ import {
 } from './conversations.schemas';
 
 /**
- * A7, A8, A9, A11, A12 (+ the duplicate /ai/conversations* routes A21–A25 fold
+ * A7, A8, A9, A11, A12, A12a (+ the duplicate /ai/conversations* routes A21–A25 fold
  * into these). GET …/messages (A10) is MSG-01.
  */
 @ApiTags('conversations')
@@ -66,6 +71,8 @@ export class ConversationsController {
     private readonly updateConversation: UpdateConversationUseCase,
     @Inject(DeleteConversationUseCase)
     private readonly deleteConversation: DeleteConversationUseCase,
+    @Inject(ForkConversationUseCase)
+    private readonly forkConversation: ForkConversationUseCase,
   ) {}
 
   @Get()
@@ -165,5 +172,32 @@ export class ConversationsController {
   ): Promise<null> {
     await this.deleteConversation.execute(actor, conversationId);
     return null;
+  }
+
+  @Post(':conversationId/forks')
+  @ApiOperation({
+    summary: 'Fork a conversation at an assistant message (A12a)',
+    description:
+      '201 with the new child; 200 when the same requestId + body is replayed. 404 message not in the source; 409 not an assistant message / requestId used for another fork / conversation busy; 410 the child of this requestId was deleted; 413 prefix > 5 000 messages or 32 MB.',
+  })
+  @ApiUuidParam('conversationId')
+  @ApiZodBody(forkConversationSchema)
+  @ApiEnvelope(conversationViewSchema, { status: 201 })
+  @ApiErrors(400, 401, 404, 409, 410, 413)
+  public async fork(
+    @CurrentActor() actor: Actor,
+    @Param('conversationId', new ZodValidationPipe(uuidParamSchema))
+    conversationId: string,
+    @Body(new ZodValidationPipe(forkConversationSchema))
+    body: ForkConversationBody,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<ConversationView> {
+    const result = await this.forkConversation.execute(
+      actor,
+      conversationId,
+      body,
+    );
+    response.status(result.created ? 201 : 200);
+    return result.conversation;
   }
 }

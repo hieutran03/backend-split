@@ -1,9 +1,10 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { type DataSource, type EntityManager } from 'typeorm';
+import { type DataSource, type EntityManager, QueryFailedError } from 'typeorm';
 
 import type {
   IsolationLevel,
   TransactionManager,
+  TransactionOptions,
 } from '@platform/ports/transaction-manager.port';
 
 /**
@@ -41,10 +42,24 @@ export class DbContext {
 export class TypeOrmTransactionManager implements TransactionManager {
   public constructor(private readonly db: DbContext) {}
 
-  public run<T>(
+  public async run<T>(
     work: () => Promise<T>,
-    options?: { isolation?: IsolationLevel },
+    options?: TransactionOptions,
   ): Promise<T> {
-    return this.db.transaction(work, options?.isolation);
+    const retries = options?.retriesOnSerializationFailure ?? 0;
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        return await this.db.transaction(work, options?.isolation);
+      } catch (error) {
+        // Nested runs reuse the outer transaction: only the outermost may retry.
+        if (attempt >= retries || this.db.inTransaction) throw error;
+        if (!isSerializationFailure(error)) throw error;
+      }
+    }
   }
+}
+
+function isSerializationFailure(error: unknown): boolean {
+  if (!(error instanceof QueryFailedError)) return false;
+  return (error.driverError as { code?: string }).code === '40001';
 }

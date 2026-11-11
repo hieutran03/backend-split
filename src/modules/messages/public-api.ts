@@ -10,3 +10,7 @@ export {
   MESSAGE_OWNERSHIP,
   type MessageOwnership,
 } from './application/message-ownership';
+export {
+  FORK_MESSAGE_SOURCE,
+  type ForkMessageSource,
+} from './application/message-fork';

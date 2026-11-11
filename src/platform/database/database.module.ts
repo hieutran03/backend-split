@@ -9,6 +9,8 @@ import {
 import { DataSource, type MixedList, type EntitySchema } from 'typeorm';
 
 import { TRANSACTION_MANAGER } from '@platform/ports/transaction-manager.port';
+import { CONVERSATION_TURN_LOCK } from '@platform/ports/turn-lock.port';
+import { PgConversationTurnLock } from './pg-turn-lock';
 import { OUTBOX } from '@platform/ports/outbox.port';
 import { APP_CONFIG, type AppConfig } from '../config/app-config';
 import { DbContext, TypeOrmTransactionManager } from './db-context';
@@ -73,8 +75,19 @@ export class DatabaseModule implements OnApplicationShutdown {
           useFactory: (db: DbContext) => new TypeOrmOutbox(db),
           inject: [DbContext],
         },
+        {
+          provide: CONVERSATION_TURN_LOCK,
+          useFactory: (ds: DataSource) => new PgConversationTurnLock(ds),
+          inject: [DataSource],
+        },
       ],
-      exports: [DataSource, DbContext, TRANSACTION_MANAGER, OUTBOX],
+      exports: [
+        DataSource,
+        DbContext,
+        TRANSACTION_MANAGER,
+        OUTBOX,
+        CONVERSATION_TURN_LOCK,
+      ],
     };
   }
 

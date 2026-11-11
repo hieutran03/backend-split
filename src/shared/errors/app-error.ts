@@ -2,7 +2,7 @@
  * Business/application error — pure TypeScript, unaware of HTTP.
  *
  * `code` is the standard envelope code (§4.1 S1): bad_request, unauthorized, forbidden,
- * not_found, conflict, gone, unprocessable, too_many_requests, bad_gateway,
+ * not_found, conflict, gone, payload_too_large, unprocessable, too_many_requests, bad_gateway,
  * service_unavailable, internal_error. `reason` is the detailed business reason
  * (e.g. conversation_turn_conflict), placed in the response's `data.reason`.
  *
@@ -15,6 +15,7 @@ export type ErrorCode =
   | 'not_found'
   | 'conflict'
   | 'gone'
+  | 'payload_too_large'
   | 'unprocessable'
   | 'too_many_requests'
   | 'bad_gateway'

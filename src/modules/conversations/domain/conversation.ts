@@ -3,8 +3,8 @@ import { ValidationError } from '@shared/errors/app-error';
 /**
  * Conversation aggregate — `conversations` table (§6).
  *
- * Fork columns (forked_from_*, fork_request_*) are read-only here: they are written
- * by the fork use case (CONV-03). `nextMessageSequence` is advanced only by the
+ * Fork columns (forked_from_*) are set only by `forkFrom` (A12a); fork_request_*
+ * (idempotency) are stored by the repository alongside. `nextMessageSequence` is advanced only by the
  * message writer (§11: UPDATE … RETURNING under a row lock), never by CRUD.
  */
 export type PlanLifecycle =
@@ -61,12 +61,52 @@ export class Conversation {
     });
   }
 
+  /**
+   * A12a — the child of a fork: a copy of the source's settings, cut after the
+   * source message `throughSequence`. Its own messages are the copied prefix,
+   * numbered 1..copiedMessages, so the next one gets copiedMessages + 1.
+   * Copied: persona, planning flag, project (TC-54). Not copied: plan lifecycle.
+   */
+  public static forkFrom(
+    source: Conversation,
+    input: {
+      id: string;
+      title?: string | null;
+      messageId: string;
+      throughSequence: number;
+      copiedMessages: number;
+      now: Date;
+    },
+  ): Conversation {
+    const s = source.props;
+    return new Conversation({
+      id: input.id,
+      ownerId: s.ownerId,
+      title: Conversation.validTitle(input.title ?? s.title),
+      personaPrompt: s.personaPrompt,
+      planningModeEnabled: s.planningModeEnabled,
+      planLifecycle: null,
+      projectId: s.projectId,
+      nextMessageSequence: input.copiedMessages + 1,
+      forkedFromConversationId: s.id,
+      forkedFromMessageId: input.messageId,
+      forkedThroughSequence: input.throughSequence,
+      createdAt: input.now,
+      updatedAt: input.now,
+      deletedAt: null,
+    });
+  }
+
   public static restore(props: ConversationProps): Conversation {
     return new Conversation({ ...props });
   }
 
   public get id(): string {
     return this.props.id;
+  }
+
+  public get isDeleted(): boolean {
+    return this.props.deletedAt !== null;
   }
 
   /**

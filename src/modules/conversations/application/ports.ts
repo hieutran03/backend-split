@@ -26,6 +26,30 @@ export interface ConversationRepository {
   insert(conversation: Conversation): Promise<void>;
   /** Persists the mutable CRUD fields only (title, persona, planning flag, timestamps). */
   save(conversation: Conversation): Promise<void>;
+  /**
+   * A12a idempotency: the child created for (owner, requestId), deleted ones
+   * included (the unique index has no deleted_at condition).
+   */
+  findForkRequest(
+    ownerId: string,
+    requestId: string,
+  ): Promise<{ child: Conversation; fingerprint: string } | null>;
+  /**
+   * Inserts a fork child with its request id + fingerprint. A concurrent fork with
+   * the same (owner, requestId) ⇒ throws ForkRequestTakenError.
+   */
+  insertFork(
+    child: Conversation,
+    request: { requestId: string; fingerprint: string },
+  ): Promise<void>;
+}
+
+/** Thrown by insertFork when uq_conversations_owner_fork_request is hit. */
+export class ForkRequestTakenError extends Error {
+  public constructor() {
+    super('fork request already used');
+    this.name = 'ForkRequestTakenError';
+  }
 }
 export const CONVERSATION_REPOSITORY = Symbol('CONVERSATION_REPOSITORY');
 
@@ -80,3 +104,31 @@ export interface ConversationMessages {
   ): Promise<Map<string, ConversationMessageView[]>>;
 }
 export const CONVERSATION_MESSAGES = Symbol('CONVERSATION_MESSAGES');
+
+/** What the fork needs from the messages context (adapter ⇒ FORK_MESSAGE_SOURCE). */
+export interface ForkMessages {
+  findMessage(
+    conversationId: string,
+    messageId: string,
+  ): Promise<{ sequence: number; sender: 'user' | 'assistant' } | null>;
+  prefixSize(
+    conversationId: string,
+    throughSequence: number,
+  ): Promise<{ count: number; bytes: number }>;
+  copyPrefix(
+    sourceId: string,
+    childId: string,
+    throughSequence: number,
+  ): Promise<number>;
+}
+export const FORK_MESSAGES = Symbol('FORK_MESSAGES');
+
+/** sha256 hex of the fork request (TC-53); infrastructure owns the hashing. */
+export interface ForkFingerprint {
+  of(input: {
+    sourceConversationId: string;
+    messageId: string;
+    title: string | null;
+  }): string;
+}
+export const FORK_FINGERPRINT = Symbol('FORK_FINGERPRINT');

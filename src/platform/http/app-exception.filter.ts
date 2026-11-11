@@ -21,6 +21,7 @@ const STATUS: Record<ErrorCode, number> = {
   not_found: 404,
   conflict: 409,
   gone: 410,
+  payload_too_large: 413,
   unprocessable: 422,
   too_many_requests: 429,
   bad_gateway: 502,

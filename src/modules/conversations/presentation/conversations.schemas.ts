@@ -82,6 +82,18 @@ export type ListConversationsQuery = z.infer<
   typeof listConversationsQuerySchema
 >;
 
+/** A12a — `title` optional (defaults to the source title); blank ⇒ 400. */
+export const forkConversationSchema = z.object({
+  messageId: z.uuid().meta({
+    description: 'Completed assistant message to fork at (inclusive)',
+  }),
+  requestId: z
+    .uuid()
+    .meta({ description: 'Idempotency key chosen by the client' }),
+  title: z.string().trim().min(1).max(TITLE_MAX).nullish(),
+});
+export type ForkConversationBody = z.infer<typeof forkConversationSchema>;
+
 // ----------------------------------------------------------------- response
 const conversationViewObject = z.object({
   id: z.uuid(),
