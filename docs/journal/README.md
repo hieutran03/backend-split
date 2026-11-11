@@ -28,6 +28,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 013 | [Danh sách hội thoại kèm tin nhắn](013-danh-sach-hoi-thoai-kem-tin-nhan.md) | CONV-04 (A9) | 2026-11-11 | chờ review |
 | 014 | [Đánh giá câu trả lời](014-feedback.md) | FB-01 (A30, A32–A34) | 2026-11-11 | chờ review |
 | 015 | [Gắn hội thoại vào project, xoá project](015-project-va-hoi-thoai.md) | PJ-06, PJ-05 (PJ5–PJ7) | 2026-11-11 | chờ review |
+| 016 | [Kế hoạch công việc](016-task-plans.md) | TP-01 (A36–A42) | 2026-11-11 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -80,6 +81,11 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-45 | Copy custom agent khi gắn ⇒ PJ-08 | hoãn | 015 |
 | TC-46 | Gắn/gỡ đổi `updated_at` | tạm chọn | 015 |
 | TC-47 | Response PJ6/PJ7 | tạm chọn | 015 |
+| TC-48 | Chưa ghi `plan_lifecycle` (TP-02) | **mở** | 016 |
+| TC-49 | Cách tính % và nextTask | tạm chọn | 016 |
+| TC-50 | Xoá không đánh lại thứ tự | tạm chọn | 016 |
+| TC-51 | `task_order` từ 1 | tạm chọn | 016 |
+| TC-52 | Task list không phân trang | tạm chọn | 016 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

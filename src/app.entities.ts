@@ -2,6 +2,7 @@ import { ConversationRecord } from '@modules/conversations/public-api';
 import { FeedbackRecord } from '@modules/feedback/public-api';
 import { RefreshTokenRecord, UserRecord } from '@modules/identity/public-api';
 import { MessageRecord } from '@modules/messages/public-api';
+import { TaskPlanRecord } from '@modules/task-plans/public-api';
 import { ProjectRecord } from '@modules/projects/public-api';
 import { OutboxEventRecord } from '@platform/database/outbox/outbox-event.record';
 
@@ -27,4 +28,6 @@ export const ALL_ENTITIES = [
   MessageRecord,
   // feedback
   FeedbackRecord,
+  // task plans
+  TaskPlanRecord,
 ];

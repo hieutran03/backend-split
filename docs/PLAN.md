@@ -6,7 +6,7 @@
 > Nguồn yêu cầu: artifact "Chatbot Backend Split" (tách phần quản lý/lưu trữ của chatbot
 > FastAPI sang NestJS). Bản trích để tra cứu nằm ở [docs/reference/](reference/).
 
-**Cập nhật lần cuối:** 2026-11-11 · **Giai đoạn hiện tại:** Phase 1 (W1) — lượt tiếp theo: TP-01
+**Cập nhật lần cuối:** 2026-11-11 · **Giai đoạn hiện tại:** Phase 1 (W1) — lượt tiếp theo: CONV-03
 
 ## Cách đọc
 
@@ -90,7 +90,8 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | CONV-04 | Danh sách hội thoại: `include=messages` + `latestMessages` (0..20), `messageCount`, `include=feedback` ⇒ 400, tìm cả nội dung tin nhắn (TC-31, TC-36) — [nhật ký 013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) | A9 | 🤖 | [r] |
 | MSG-02 | Projection UIMessage cho AI SDK (`?format=ui-message`) — port `ai_sdk_projection.py` | A26 | 🤖 | [!] cần code Python |
 | FB-01 | Feedback: 1 feedback/message, rating 1–5, 409 `feedback_exists`, ownership qua message; `include=feedback` cho A10/A20 — [nhật ký 014](journal/014-feedback.md) | A30, A32–A34 | 🤖 | [r] |
-| TP-01 | Task plans CRUD + complete + planning-status; mọi thay đổi tính lại `conversations.plan_lifecycle`; reorder dùng unique DEFERRABLE | A36–A42 | 🤖 | [ ] |
+| TP-01 | Task plans CRUD + complete + planning-status; bảng `task_plans` (enum `task_status`, unique DEFERRABLE INITIALLY DEFERRED) sinh bằng script — [nhật ký 016](journal/016-task-plans.md) | A36–A42 | 🤖 | [r] |
+| TP-02 | Tính lại `conversations.plan_lifecycle` sau mỗi thay đổi task (Engine đọc cột này — không đoán, TC-48) | A36–A41 | 🤖 | [!] cần code Python `task_plan` service |
 | PJ-05 | Hoàn thiện xoá project: khoá project → hội thoại; gỡ mọi hội thoại (`project_id = NULL`) trong cùng transaction — [nhật ký 015](journal/015-project-va-hoi-thoai.md) | PJ5 | 🤖 | [r] |
 | PJ-06 | Gắn/gỡ hội thoại vào project (kiểm 2 phía, khoá project `FOR SHARE`); copy custom agent ⇒ PJ-08 — [nhật ký 015](journal/015-project-va-hoi-thoai.md) | PJ6, PJ7 | 🤖 | [r] |
 
@@ -210,6 +211,11 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-45 | Copy custom agent của project khi gắn/tạo hội thoại ⇒ PJ-08 | hoãn | [015](journal/015-project-va-hoi-thoai.md) |
 | TC-46 | Gắn/gỡ đổi `updated_at` của hội thoại | tạm chọn | [015](journal/015-project-va-hoi-thoai.md) |
 | TC-47 | Response PJ6/PJ7 `{ conversationId, projectId }` | tạm chọn | [015](journal/015-project-va-hoi-thoai.md) |
+| TC-48 | Không ghi `plan_lifecycle` tới khi có quy tắc Python (TP-02) | **mở — cần code Python** | [016](journal/016-task-plans.md) |
+| TC-49 | `progressPercentage` (completed/total) và `nextTask` (in_progress rồi pending) | tạm chọn | [016](journal/016-task-plans.md) |
+| TC-50 | Xoá task không đánh lại `task_order` | tạm chọn | [016](journal/016-task-plans.md) |
+| TC-51 | `task_order` bắt đầu từ 1 | tạm chọn | [016](journal/016-task-plans.md) |
+| TC-52 | A36/A37 trả mảng, không phân trang | tạm chọn | [016](journal/016-task-plans.md) |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
 ## Ghi chú review
@@ -236,3 +242,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-11 | 🤖 | Lượt CONV-04: A9 `messageCount`, `include=messages` + `latestMessages` (2 truy vấn set-based / trang), tìm theo nội dung tin. 91 test; chạy thật 11 kịch bản. |
 | 2026-11-11 | 🤖 | Lượt FB-01: module `feedback` (A30, A32–A34; A31 bỏ), 409 `feedback_exists` (kiểm trước + unique index), `include=feedback` cho A10/A20; migration `AddFeedbacks` sinh bằng script, qua check/revert. 98 test; chạy thật 13 kịch bản + 5 POST đồng thời ⇒ 1 dòng. |
 | 2026-11-11 | 🤖 | Lượt PJ-06 + PJ-05: gắn/gỡ hội thoại; xoá project gỡ mọi hội thoại trong cùng transaction (khoá project → hội thoại); A7 khoá project khi tạo trong project. 102 test; chạy thật 11 kịch bản + race xoá/gắn/tạo × 3 ⇒ 0 hội thoại trỏ vào project đã xoá. |
+| 2026-11-11 | 🤖 | Lượt TP-01: module `task-plans` (A36–A42), `completedAt` theo `status`, khoá hội thoại khi thêm việc; migration `AddTaskPlans` sinh bằng script (enum + unique deferrable), qua check/revert. Tách TP-02 [!] (tính `plan_lifecycle`, cần Python). 108 test; chạy thật 14 kịch bản + 5 lệnh thêm đồng thời ⇒ thứ tự 1..12 không trùng. |
