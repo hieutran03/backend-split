@@ -41,3 +41,9 @@ export const projectViewSchema: z.ZodType<ProjectView> = z.object({
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
+
+/** PJ6/PJ7 response. */
+export const membershipViewSchema = z.object({
+  conversationId: z.uuid(),
+  projectId: z.uuid().nullable(),
+});

@@ -8,6 +8,11 @@ import type { ProjectRepository } from './ports/project.repository';
 export interface ProjectLookup {
   /** true when the project exists, is not deleted and belongs to `ownerId`. */
   isOwnedActive(projectId: string, ownerId: string): Promise<boolean>;
+  /**
+   * Same check, and share-locks the project until the caller's transaction ends,
+   * so it cannot be deleted meanwhile. Inside TransactionManager.run() only.
+   */
+  lockOwnedActive(projectId: string, ownerId: string): Promise<boolean>;
 }
 export const PROJECT_LOOKUP = Symbol('PROJECT_LOOKUP');
 
@@ -19,5 +24,12 @@ export class RepositoryProjectLookup implements ProjectLookup {
     ownerId: string,
   ): Promise<boolean> {
     return (await this.projects.findOwned(projectId, ownerId)) !== null;
+  }
+
+  public async lockOwnedActive(
+    projectId: string,
+    ownerId: string,
+  ): Promise<boolean> {
+    return (await this.projects.findOwnedForShare(projectId, ownerId)) !== null;
   }
 }

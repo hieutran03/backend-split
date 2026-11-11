@@ -13,9 +13,18 @@ import {
   type TransactionManager,
 } from '@platform/ports/transaction-manager.port';
 import {
+  AttachConversationUseCase,
+  DetachConversationUseCase,
+} from './application/membership.use-cases';
+import {
+  CONVERSATION_MEMBERSHIP,
+  type ConversationMembership,
+} from './application/ports/conversation-membership';
+import {
   PROJECT_REPOSITORY,
   type ProjectRepository,
 } from './application/ports/project.repository';
+import { TypeOrmConversationMembership } from './infrastructure/typeorm-conversation-membership';
 import {
   CreateProjectUseCase,
   DeleteProjectUseCase,
@@ -39,6 +48,12 @@ import { ProjectsController } from './presentation/projects.controller';
 @Module({
   controllers: [ProjectsController],
   providers: [
+    {
+      provide: CONVERSATION_MEMBERSHIP,
+      useFactory: (db: DbContext): ConversationMembership =>
+        new TypeOrmConversationMembership(db),
+      inject: [DbContext],
+    },
     // ---- adapters
     {
       provide: PROJECT_REPOSITORY,
@@ -73,11 +88,48 @@ import { ProjectsController } from './presentation/projects.controller';
       provide: DeleteProjectUseCase,
       useFactory: (
         repo: ProjectRepository,
+        membership: ConversationMembership,
         outbox: Outbox,
         tx: TransactionManager,
         clock: Clock,
-      ) => new DeleteProjectUseCase(repo, outbox, tx, clock),
-      inject: [PROJECT_REPOSITORY, OUTBOX, TRANSACTION_MANAGER, CLOCK],
+      ) => new DeleteProjectUseCase(repo, membership, outbox, tx, clock),
+      inject: [
+        PROJECT_REPOSITORY,
+        CONVERSATION_MEMBERSHIP,
+        OUTBOX,
+        TRANSACTION_MANAGER,
+        CLOCK,
+      ],
+    },
+    {
+      provide: AttachConversationUseCase,
+      useFactory: (
+        repo: ProjectRepository,
+        membership: ConversationMembership,
+        tx: TransactionManager,
+        clock: Clock,
+      ) => new AttachConversationUseCase(repo, membership, tx, clock),
+      inject: [
+        PROJECT_REPOSITORY,
+        CONVERSATION_MEMBERSHIP,
+        TRANSACTION_MANAGER,
+        CLOCK,
+      ],
+    },
+    {
+      provide: DetachConversationUseCase,
+      useFactory: (
+        repo: ProjectRepository,
+        membership: ConversationMembership,
+        tx: TransactionManager,
+        clock: Clock,
+      ) => new DetachConversationUseCase(repo, membership, tx, clock),
+      inject: [
+        PROJECT_REPOSITORY,
+        CONVERSATION_MEMBERSHIP,
+        TRANSACTION_MANAGER,
+        CLOCK,
+      ],
     },
     // ---- public query for other contexts (exported)
     {

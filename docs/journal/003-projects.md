@@ -149,6 +149,7 @@ lấy token thứ hai bằng `pnpm -s token:dev` kèm `OTHER_USER_ID` trong [scr
   - C) Xoá mềm luôn các hội thoại — mạnh tay, dễ mất dữ liệu ngoài ý muốn.
 - **Đang chọn:** chưa làm (v1 chỉ xoá project, hội thoại giữ nguyên `project_id` trỏ tới project đã xoá).
   Nghiêng về A.
+- **Cập nhật 2026-11-11:** đã làm A ở PJ-05, đúng spec PJ5 — xem [nhật ký 015](015-project-va-hoi-thoai.md).
 - **Trạng thái:** **mở** — task PJ-05, cần đối chiếu Python.
 
 ### TC-11 — Giới hạn độ dài `instructions`

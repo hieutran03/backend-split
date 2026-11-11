@@ -30,6 +30,32 @@ export class TypeOrmProjectRepository implements ProjectRepository {
     return record ? toDomain(record) : null;
   }
 
+  public findOwnedForUpdate(
+    id: string,
+    ownerId: string,
+  ): Promise<Project | null> {
+    return this.findOwnedLocked(id, ownerId, 'pessimistic_write');
+  }
+
+  public findOwnedForShare(
+    id: string,
+    ownerId: string,
+  ): Promise<Project | null> {
+    return this.findOwnedLocked(id, ownerId, 'pessimistic_read');
+  }
+
+  private async findOwnedLocked(
+    id: string,
+    ownerId: string,
+    mode: 'pessimistic_write' | 'pessimistic_read',
+  ): Promise<Project | null> {
+    const record = await this.repo.findOne({
+      where: { id, ownerId, deletedAt: IsNull() },
+      lock: { mode },
+    });
+    return record ? toDomain(record) : null;
+  }
+
   public async listOwned(
     ownerId: string,
     page: PageRequest,

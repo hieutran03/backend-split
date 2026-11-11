@@ -28,36 +28,44 @@ export interface CreateConversationInput {
 /**
  * A7 — Create. A `projectId` that is unknown, deleted or someone else's answers
  * 404 project_not_found (D15) — the caller cannot learn that the project exists.
+ * The project is share-locked in the same transaction as the insert, so a
+ * concurrent project delete cannot leave the new conversation attached to it.
  */
 export class CreateConversationUseCase {
   public constructor(
     private readonly conversations: ConversationRepository,
     private readonly projects: ProjectAccess,
+    private readonly transactions: TransactionManager,
     private readonly clock: Clock,
     private readonly ids: IdGenerator,
   ) {}
 
-  public async execute(
+  public execute(
     actor: Actor,
     input: CreateConversationInput,
   ): Promise<ConversationView> {
-    if (
-      input.projectId &&
-      !(await this.projects.ownsActiveProject(actor.userId, input.projectId))
-    ) {
-      throw new NotFoundError('project');
-    }
-    const conversation = Conversation.start({
-      id: this.ids.uuid(),
-      ownerId: actor.userId,
-      title: input.title,
-      personaPrompt: input.personaPrompt,
-      planningModeEnabled: input.planningModeEnabled,
-      projectId: input.projectId ?? null,
-      now: this.clock.now(),
+    return this.transactions.run(async () => {
+      if (
+        input.projectId &&
+        !(await this.projects.lockOwnedActiveProject(
+          actor.userId,
+          input.projectId,
+        ))
+      ) {
+        throw new NotFoundError('project');
+      }
+      const conversation = Conversation.start({
+        id: this.ids.uuid(),
+        ownerId: actor.userId,
+        title: input.title,
+        personaPrompt: input.personaPrompt,
+        planningModeEnabled: input.planningModeEnabled,
+        projectId: input.projectId ?? null,
+        now: this.clock.now(),
+      });
+      await this.conversations.insert(conversation);
+      return toConversationView(conversation);
     });
-    await this.conversations.insert(conversation);
-    return toConversationView(conversation);
   }
 }
 

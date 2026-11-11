@@ -83,10 +83,17 @@ import { ConversationsController } from './presentation/conversations.controller
       useFactory: (
         repo: ConversationRepository,
         projects: ProjectAccess,
+        tx: TransactionManager,
         clock: Clock,
         ids: IdGenerator,
-      ) => new CreateConversationUseCase(repo, projects, clock, ids),
-      inject: [CONVERSATION_REPOSITORY, PROJECT_ACCESS, CLOCK, ID_GENERATOR],
+      ) => new CreateConversationUseCase(repo, projects, tx, clock, ids),
+      inject: [
+        CONVERSATION_REPOSITORY,
+        PROJECT_ACCESS,
+        TRANSACTION_MANAGER,
+        CLOCK,
+        ID_GENERATOR,
+      ],
     },
     {
       provide: ListConversationsUseCase,

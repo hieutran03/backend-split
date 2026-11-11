@@ -34,8 +34,12 @@ export const CONVERSATION_REPOSITORY = Symbol('CONVERSATION_REPOSITORY');
  * Wired to the projects public API by an adapter (integration through a port).
  */
 export interface ProjectAccess {
-  /** true when the project exists, is not deleted and belongs to `ownerId`. */
-  ownsActiveProject(ownerId: string, projectId: string): Promise<boolean>;
+  /**
+   * true when the project exists, is not deleted and belongs to `ownerId`; also
+   * share-locks it until the transaction ends so it cannot be deleted meanwhile
+   * (PJ-05). Inside TransactionManager.run() only.
+   */
+  lockOwnedActiveProject(ownerId: string, projectId: string): Promise<boolean>;
 }
 export const PROJECT_ACCESS = Symbol('PROJECT_ACCESS');
 

@@ -9,10 +9,10 @@ import type { ProjectAccess } from '../application/ports';
 export class ProjectLookupAccessAdapter implements ProjectAccess {
   public constructor(private readonly projects: ProjectLookup) {}
 
-  public ownsActiveProject(
+  public lockOwnedActiveProject(
     ownerId: string,
     projectId: string,
   ): Promise<boolean> {
-    return this.projects.isOwnedActive(projectId, ownerId);
+    return this.projects.lockOwnedActive(projectId, ownerId);
   }
 }

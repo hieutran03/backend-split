@@ -5,6 +5,7 @@ import type { Clock, IdGenerator } from '@platform/ports/kernel.port';
 import type { Outbox } from '@platform/ports/outbox.port';
 import type { TransactionManager } from '@platform/ports/transaction-manager.port';
 import { Project } from '../domain/project';
+import type { ConversationMembership } from './ports/conversation-membership';
 import type { ProjectRepository } from './ports/project.repository';
 import { toProjectView, type ProjectView } from './project.view';
 
@@ -94,16 +95,19 @@ export class UpdateProjectUseCase {
 }
 
 /**
- * PJ5: soft-deletes the project + `project.deleted` outbox in the SAME transaction.
- * The Engine receives the event to soft-delete the project's user_memories (C19) — the backend
- * no longer writes the Engine's tables.
- *
- * TODO(PJ-05): lock the project before conversations (lock order as in Python) and decide
- * how to handle attached conversations.project_id (set NULL or block) — see §11 "Projects".
+ * PJ5 (PJ-05), as Python since cab22e26, in ONE transaction:
+ *  1. lock the project row (FOR UPDATE) — lock order: project, then conversations;
+ *  2. soft-delete it;
+ *  3. detach every conversation (`project_id = NULL`; the conversations survive);
+ *  4. `project.deleted` outbox — the Engine soft-deletes the project's user_memories
+ *     (C19); the backend no longer writes the Engine's tables.
+ * Attach (PJ6) and create-in-project (A7) share-lock the project, so they either
+ * finish before step 1 (and get detached in step 3) or see the project deleted ⇒ 404.
  */
 export class DeleteProjectUseCase {
   public constructor(
     private readonly projects: ProjectRepository,
+    private readonly membership: ConversationMembership,
     private readonly outbox: Outbox,
     private readonly transactions: TransactionManager,
     private readonly clock: Clock,
@@ -111,15 +115,27 @@ export class DeleteProjectUseCase {
 
   public async execute(actor: Actor, projectId: string): Promise<void> {
     await this.transactions.run(async () => {
-      const project = await this.projects.findOwned(projectId, actor.userId);
+      const project = await this.projects.findOwnedForUpdate(
+        projectId,
+        actor.userId,
+      );
       if (!project) throw new NotFoundError('project');
-      project.softDelete(this.clock.now());
+      const now = this.clock.now();
+      project.softDelete(now);
       await this.projects.save(project);
+      const detachedConversations = await this.membership.detachAll(
+        project.id,
+        now,
+      );
       await this.outbox.enqueue({
         eventType: 'project.deleted',
         aggregateType: 'project',
         aggregateId: project.id,
-        payload: { projectId: project.id, ownerId: project.ownerId },
+        payload: {
+          projectId: project.id,
+          ownerId: project.ownerId,
+          detachedConversations,
+        },
       });
     });
   }

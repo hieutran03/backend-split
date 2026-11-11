@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -36,10 +37,16 @@ import {
   ListProjectsUseCase,
   UpdateProjectUseCase,
 } from '../application/project.use-cases';
+import {
+  AttachConversationUseCase,
+  DetachConversationUseCase,
+  type MembershipView,
+} from '../application/membership.use-cases';
 import { type ProjectView } from '../application/project.view';
 import {
   type CreateProjectBody,
   createProjectSchema,
+  membershipViewSchema,
   projectViewSchema,
   type UpdateProjectBody,
   updateProjectSchema,
@@ -49,7 +56,7 @@ import {
  * Thin controller: validate → call use case → return data (envelope added by the interceptor).
  * No business logic here.
  *
- * Mapping: PJ1–PJ5 (§4.2). PJ6–PJ9 (conversation attachment, custom agents) are tasks PJ-06..09.
+ * Mapping: PJ1–PJ7 (§4.2). PJ8–PJ9 (custom agents) are task PJ-08 (W2).
  */
 @ApiTags('projects')
 @ApiBearerAuth(BEARER_AUTH)
@@ -65,6 +72,10 @@ export class ProjectsController {
     private readonly updateProject: UpdateProjectUseCase,
     @Inject(DeleteProjectUseCase)
     private readonly deleteProject: DeleteProjectUseCase,
+    @Inject(AttachConversationUseCase)
+    private readonly attachConversation: AttachConversationUseCase,
+    @Inject(DetachConversationUseCase)
+    private readonly detachConversation: DetachConversationUseCase,
   ) {}
 
   @Get()
@@ -132,7 +143,7 @@ export class ProjectsController {
   @ApiOperation({
     summary: 'Soft-delete project (PJ5)',
     description:
-      "Writes the `project.deleted` outbox in the same transaction — the Engine soft-deletes the project's user_memories.",
+      "Detaches every conversation of the project (they are kept) and writes the `project.deleted` outbox in the same transaction — the Engine soft-deletes the project's user_memories.",
   })
   @ApiUuidParam('projectId')
   @ApiEnvelope(null, { message: 'Deleted successfully' })
@@ -146,5 +157,48 @@ export class ProjectsController {
   ): Promise<null> {
     await this.deleteProject.execute(actor, projectId);
     return null;
+  }
+
+  @Put(':projectId/conversations/:conversationId')
+  @ApiOperation({
+    summary: 'Move a conversation into the project (PJ6)',
+    description:
+      'Both must be mine (404 project_not_found / conversation_not_found). A conversation in another project is moved. Idempotent.',
+  })
+  @ApiUuidParam('projectId')
+  @ApiUuidParam('conversationId')
+  @ApiEnvelope(membershipViewSchema, { message: 'Updated successfully' })
+  @ApiErrors(400, 401, 404)
+  @ResponseMessage('Updated successfully')
+  public attach(
+    @CurrentActor() actor: Actor,
+    @Param('projectId', new ZodValidationPipe(uuidParamSchema))
+    projectId: string,
+    @Param('conversationId', new ZodValidationPipe(uuidParamSchema))
+    conversationId: string,
+  ): Promise<MembershipView> {
+    return this.attachConversation.execute(actor, projectId, conversationId);
+  }
+
+  @Delete(':projectId/conversations/:conversationId')
+  @ApiOperation({
+    summary: 'Remove a conversation from the project (PJ7)',
+    description:
+      'A conversation that is not in this project ⇒ 404 conversation_not_in_project.',
+  })
+  @ApiUuidParam('projectId')
+  @ApiUuidParam('conversationId')
+  @ApiEnvelope(membershipViewSchema, { message: 'Updated successfully' })
+  @ApiErrors(400, 401, 404)
+  @HttpCode(200)
+  @ResponseMessage('Updated successfully')
+  public detach(
+    @CurrentActor() actor: Actor,
+    @Param('projectId', new ZodValidationPipe(uuidParamSchema))
+    projectId: string,
+    @Param('conversationId', new ZodValidationPipe(uuidParamSchema))
+    conversationId: string,
+  ): Promise<MembershipView> {
+    return this.detachConversation.execute(actor, projectId, conversationId);
   }
 }

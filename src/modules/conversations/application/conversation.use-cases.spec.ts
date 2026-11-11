@@ -44,6 +44,7 @@ function setup(threads: Record<string, string[]> = {}) {
     create: new CreateConversationUseCase(
       repo,
       projects,
+      tx,
       clock,
       new SequentialIds(),
     ),
@@ -170,10 +171,11 @@ describe('conversation use cases', () => {
     const created = await s.create.execute(alice, { title: 'Gone' });
     expect(created.id).toBe(FIRST_ID);
     s.clock.advance(1000);
+    const runsBefore = s.tx.runs;
 
     await s.remove.execute(alice, created.id);
 
-    expect(s.tx.runs).toBe(1);
+    expect(s.tx.runs - runsBefore).toBe(1);
     expect(s.outbox.events).toEqual([
       {
         eventType: 'conversation.deleted',

@@ -6,7 +6,7 @@
 > Nguồn yêu cầu: artifact "Chatbot Backend Split" (tách phần quản lý/lưu trữ của chatbot
 > FastAPI sang NestJS). Bản trích để tra cứu nằm ở [docs/reference/](reference/).
 
-**Cập nhật lần cuối:** 2026-11-11 · **Giai đoạn hiện tại:** Phase 1 (W1) — lượt tiếp theo: PJ-06
+**Cập nhật lần cuối:** 2026-11-11 · **Giai đoạn hiện tại:** Phase 1 (W1) — lượt tiếp theo: TP-01
 
 ## Cách đọc
 
@@ -91,8 +91,8 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | MSG-02 | Projection UIMessage cho AI SDK (`?format=ui-message`) — port `ai_sdk_projection.py` | A26 | 🤖 | [!] cần code Python |
 | FB-01 | Feedback: 1 feedback/message, rating 1–5, 409 `feedback_exists`, ownership qua message; `include=feedback` cho A10/A20 — [nhật ký 014](journal/014-feedback.md) | A30, A32–A34 | 🤖 | [r] |
 | TP-01 | Task plans CRUD + complete + planning-status; mọi thay đổi tính lại `conversations.plan_lifecycle`; reorder dùng unique DEFERRABLE | A36–A42 | 🤖 | [ ] |
-| PJ-05 | Hoàn thiện xoá project: thứ tự khoá project → hội thoại; xử lý conversations đang gắn | PJ5 | 🤖 | [ ] |
-| PJ-06 | Gắn/gỡ hội thoại vào project | PJ6, PJ7 | 🤖 | [ ] |
+| PJ-05 | Hoàn thiện xoá project: khoá project → hội thoại; gỡ mọi hội thoại (`project_id = NULL`) trong cùng transaction — [nhật ký 015](journal/015-project-va-hoi-thoai.md) | PJ5 | 🤖 | [r] |
+| PJ-06 | Gắn/gỡ hội thoại vào project (kiểm 2 phía, khoá project `FOR SHARE`); copy custom agent ⇒ PJ-08 — [nhật ký 015](journal/015-project-va-hoi-thoai.md) | PJ6, PJ7 | 🤖 | [r] |
 
 ## Phase 2 — W2: Cấu hình (36 route)
 
@@ -176,7 +176,7 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-2 | Mỗi context một Nest module hay 1 composition root? | tạm chọn module | [001](journal/001-nen-tang-kien-truc.md) |
 | TC-7 | Hợp đồng V3/E1 là DRAFT — cần code Python để đối chiếu | **mở — cần Hiếu cung cấp** | [002](journal/002-mock-ai-engine.md) |
 | TC-9 | D5: client ngắt kết nối có huỷ lượt không? | **mở — chốt với FE trước W4** | [002](journal/002-mock-ai-engine.md) |
-| TC-10 | Xoá project đang có hội thoại: gỡ / chặn / xoá theo? | **mở** (nghiêng gỡ liên kết) | [003](journal/003-projects.md) |
+| TC-10 | Xoá project đang có hội thoại: gỡ / chặn / xoá theo? | **đóng** — gỡ (spec PJ5) | [003](journal/003-projects.md), [015](journal/015-project-va-hoi-thoai.md) |
 | TC-11 | Giới hạn 20.000 ký tự cho instructions | tạm chọn | [003](journal/003-projects.md) |
 | TC-15 | Staging có bật Swagger không? | tạm chọn: không | [004](journal/004-swagger.md) |
 | TC-17 | Email có phân biệt hoa/thường khi đăng nhập? | **mở** — tạm giữ nguyên như DB | [005](journal/005-dang-ky-dang-nhap.md) |
@@ -206,6 +206,10 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-41 | `messages` trong item: mới nhất trước | tạm chọn — **FE xác nhận** | [013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) |
 | TC-42 | Biểu thức CHECK `ck_feedbacks_rating_range` (`>= 1 AND <= 5`) | tạm chọn | [014](journal/014-feedback.md) |
 | TC-43 | Unique `feedbacks.message_id` không partial (xoá mềm vẫn chiếm chỗ) | theo spec | [014](journal/014-feedback.md) |
+| TC-44 | Module projects ghi cột `conversations.project_id` (SQL theo tên bảng) | tạm chọn — **Hiếu xem** | [015](journal/015-project-va-hoi-thoai.md) |
+| TC-45 | Copy custom agent của project khi gắn/tạo hội thoại ⇒ PJ-08 | hoãn | [015](journal/015-project-va-hoi-thoai.md) |
+| TC-46 | Gắn/gỡ đổi `updated_at` của hội thoại | tạm chọn | [015](journal/015-project-va-hoi-thoai.md) |
+| TC-47 | Response PJ6/PJ7 `{ conversationId, projectId }` | tạm chọn | [015](journal/015-project-va-hoi-thoai.md) |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
 ## Ghi chú review
@@ -231,3 +235,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-11 | 🤖 | Lượt MSG-01: module `messages` (A10/A19/A20, chỉ đọc), `sender` số ⇒ chuỗi (S4); migration `AddMessages` (+ FK `forked_from_message_id`) sinh bằng script, qua check/revert. 88 test; chạy thật 14 kịch bản. Tách phần mở rộng A9 thành CONV-04. |
 | 2026-11-11 | 🤖 | Lượt CONV-04: A9 `messageCount`, `include=messages` + `latestMessages` (2 truy vấn set-based / trang), tìm theo nội dung tin. 91 test; chạy thật 11 kịch bản. |
 | 2026-11-11 | 🤖 | Lượt FB-01: module `feedback` (A30, A32–A34; A31 bỏ), 409 `feedback_exists` (kiểm trước + unique index), `include=feedback` cho A10/A20; migration `AddFeedbacks` sinh bằng script, qua check/revert. 98 test; chạy thật 13 kịch bản + 5 POST đồng thời ⇒ 1 dòng. |
+| 2026-11-11 | 🤖 | Lượt PJ-06 + PJ-05: gắn/gỡ hội thoại; xoá project gỡ mọi hội thoại trong cùng transaction (khoá project → hội thoại); A7 khoá project khi tạo trong project. 102 test; chạy thật 11 kịch bản + race xoá/gắn/tạo × 3 ⇒ 0 hội thoại trỏ vào project đã xoá. |

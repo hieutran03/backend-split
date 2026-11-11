@@ -68,7 +68,7 @@ export class InMemoryConversationRepository implements ConversationRepository {
 export class FakeProjectAccess implements ProjectAccess {
   public constructor(private readonly owned: Record<string, string[]> = {}) {}
 
-  public ownsActiveProject(
+  public lockOwnedActiveProject(
     ownerId: string,
     projectId: string,
   ): Promise<boolean> {
