@@ -19,10 +19,12 @@ const bigintAsNumber: ValueTransformer = {
  * `messages` table (§6). Naming conventions: see identity/infrastructure/records.ts.
  * Migrations are generated from this class.
  *
- * Not declared on purpose:
- *  - INDEX idx_messages_content_simple_fts: an expression (GIN full-text) index.
- *    The spec gives its name but not its expression, and TypeORM cannot generate
- *    expression indexes from an entity (TC-36).
+ * idx_messages_content_simple_fts is a GIN expression index on
+ * `to_tsvector('simple', content)` (Alembic de19068933b7). TypeORM cannot generate
+ * expression indexes, so it is declared with `synchronize: false` (ignored by
+ * generate/check) and created by the one hand-written migration
+ * AddMessagesContentFts (TC-36).
+ * message_metadata has DEFAULT '{}'::jsonb like the Alembic schema.
  * `sender` stays INTEGER (1 = user, 2 = assistant) while the table is shared (S4, §6.3 S9).
  */
 @Entity('messages')
@@ -30,6 +32,7 @@ const bigintAsNumber: ValueTransformer = {
   where: 'deleted_at IS NULL',
 })
 @Index('idx_message_conversation_created', ['conversationId', 'createdAt'])
+@Index('idx_messages_content_simple_fts', { synchronize: false })
 @Unique('uq_messages_conversation_sequence', ['conversationId', 'sequence'])
 @Check('ck_messages_sequence_positive', 'sequence > 0')
 export class MessageRecord {
@@ -46,7 +49,12 @@ export class MessageRecord {
   @Column({ type: 'text' })
   public content!: string;
 
-  @Column({ name: 'message_metadata', type: 'jsonb', nullable: true })
+  @Column({
+    name: 'message_metadata',
+    type: 'jsonb',
+    nullable: true,
+    default: () => "'{}'",
+  })
   public messageMetadata!: Record<string, unknown> | null;
 
   @Column({ type: 'bigint', transformer: bigintAsNumber })

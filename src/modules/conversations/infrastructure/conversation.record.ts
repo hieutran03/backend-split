@@ -24,11 +24,10 @@ const bigintAsNumber: ValueTransformer = {
  * `conversations` table (§6, metadata of 905e52f6). Naming conventions: see
  * identity/infrastructure/records.ts. Migrations are generated from this class.
  *
- * Not declared on purpose:
- *  - CHECK ck_conversations_fork_request_fields_together: the spec only gives its
- *    name, not its expression (TC-29) — not guessed.
- * No DB defaults on next_message_sequence / planning_mode_enabled: like the Python
- * models, the application sets them (§11 "Default phía Python").
+ * Constraint names, CHECK expressions and DB defaults match the Alembic schema
+ * (docs/reference/python-schema.sql, head c4f1a7b9d2e6): FKs to projects and the
+ * fork lineage use Alembic's `fk_*` names; next_message_sequence DEFAULT 1 and
+ * planning_mode_enabled DEFAULT false (the app still sets both).
  */
 @Entity('conversations')
 @Index('ix_conversations_owner_id', ['ownerId'])
@@ -47,7 +46,11 @@ const bigintAsNumber: ValueTransformer = {
 )
 @Check(
   'ck_conversations_forked_through_sequence_positive',
-  'forked_through_sequence > 0',
+  'forked_through_sequence IS NULL OR forked_through_sequence > 0',
+)
+@Check(
+  'ck_conversations_fork_request_fields_together',
+  '(fork_request_id IS NULL) = (fork_request_fingerprint IS NULL)',
 )
 export class ConversationRecord {
   @PrimaryColumn('uuid', { primaryKeyConstraintName: 'conversations_pkey' })
@@ -63,12 +66,13 @@ export class ConversationRecord {
   @Column({ name: 'persona_prompt', type: 'text', nullable: true })
   public personaPrompt!: string | null;
 
-  @Column({ name: 'planning_mode_enabled', type: 'boolean' })
+  @Column({ name: 'planning_mode_enabled', type: 'boolean', default: false })
   public planningModeEnabled!: boolean;
 
   @Column({
     name: 'next_message_sequence',
     type: 'bigint',
+    default: 1,
     transformer: bigintAsNumber,
   })
   public nextMessageSequence!: number;
@@ -82,19 +86,19 @@ export class ConversationRecord {
   public planLifecycle!: PlanLifecycle | null;
 
   @Column({ name: 'project_id', type: 'uuid', nullable: true })
-  @ForeignKey('projects', { name: 'conversations_project_id_fkey' })
+  @ForeignKey('projects', { name: 'fk_conversations_project_id_projects' })
   public projectId!: string | null;
 
   @Column({ name: 'forked_from_conversation_id', type: 'uuid', nullable: true })
   @ForeignKey('conversations', {
-    name: 'conversations_forked_from_conversation_id_fkey',
+    name: 'fk_conversations_forked_from_conversation_id',
     onDelete: 'SET NULL',
   })
   public forkedFromConversationId!: string | null;
 
   @Column({ name: 'forked_from_message_id', type: 'uuid', nullable: true })
   @ForeignKey('messages', {
-    name: 'conversations_forked_from_message_id_fkey',
+    name: 'fk_conversations_forked_from_message_id',
     onDelete: 'SET NULL',
   })
   public forkedFromMessageId!: string | null;

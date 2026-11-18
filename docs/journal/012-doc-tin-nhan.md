@@ -177,7 +177,9 @@ Thêm 7 unit test, tổng cộng 88:
 - **Đang chọn:** chưa tạo. Cần hai thứ: (1) biểu thức thật, lấy từ dump schema DB hoặc `models/message.py`;
   (2) Hiếu cho phép **một ngoại lệ** là migration viết tay cho đúng index này, như spec yêu cầu.
 - **Ảnh hưởng:** chỉ ảnh hưởng tốc độ tìm theo nội dung (CONV-04). Lượt này không dùng tới.
-- **Trạng thái:** **mở — cần Hiếu**.
+- **Trạng thái:** ~~mở~~ **đóng phần biểu thức (2026-11-18)**: `gin (to_tsvector('simple', content))`, tạo bằng migration
+  viết tay `AlembicOnlyDifferences` ([018](018-dong-bo-schema-alembic.md)); ngoại lệ viết tay chờ Hiếu duyệt.
+  Lưu ý: endpoint danh sách của Python **không** dùng index này (tìm bằng `LIKE`, xem TC-31 ở 013) — chỉ tool tìm kiếm của agent dùng.
 
 ### TC-37 — Trường của MessageView so với Python `MessageRead`
 - **Thêm:** `sequence`. A10 sắp xếp theo trường này nên FE cần thấy nó.
@@ -186,6 +188,9 @@ Thêm 7 unit test, tổng cộng 88:
   - `interrupt` ⇒ W4;
   - `suggestedQuestions`: chưa rõ Python lấy từ đâu (có thể từ `message_metadata`), nên không đoán.
 - **Trạng thái:** tạm chọn.
+- **Cập nhật 2026-11-18 (đọc `schemas/message.py`):** Python lấy `interrupt` từ `message_metadata["interrupt"]` và
+  `suggestedQuestions` từ `message_metadata["suggested_questions"]` (chỉ giữ phần tử chuỗi). Python **không** có `sequence`
+  và `sender` là số — NestJS giữ `sender` chuỗi theo S4. Chưa thêm 2 trường này (chờ quyết định có đưa vào W1 không).
 
 ### TC-38 — `include=feedback` trả 400 tới khi có FB-01
 - **Bối cảnh:** spec giữ tham số này cho A10. Bỏ qua lặng lẽ thì FE tưởng tin nhắn không có feedback.
@@ -204,6 +209,7 @@ Thêm 7 unit test, tổng cộng 88:
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-11 | Module messages: A10/A19/A20; bảng `messages` + FK `forked_from_message_id` sinh bằng script | MSG-01 |
+| v1.1 | 2026-11-18 | Record khai index FTS (`synchronize: false`) + default `message_metadata '{}'::jsonb` theo DB thật; TC-36 đóng phần biểu thức, TC-37 bổ sung nguồn `suggestedQuestions` | Đối chiếu repo Python ([018](018-dong-bo-schema-alembic.md)) |
 
 ## Gợi ý review
 

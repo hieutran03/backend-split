@@ -11,24 +11,25 @@ import {
  * `feedbacks` table (§6). Naming conventions: see identity/infrastructure/records.ts.
  * Migrations are generated from this class.
  *
- * ck_feedbacks_rating_range: the spec names it and says "rating 1–5" (migration
- * 371ffaf3a087); the exact SQL text of the Python constraint is not in the spec,
- * this is the equivalent range check (TC-42).
+ * ck_feedbacks_rating_range: Python declares `rating BETWEEN 1 AND 5`; Postgres stores
+ * it as `rating >= 1 AND rating <= 5`, which is what is declared here (TC-42).
+ * PK/FK names keep the pre-rename `feedback_*` names: Alembic renamed the table
+ * (ef1b2c3d4e5f) but not its constraints (docs/reference/python-schema.sql).
  */
 @Entity('feedbacks')
 @Index('ix_feedbacks_message_id', ['messageId'], { unique: true })
 @Index('ix_feedbacks_user_id', ['userId'])
 @Check('ck_feedbacks_rating_range', 'rating >= 1 AND rating <= 5')
 export class FeedbackRecord {
-  @PrimaryColumn('uuid', { primaryKeyConstraintName: 'feedbacks_pkey' })
+  @PrimaryColumn('uuid', { primaryKeyConstraintName: 'feedback_pkey' })
   public id!: string;
 
   @Column({ name: 'message_id', type: 'uuid' })
-  @ForeignKey('messages', { name: 'feedbacks_message_id_fkey' })
+  @ForeignKey('messages', { name: 'feedback_message_id_fkey' })
   public messageId!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  @ForeignKey('users', { name: 'feedbacks_user_id_fkey' })
+  @ForeignKey('users', { name: 'feedback_user_id_fkey' })
   public userId!: string;
 
   @Column({ type: 'smallint' })

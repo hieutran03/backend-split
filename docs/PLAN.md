@@ -6,7 +6,7 @@
 > Nguồn yêu cầu: artifact "Chatbot Backend Split" (tách phần quản lý/lưu trữ của chatbot
 > FastAPI sang NestJS). Bản trích để tra cứu nằm ở [docs/reference/](reference/).
 
-**Cập nhật lần cuối:** 2026-11-11 · **Giai đoạn hiện tại:** Phase 1 (W1) — Phase 1 xong phần làm được — **chờ Hiếu review**; còn [!] MSG-02, TP-02
+**Cập nhật lần cuối:** 2026-11-18 · **Giai đoạn hiện tại:** Phase 1 (W1) — Phase 1 xong phần làm được — **chờ Hiếu review**; còn [!] MSG-02, TP-02
 
 ## Cách đọc
 
@@ -159,7 +159,8 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 
 | ID | Task | Owner | Trạng thái |
 |---|---|---|---|
-| ENG-01 | Đối chiếu & freeze hợp đồng V3/E1 với code Python (`events.py`, `workflow.py`, `ai_sdk_v6.py`, `internal_sse.py`) | 🤖 | [!] cần quyền đọc repo chatbot |
+| SYNC-01 | Đồng bộ schema 6 bảng Phase 1 với DB dựng bằng Alembic (dump `python-schema.sql`, tên FK/PK thật, default DB, CHECK, index FTS) — [nhật ký 018](journal/018-dong-bo-schema-alembic.md) | 🤖 | [r] |
+| ENG-01 | Đối chiếu & freeze hợp đồng V3/E1 với code Python (`events.py`, `workflow.py`, `ai_sdk_v6.py`, `internal_sse.py`) — đã có repo chatbot, làm trước W4 | 🤖 | [ ] |
 | ENG-02 | Mock Engine **dạng HTTP server** riêng (`pnpm mock:engine`) để test `HttpAiEngineClient` + timeout im lặng | 🤖 | [ ] |
 | ENG-03 | Cứng hoá `HttpAiEngineClient`: retry call idempotent, circuit breaker, timeout im lặng 5 s × 3 | 🤖 | [ ] |
 | LEG-01 | Lớp tương thích route cũ (envelope cũ, snake_case, sender số, header Deprecation/Sunset, counter) | 🤖 | [ ] |
@@ -192,20 +193,20 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-26 | Cache trạng thái user trong process (30 s) hay Redis | tạm chọn process | [007](journal/007-guard-token-version.md) |
 | TC-27 | Token Python không có `ver` ⇒ coi là 0 | theo spec | [007](journal/007-guard-token-version.md) |
 | TC-28 | `outbox_events.aggregate_id` varchar thay vì uuid | tạm chọn | [009](journal/009-migration-sinh-bang-script.md) |
-| TC-29 | Biểu thức CHECK `ck_conversations_fork_request_fields_together` | **mở — cần định nghĩa thật** | [009](journal/009-migration-sinh-bang-script.md) |
+| TC-29 | Biểu thức CHECK `ck_conversations_fork_request_fields_together` | **đóng** — lấy từ Alembic | [009](journal/009-migration-sinh-bang-script.md), [018](journal/018-dong-bo-schema-alembic.md) |
 | TC-30 | Không format lại file migration sinh ra | tạm chọn | [009](journal/009-migration-sinh-bang-script.md) |
 | TC-31 | Tìm hội thoại: tiêu đề hoặc nội dung tin (`ILIKE`, chưa FTS) | tạm chọn | [010](journal/010-hoi-thoai-crud.md), [013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) |
 | TC-32 | `planningModeEnabled: null` khi sửa ⇒ 400 | tạm chọn | [010](journal/010-hoi-thoai-crud.md) |
 | TC-33 | Xoá hội thoại đang có lượt active: không chặn (A12) hay 409 (D24)? | tạm chọn không chặn — **chờ Hiếu** | [011](journal/011-xoa-hoi-thoai.md) |
 | TC-34 | `threadIds` chụp lúc xoá (trong payload) hay bộ phát tự truy vấn | tạm chọn lúc xoá | [011](journal/011-xoa-hoi-thoai.md) |
 | TC-35 | Module messages join thẳng bảng `conversations` (chỉ đọc) để kiểm sở hữu | tạm chọn — **Hiếu xem** | [012](journal/012-doc-tin-nhan.md) |
-| TC-36 | Index FTS `idx_messages_content_simple_fts`: cần biểu thức thật + cho phép 1 migration viết tay | **mở — cần Hiếu** | [012](journal/012-doc-tin-nhan.md) |
+| TC-36 | Index FTS `idx_messages_content_simple_fts`: biểu thức đã có; 1 migration viết tay `AlembicOnlyDifferences` | **chờ Hiếu duyệt ngoại lệ viết tay** | [012](journal/012-doc-tin-nhan.md), [018](journal/018-dong-bo-schema-alembic.md) |
 | TC-37 | MessageView: thêm `sequence`; chưa có `feedback`/`interrupt`/`suggestedQuestions` | tạm chọn | [012](journal/012-doc-tin-nhan.md) |
 | TC-38 | `include=feedback` ⇒ 400 tới FB-01 | **đóng** — đã bật ở FB-01 | [012](journal/012-doc-tin-nhan.md), [014](journal/014-feedback.md) |
 | TC-39 | Tin nhắn phân trang S2 thay vì cursor | theo spec | [012](journal/012-doc-tin-nhan.md) |
 | TC-40 | `messageCount` luôn có trong danh sách hội thoại | tạm chọn | [013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) |
 | TC-41 | `messages` trong item: mới nhất trước | tạm chọn — **FE xác nhận** | [013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) |
-| TC-42 | Biểu thức CHECK `ck_feedbacks_rating_range` (`>= 1 AND <= 5`) | tạm chọn | [014](journal/014-feedback.md) |
+| TC-42 | Biểu thức CHECK `ck_feedbacks_rating_range` (`>= 1 AND <= 5`) | **đóng** — giống hệt DB thật | [014](journal/014-feedback.md) |
 | TC-43 | Unique `feedbacks.message_id` không partial (xoá mềm vẫn chiếm chỗ) | theo spec | [014](journal/014-feedback.md) |
 | TC-44 | Module projects ghi cột `conversations.project_id` (SQL theo tên bảng) | tạm chọn — **Hiếu xem** | [015](journal/015-project-va-hoi-thoai.md) |
 | TC-45 | Copy custom agent của project khi gắn/tạo hội thoại ⇒ PJ-08 | hoãn | [015](journal/015-project-va-hoi-thoai.md) |
@@ -222,6 +223,7 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-56 | Fork: kiểm generation active / documents / copy custom agent khi có bảng (W2–W4) | hoãn | [017](journal/017-fork-hoi-thoai.md) |
 | TC-57 | Chờ khoá lượt > 30 s ⇒ 409 `conversation_busy` | tạm chọn | [017](journal/017-fork-hoi-thoai.md) |
 | TC-58 | Fork trả `message: "OK"` cho cả 201 và 200 | tạm chọn | [017](journal/017-fork-hoi-thoai.md) |
+| TC-59 | Tên ràng buộc theo dump Alembic (`fk_*`, `feedback_pkey`…) thay vì quy ước tự đoán | tạm chọn | [018](journal/018-dong-bo-schema-alembic.md) |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
 ## Ghi chú review
@@ -250,3 +252,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-11 | 🤖 | Lượt PJ-06 + PJ-05: gắn/gỡ hội thoại; xoá project gỡ mọi hội thoại trong cùng transaction (khoá project → hội thoại); A7 khoá project khi tạo trong project. 102 test; chạy thật 11 kịch bản + race xoá/gắn/tạo × 3 ⇒ 0 hội thoại trỏ vào project đã xoá. |
 | 2026-11-11 | 🤖 | Lượt TP-01: module `task-plans` (A36–A42), `completedAt` theo `status`, khoá hội thoại khi thêm việc; migration `AddTaskPlans` sinh bằng script (enum + unique deferrable), qua check/revert. Tách TP-02 [!] (tính `plan_lifecycle`, cần Python). 108 test; chạy thật 14 kịch bản + 5 lệnh thêm đồng thời ⇒ thứ tự 1..12 không trùng. |
 | 2026-11-11 | 🤖 | Lượt CONV-03: fork A12a; port `ConversationTurnLock` (advisory lock §11, connection riêng) + retry 40001 trong `TransactionManager`; copy prefix qua public API của messages; mã lỗi 413. 116 test; chạy thật 13 kịch bản (race 5 request ⇒ 1 con; chờ khoá do psql giữ ≈ 2,7 s; 413 ở 5.002 tin). |
+| 2026-11-18 | 🤖 | SYNC-01: dựng DB bằng Alembic của repo chatbot (head `c4f1a7b9d2e6`), lưu dump `docs/reference/python-schema.sql`; sửa 5 Record (tên FK/PK thật, default DB, 2 CHECK, index FTS); migration `AlignWithAlembicSchema` (sinh) + `AlembicOnlyDifferences` (viết tay). Diff catalog 6 bảng chỉ còn `users.role`; `check` trên DB Alembic chỉ đòi `refresh_tokens`, `outbox_events`, `users.role`. 116 test xanh. |

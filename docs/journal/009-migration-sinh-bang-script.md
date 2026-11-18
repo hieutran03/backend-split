@@ -134,7 +134,8 @@ pnpm db:migrate && pnpm db:seed
 ### TC-29 — Có giữ CHECK `ck_conversations_fork_request_fields_together` không?
 - **Bối cảnh:** Spec chỉ có **tên**, không có biểu thức. Hai CHECK còn lại (`…_positive`) rõ nghĩa từ tên nên được khai.
 - **Đang chọn:** **chưa khai** — không đoán biểu thức. Cần lấy định nghĩa thật từ Alembic/DB.
-- **Trạng thái:** **mở** — cần Hiếu cung cấp (cùng nguồn với TC-7).
+- **Trạng thái:** ~~mở~~ **đóng (2026-11-18)** — biểu thức thật `(fork_request_id IS NULL) = (fork_request_fingerprint IS NULL)`
+  lấy từ `models/conversation.py` + dump Alembic; đã khai ([nhật ký 018](018-dong-bo-schema-alembic.md)).
 
 ### TC-30 — File migration sinh ra có định dạng lại không?
 - **Đang chọn:** **không** — ESLint/Prettier bỏ qua thư mục migrations để file đúng nguyên văn script sinh.
@@ -145,6 +146,7 @@ pnpm db:migrate && pnpm db:seed
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-10 | Bỏ baseline viết tay; Record khai đủ schema; `db:migrate:generate`, `db:migrate:check`; migration `InitialSchema` sinh bằng script | Hiếu yêu cầu |
+| v1.1 | 2026-11-18 | Đã chạy `db:migrate:check` trên DB dựng bằng Alembic (hẹn ở mục "Giới hạn"): lệch tên FK (`fk_*`, `feedback_*`), default DB, CHECK, index FTS — sửa ở [018](018-dong-bo-schema-alembic.md). Quy ước `<table>_<column>_fkey` không còn đúng cho mọi bảng: tên lấy theo dump (TC-59) | Có repo Python |
 
 ## Gợi ý review
 

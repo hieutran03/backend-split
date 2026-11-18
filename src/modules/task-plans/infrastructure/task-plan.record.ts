@@ -9,6 +9,7 @@ import { TASK_STATUSES, type TaskStatus } from '../domain/task-plan';
  * uq_task_plan_conversation_order is DEFERRABLE INITIALLY DEFERRED (§5 "Index /
  * constraint đặc biệt") so tasks can be reordered inside one transaction.
  * `status` uses the Postgres enum type `task_status`.
+ * Defaults and FK name match the Alembic schema (docs/reference/python-schema.sql).
  */
 @Entity('task_plans')
 @Unique('uq_task_plan_conversation_order', ['conversationId', 'taskOrder'], {
@@ -19,7 +20,7 @@ export class TaskPlanRecord {
   public id!: string;
 
   @Column({ name: 'conversation_id', type: 'uuid' })
-  @ForeignKey('conversations', { name: 'task_plans_conversation_id_fkey' })
+  @ForeignKey('conversations', { name: 'fk_task_plans_conversation_id' })
   public conversationId!: string;
 
   @Column({ name: 'task_order', type: 'integer' })
@@ -31,13 +32,18 @@ export class TaskPlanRecord {
   @Column({ type: 'enum', enum: TASK_STATUSES, enumName: 'task_status' })
   public status!: TaskStatus;
 
-  @Column({ name: 'task_metadata', type: 'jsonb', nullable: true })
+  @Column({
+    name: 'task_metadata',
+    type: 'jsonb',
+    nullable: true,
+    default: () => "'{}'",
+  })
   public taskMetadata!: Record<string, unknown> | null;
 
-  @Column({ name: 'created_at', type: 'timestamptz' })
+  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   public createdAt!: Date;
 
-  @Column({ name: 'updated_at', type: 'timestamptz' })
+  @Column({ name: 'updated_at', type: 'timestamptz', default: () => 'now()' })
   public updatedAt!: Date;
 
   @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })

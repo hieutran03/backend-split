@@ -3,10 +3,12 @@ import { Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
 /**
  * Schema conventions for every Record (so `migration:generate` produces the same
  * names Alembic/Postgres use on the shared database — §6, §6.3 S7):
- *   - primary key   `<table>_pkey`
- *   - foreign key   `<table>_<column>_fkey`
- *   - index/unique  the exact names from docs/reference/database-schema.md (ix_*, uq_*, ck_*)
- * Migrations are GENERATED from these classes (`pnpm db:migrate:generate`), never hand-written.
+ *   - every name (PK, FK, index, unique, check) is the one in the Alembic dump
+ *     docs/reference/python-schema.sql — Alembic is not uniform (`users_pkey`,
+ *     `fk_projects_owner_id_users`, `feedback_pkey` on table feedbacks, ...)
+ *   - for tables NestJS adds: `<table>_pkey`, `<table>_<column>_fkey`, ix_ and uq_ prefixes
+ * Migrations are GENERATED from these classes (`pnpm db:migrate:generate`), never hand-written
+ *   (sole exception: AlembicOnlyDifferences, see journal 018).
  */
 
 /** `users` table (§6). `role` is a new column (§6.3 S1, expanded in P1). */

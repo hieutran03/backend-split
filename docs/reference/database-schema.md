@@ -1,7 +1,15 @@
 # Database schema (nguồn: tài liệu Backend Split §6, metadata SQLAlchemy 905e52f6)
 
 > Backend sở hữu 22 bảng hiện có + 2 bảng mới (`refresh_tokens`, `outbox_events`). Engine sở hữu 11 bảng + 4 bảng checkpoint.
-> Tên cột snake_case GIỮ NGUYÊN. Không `synchronize`. Python không đặt DB default cho id/created_at/updated_at — app tự set.
+> Tên cột snake_case GIỮ NGUYÊN. Không `synchronize`.
+>
+> **Đối chiếu với DB thật (2026-11-18, nhật ký [018](../journal/018-dong-bo-schema-alembic.md)).** Bảng dưới đây sinh từ
+> metadata SQLAlchemy nên **thiếu** default phía DB, biểu thức CHECK/index và tên FK thật. Nguồn chính xác là
+> [python-schema.sql](python-schema.sql) — `pg_dump --schema-only` sau `alembic upgrade head` (head `c4f1a7b9d2e6`)
+> của repo chatbot. Câu cũ "Python không đặt DB default" **sai một phần**: nhiều bảng có `DEFAULT now()` cho
+> `created_at`/`updated_at` (vd. `projects`, `task_plans`) và default cho cột cờ/jsonb — xem từng bảng hoặc file dump.
+> Cách đối chiếu lại: dựng DB bằng Alembic rồi `DATABASE_URL=<db đó> pnpm db:migrate:check` — chỉ được phép còn
+> `outbox_events`, `refresh_tokens`, `users.role` (phần NestJS thêm).
 
 ## Bảng BACKEND sở hữu
 
@@ -98,9 +106,13 @@
 | fork_request_id | UUID | NULL |  |
 | fork_request_fingerprint | VARCHAR(64) | NULL |  |
 
-- `CHECK ck_conversations_fork_request_fields_together`
-- `CHECK ck_conversations_next_message_sequence_positive`
-- `CHECK ck_conversations_forked_through_sequence_positive`
+- `CHECK ck_conversations_fork_request_fields_together ((fork_request_id IS NULL) = (fork_request_fingerprint IS NULL))`
+- `CHECK ck_conversations_next_message_sequence_positive (next_message_sequence > 0)`
+- `CHECK ck_conversations_forked_through_sequence_positive (forked_through_sequence IS NULL OR forked_through_sequence > 0)`
+- Default DB: `next_message_sequence DEFAULT 1`, `planning_mode_enabled DEFAULT false`.
+- Tên FK thật: `conversations_owner_id_fkey`, `fk_conversations_project_id_projects`,
+  `fk_conversations_forked_from_conversation_id`, `fk_conversations_forked_from_message_id`.
+- `plan_lifecycle` ∈ `draft | ready | executing | paused | completed` hoặc NULL (Python `PlanLifecycle`, cột VARCHAR(20) không phải enum).
 - `UNIQUE uq_conversations_owner_fork_request (owner_id, fork_request_id)`
 - `INDEX ix_conversations_forked_from_conversation_id (forked_from_conversation_id)`
 - `INDEX ix_conversations_forked_from_message_id (forked_from_message_id)`
@@ -161,7 +173,8 @@
 | rating | SMALLINT |  |  |
 | comment | TEXT | NULL |  |
 
-- `CHECK ck_feedbacks_rating_range`
+- `CHECK ck_feedbacks_rating_range (rating BETWEEN 1 AND 5)` — Postgres lưu thành `rating >= 1 AND rating <= 5`.
+- Tên PK/FK **giữ tên cũ trước khi đổi tên bảng**: `feedback_pkey`, `feedback_message_id_fkey`, `feedback_user_id_fkey`.
 - `UNIQUE INDEX ix_feedbacks_message_id (message_id)`
 - `INDEX ix_feedbacks_user_id (user_id)`
 
@@ -265,7 +278,8 @@
 - `UNIQUE uq_messages_conversation_sequence (conversation_id, sequence)`
 - `INDEX ix_messages_prompt_history (conversation_id, sequence) WHERE deleted_at IS NULL`
 - `INDEX idx_message_conversation_created (conversation_id, created_at)`
-- `INDEX idx_messages_content_simple_fts (expr)`
+- `INDEX idx_messages_content_simple_fts USING gin (to_tsvector('simple', content))`
+- Default DB: `message_metadata DEFAULT '{}'::jsonb`.
 
 ### `model_providers`
 
@@ -314,6 +328,7 @@
 | instructions | TEXT | NULL |  |
 
 - `INDEX ix_projects_owner_deleted (owner_id, deleted_at)`
+- Default DB: `created_at`, `updated_at DEFAULT now()`. Tên FK thật: `fk_projects_owner_id_users`.
 
 ### `server_secrets`
 
@@ -351,7 +366,9 @@
 | updated_at | TIMESTAMP WITH TIME ZONE |  |  |
 | completed_at | TIMESTAMP WITH TIME ZONE | NULL |  |
 
-- `UNIQUE uq_task_plan_conversation_order (conversation_id, task_order) DEFERRABLE`
+- `UNIQUE uq_task_plan_conversation_order (conversation_id, task_order) DEFERRABLE INITIALLY DEFERRED`
+- Default DB: `created_at`, `updated_at DEFAULT now()`, `task_metadata DEFAULT '{}'::jsonb`. Tên FK thật: `fk_task_plans_conversation_id`.
+- `task_order` bắt đầu từ **0** (Python `next_order = 0 if max is None else max + 1`).
 
 ### `tool_approval_settings`
 
@@ -532,7 +549,7 @@
 - `CHECK ck_document_chunks_index_status`
 - `INDEX idx_document_chunks_content_sha256 (content_sha256)`
 - `INDEX idx_document_chunks_index_generation_id (index_generation_id)`
-- `INDEX idx_document_chunks_content_simple_fts (expr)`
+- `INDEX idx_document_chunks_content_simple_fts USING gin (to_tsvector('simple', content))`
 - `INDEX idx_document_chunks_parse_artifact_id (parse_artifact_id)`
 - `INDEX idx_document_chunks_index_status (index_status)`
 

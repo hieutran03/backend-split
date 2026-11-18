@@ -30,6 +30,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 015 | [Gắn hội thoại vào project, xoá project](015-project-va-hoi-thoai.md) | PJ-06, PJ-05 (PJ5–PJ7) | 2026-11-11 | chờ review |
 | 016 | [Kế hoạch công việc](016-task-plans.md) | TP-01 (A36–A42) | 2026-11-11 | chờ review |
 | 017 | [Fork hội thoại](017-fork-hoi-thoai.md) | CONV-03 (A12a) | 2026-11-11 | chờ review |
+| 018 | [Đồng bộ schema với DB Alembic](018-dong-bo-schema-alembic.md) | SYNC-01 | 2026-11-18 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -63,20 +64,20 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-26 | Cache trong process hay Redis | tạm chọn process | 007 |
 | TC-27 | Token thiếu `ver` = 0 | theo spec | 007 |
 | TC-28 | `aggregate_id` varchar | tạm chọn | 009 |
-| TC-29 | CHECK fork_request_fields_together | **mở** | 009 |
+| TC-29 | CHECK fork_request_fields_together | **đóng** | 009, 018 |
 | TC-30 | Giữ nguyên file migration sinh ra | tạm chọn | 009 |
 | TC-31 | Tìm hội thoại: tiêu đề hoặc nội dung tin | tạm chọn | 010, 013 |
 | TC-32 | `planningModeEnabled: null` ⇒ 400 | tạm chọn | 010 |
 | TC-33 | Lượt active không chặn xoá hội thoại (A12 vs D24) | **chờ Hiếu** | 011 |
 | TC-34 | `threadIds` chụp lúc xoá | tạm chọn | 011 |
 | TC-35 | messages join thẳng bảng `conversations` | tạm chọn — **Hiếu xem** | 012 |
-| TC-36 | Index FTS tin nhắn chưa tạo | **mở** | 012 |
+| TC-36 | Index FTS tin nhắn: 1 migration viết tay | chờ Hiếu duyệt | 012, 018 |
 | TC-37 | Trường MessageView so với Python | tạm chọn | 012 |
 | TC-38 | `include=feedback` ⇒ 400 tới FB-01 | **đóng** (FB-01) | 012, 014 |
 | TC-39 | Phân trang S2, không cursor | theo spec | 012 |
 | TC-40 | `messageCount` luôn có | tạm chọn | 013 |
 | TC-41 | Tin trong item: mới nhất trước | tạm chọn | 013 |
-| TC-42 | CHECK rating 1–5 | tạm chọn | 014 |
+| TC-42 | CHECK rating 1–5 | **đóng** | 014, 018 |
 | TC-43 | Unique `message_id` không partial | theo spec | 014 |
 | TC-44 | Projects ghi `conversations.project_id` | tạm chọn — **Hiếu xem** | 015 |
 | TC-45 | Copy custom agent khi gắn ⇒ PJ-08 | hoãn | 015 |
@@ -93,6 +94,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-56 | Kiểm generation/documents/agents khi có bảng | hoãn | 017 |
 | TC-57 | Chờ khoá > 30 s ⇒ 409 | tạm chọn | 017 |
 | TC-58 | Fork message "OK" | tạm chọn | 017 |
+| TC-59 | Tên ràng buộc theo dump Alembic | tạm chọn | 018 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

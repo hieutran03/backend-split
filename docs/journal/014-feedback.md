@@ -136,7 +136,8 @@ Thêm 7 unit test, tổng cộng 98:
 - **Bối cảnh:** spec có tên và nghĩa ("rating 1–5", migration `371ffaf3a087`) nhưng không có câu SQL gốc.
 - **Đang chọn:** `rating >= 1 AND rating <= 5`. Về nghĩa thì tương đương, chỉ khác chữ. Chạy
   `db:migrate:check` trên dump schema thật sẽ thấy ngay nếu lệch.
-- **Trạng thái:** tạm chọn.
+- **Trạng thái:** ~~tạm chọn~~ **đóng (2026-11-18)** — Python khai `rating BETWEEN 1 AND 5`; Postgres lưu thành đúng
+  `rating >= 1 AND rating <= 5` nên hai bên giống hệt ([018](018-dong-bo-schema-alembic.md)).
 
 ### TC-43 — Unique `message_id` không có điều kiện `deleted_at`
 - **Bối cảnh:** spec ghi `UNIQUE INDEX ix_feedbacks_message_id (message_id)`, không partial.
@@ -151,3 +152,4 @@ Thêm 7 unit test, tổng cộng 98:
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-11 | Module feedback (A30, A32–A34), bảng `feedbacks` sinh bằng script, `include=feedback` cho A10/A20 | FB-01 |
+| v1.1 | 2026-11-18 | Tên PK/FK theo DB thật: `feedback_pkey`, `feedback_message_id_fkey`, `feedback_user_id_fkey` (Alembic đổi tên bảng, giữ tên ràng buộc); TC-42 đóng | Đối chiếu repo Python ([018](018-dong-bo-schema-alembic.md)) |
