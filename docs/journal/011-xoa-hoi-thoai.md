@@ -140,6 +140,7 @@ Phần chống ghi hai event khi xoá đồng thời phụ thuộc khoá của P
   route-mapping là nguồn sự thật cho route.
 - **Ảnh hưởng hiện tại:** không có. Bảng `generations` chưa tồn tại nên chưa thể có lượt active.
 - **Trạng thái:** tạm chọn, **chờ Hiếu xác nhận** trước W4.
+- **Đối chiếu Python (2026-11-18):** **khớp Python** — Python không chặn và cũng không dừng lượt đang chạy khi xoá ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-34 — `threadIds` lấy lúc xoá hay lúc phát?
 - **Bối cảnh:** có thể chụp danh sách thread ngay trong transaction xoá, hoặc để bộ phát tự truy vấn khi
@@ -150,12 +151,14 @@ Phần chống ghi hai event khi xoá đồng thời phụ thuộc khoá của P
   checkpoint trước khi E2 kịp dừng nó. Khi tới W4 cần cân nhắc: hoặc bộ phát gọi E2 trước rồi truy vấn bổ
   sung, hoặc trông vào retention sweep của Engine.
 - **Trạng thái:** tạm chọn.
+- **Đối chiếu Python (2026-11-18):** Python chỉ dọn một thread = id hội thoại (best-effort, nền); payload NestJS là tập lớn hơn — giữ ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ## Lịch sử phiên bản
 
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-11 | A12/A25: xoá mềm + outbox `conversation.deleted`, khoá dòng chống xoá trùng | CONV-02 |
+| v1.1 | 2026-11-18 | TC-33/34 đối chiếu Python — không đổi code | [019](019-doi-chieu-hanh-vi-python.md) |
 
 ## Gợi ý review
 

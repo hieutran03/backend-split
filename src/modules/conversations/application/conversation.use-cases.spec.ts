@@ -215,7 +215,7 @@ describe('conversation use cases', () => {
     expect(s.outbox.events).toHaveLength(1);
   });
 
-  it('A9: messageCount on every item; messages only with include=messages, newest first, capped', async () => {
+  it('A9: messageCount on every item; messages only with include=messages, latest N oldest first, capped', async () => {
     const s = setup();
     const busy = await s.create.execute(alice, { title: 'Busy' });
     const empty = await s.create.execute(alice, { title: 'Empty' });
@@ -236,7 +236,7 @@ describe('conversation use cases', () => {
     );
     const items = new Map(withMessages.items.map((c) => [c.id, c]));
     expect(items.get(busy.id)?.messages?.map((m) => m.sequence)).toEqual([
-      4, 3,
+      3, 4,
     ]);
     expect(items.get(empty.id)?.messages).toEqual([]);
   });

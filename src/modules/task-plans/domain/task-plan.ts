@@ -42,7 +42,8 @@ export class TaskPlan {
       taskOrder: input.taskOrder,
       description: TaskPlan.validDescription(input.description),
       status: 'pending',
-      metadata: null,
+      // Python create_task_plan_from_list writes task_metadata={}.
+      metadata: {},
       createdAt: input.now,
       updatedAt: input.now,
       completedAt: null,

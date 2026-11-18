@@ -119,11 +119,13 @@ Thêm 3 unit test, tổng cộng 91:
   `messages` được ghi là "when requested".
 - **Đang chọn:** luôn trả `messageCount` trong A9, tính bằng 1 truy vấn `GROUP BY` cho cả trang.
 - **Trạng thái:** tạm chọn. Cần đối chiếu Python khi có code.
+- **Đối chiếu Python (2026-11-18):** Python chỉ trả `messageCount` khi `include=messages`; NestJS luôn trả (tập lớn hơn) — giữ ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-41 — Thứ tự `messages` trong item: mới nhất trước
 - **Bối cảnh:** "latest N" không nói thứ tự trả về.
 - **Đang chọn:** `-sequence`, giống mặc định của A10. FE muốn hiện theo thời gian thì đảo mảng.
 - **Trạng thái:** tạm chọn — **FE xác nhận**.
+- **Đối chiếu Python (2026-11-18):** ~~mới nhất trước~~ **đã sửa (2026-11-18)** — Python chọn N tin mới nhất theo `(created_at desc, sequence desc)` rồi trả **cũ → mới**. NestJS làm giống ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-31 (cập nhật) — Tìm kiếm
 - Đã mở rộng sang nội dung tin nhắn bằng `ILIKE`. Chuyển sang FTS khi có TC-36.
@@ -133,3 +135,4 @@ Thêm 3 unit test, tổng cộng 91:
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-11 | A9: `messageCount`, `include=messages` + `latestMessages`, tìm theo nội dung | CONV-04 |
+| v1.1 | 2026-11-18 | Tin xem trước trả cũ → mới (TC-41); tìm kiếm theo độ liên quan | [019](019-doi-chieu-hanh-vi-python.md) |

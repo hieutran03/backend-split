@@ -82,7 +82,10 @@ export class LoginUseCase {
   ) {}
 
   public async execute(input: LoginInput): Promise<TokenView> {
-    const user = await this.users.findActiveByEmail(input.email.trim());
+    // Same normalization as signup (Python validates both with EmailStr), TC-17.
+    const user = await this.users.findActiveByEmail(
+      User.normalizeEmail(input.email),
+    );
     if (!user) {
       await this.hasher.burnTime(input.password);
       throw invalidCredentials();

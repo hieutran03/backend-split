@@ -33,23 +33,82 @@ function setup() {
     ),
     list: new ListTasksUseCase(repo),
     get: new GetTaskUseCase(repo),
-    update: new UpdateTaskUseCase(repo, clock),
-    complete: new CompleteTaskUseCase(repo, clock),
-    remove: new DeleteTaskUseCase(repo),
-    status: new GetPlanningStatusUseCase(repo),
+    update: new UpdateTaskUseCase(repo, new ImmediateTransactions(), clock),
+    complete: new CompleteTaskUseCase(repo, new ImmediateTransactions(), clock),
+    remove: new DeleteTaskUseCase(repo, new ImmediateTransactions(), clock),
+    status: new GetPlanningStatusUseCase(repo, clock),
   };
 }
 
 describe('task plan use cases', () => {
-  it('A36: appends after the last task, pending, trimmed', async () => {
+  it('A36: appends after the last task from task_order 0, pending, trimmed, metadata {}', async () => {
     const s = setup();
     const first = await s.add.execute(alice, 'c1', ['  Draft  ', 'Review']);
     expect(first.map((t) => [t.taskOrder, t.description, t.status])).toEqual([
-      [1, 'Draft', 'pending'],
-      [2, 'Review', 'pending'],
+      [0, 'Draft', 'pending'],
+      [1, 'Review', 'pending'],
     ]);
+    expect(first[0]?.taskMetadata).toEqual({});
     const more = await s.add.execute(alice, 'c1', ['Ship']);
-    expect(more[0]?.taskOrder).toBe(3);
+    expect(more[0]?.taskOrder).toBe(2);
+  });
+
+  it('TP-02: adding turns planning mode on and resets the lifecycle to draft', async () => {
+    const s = setup();
+    s.repo.addConversation('c2', 'alice', false);
+    const [a] = await s.add.execute(alice, 'c2', ['a']);
+    expect(s.repo.conversations.get('c2')).toMatchObject({
+      planningModeEnabled: true,
+      planLifecycle: 'draft',
+    });
+    await s.complete.execute(alice, a!.id);
+    expect(s.repo.conversations.get('c2')?.planLifecycle).toBe('completed');
+    await s.add.execute(alice, 'c2', ['b']);
+    expect(s.repo.conversations.get('c2')?.planLifecycle).toBe('draft');
+  });
+
+  it('TP-02: update / complete / delete recompute the lifecycle from all tasks', async () => {
+    const s = setup();
+    const lifecycle = () => s.repo.conversations.get('c1')?.planLifecycle;
+    const [a, b] = await s.add.execute(alice, 'c1', ['a', 'b']);
+    await s.update.execute(alice, a!.id, { status: 'in_progress' });
+    expect(lifecycle()).toBe('executing');
+    await s.update.execute(alice, a!.id, { status: 'pending' });
+    expect(lifecycle()).toBe('draft');
+    await s.complete.execute(alice, a!.id);
+    expect(lifecycle()).toBe('executing');
+    await s.update.execute(alice, b!.id, { status: 'skipped' });
+    expect(lifecycle()).toBe('completed');
+    await s.remove.execute(alice, a!.id);
+    expect(lifecycle()).toBe('completed');
+    await s.remove.execute(alice, b!.id);
+    expect(lifecycle()).toBeNull();
+  });
+
+  it('TP-02: a refused change (other user) writes no lifecycle', async () => {
+    const s = setup();
+    const [a] = await s.add.execute(alice, 'c1', ['a']);
+    const writes = s.repo.planStateWrites.length;
+    await expect(
+      s.update.execute(bob, a!.id, { status: 'completed' }),
+    ).rejects.toBeInstanceOf(NotFoundError);
+    await expect(s.remove.execute(bob, a!.id)).rejects.toBeInstanceOf(
+      NotFoundError,
+    );
+    expect(s.repo.planStateWrites).toHaveLength(writes);
+  });
+
+  it('A42: reading the status turns planning mode on when tasks exist (Python side effect)', async () => {
+    const s = setup();
+    await s.add.execute(alice, 'c1', ['a']);
+    const c = s.repo.conversations.get('c1')!;
+    s.repo.conversations.set('c1', { ...c, planningModeEnabled: false });
+    const status = await s.status.execute(alice, 'c1');
+    expect(status.planningModeEnabled).toBe(true);
+    expect(s.repo.conversations.get('c1')).toMatchObject({
+      planningModeEnabled: true,
+      planLifecycle: 'draft',
+    });
   });
 
   it('A36: someone else’s conversation ⇒ 404; blank description ⇒ 400 and nothing written', async () => {
@@ -122,7 +181,7 @@ describe('task plan use cases', () => {
     const status = await s.status.execute(alice, 'c1');
     expect(status).toMatchObject({
       planningModeEnabled: true,
-      planLifecycle: null,
+      planLifecycle: 'executing',
       totalTasks: 3,
       pendingTasks: 1,
       inProgressTasks: 1,

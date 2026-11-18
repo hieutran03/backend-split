@@ -28,6 +28,25 @@ export const USERNAME_MAX = 50;
 export const EMAIL_MAX = 255;
 export const AVATAR_URL_MAX = 2048;
 
+/** email_validator CASE_INSENSITIVE_MAILBOX_NAMES (RFC 2142). */
+const CASE_INSENSITIVE_MAILBOXES = new Set([
+  'info',
+  'marketing',
+  'sales',
+  'support',
+  'abuse',
+  'noc',
+  'security',
+  'postmaster',
+  'hostmaster',
+  'usenet',
+  'news',
+  'webmaster',
+  'www',
+  'uucp',
+  'ftp',
+]);
+
 export class User {
   private constructor(private readonly props: UserProps) {}
 
@@ -58,13 +77,30 @@ export class User {
   }
 
   /**
-   * Email normalization shared by signup AND login lookup: only strips
-   * surrounding whitespace. Does NOT lowercase — see TC-17 (Python data may be
-   * case-sensitive, and so is the DB unique index).
+   * Email normalization shared by signup AND login lookup — the `.normalized`
+   * form Python stores (pydantic EmailStr -> email_validator), TC-17:
+   *  - surrounding whitespace stripped;
+   *  - domain lowercased (email_validator: UTS-46 casefold + NFC);
+   *  - local part NFC, case KEPT, except the RFC 2142 role mailboxes
+   *    (postmaster, abuse, ...) which are lowercased.
+   * Lookups stay exact, like Python `User.email == email`.
    */
   public static normalizeEmail(email: string): string {
     const trimmed = email.trim();
-    if (trimmed.length === 0 || trimmed.length > EMAIL_MAX) {
+    const at = trimmed.lastIndexOf('@');
+    let normalized = trimmed;
+    if (at > 0) {
+      let local = trimmed.slice(0, at).normalize('NFC');
+      if (CASE_INSENSITIVE_MAILBOXES.has(local.toLowerCase())) {
+        local = local.toLowerCase();
+      }
+      const domain = trimmed
+        .slice(at + 1)
+        .normalize('NFC')
+        .toLowerCase();
+      normalized = `${local}@${domain}`;
+    }
+    if (normalized.length === 0 || normalized.length > EMAIL_MAX) {
       throw new ValidationError([
         {
           field: 'email',
@@ -72,7 +108,7 @@ export class User {
         },
       ]);
     }
-    return trimmed;
+    return normalized;
   }
 
   public get id(): string {

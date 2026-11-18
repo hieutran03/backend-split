@@ -4,10 +4,16 @@ import type { ForkMessageSource } from '@modules/messages/public-api';
 import type { ForkFingerprint, ForkMessages } from '../application/ports';
 
 /**
- * sha256(sourceId, messageId, requested title) — the three inputs named by the
- * spec (S8). The exact Python serialization is not in the spec (TC-53): here the
- * JSON array `[sourceId, messageId, title|null]`, hex encoded (64 chars, fits
- * fork_request_fingerprint VARCHAR(64)).
+ * Port of Python `fork_request_fingerprint` (services/conversation_fork_service.py),
+ * so a retry of a fork Python created is recognized (TC-53):
+ *
+ *   sha256(json.dumps({"source_conversation_id", "message_id", "title"},
+ *          sort_keys=True, separators=(",", ":"), ensure_ascii=False)).hexdigest()
+ *
+ * JSON.stringify of an object whose keys are inserted in sorted order produces
+ * the same bytes: no spaces, non-ASCII kept as is, the same escapes for quotes,
+ * backslash and control characters. UUIDs are lowercase (Python `str(UUID)`);
+ * `title` is the REQUESTED value (null when absent), never the default.
  */
 export class Sha256ForkFingerprint implements ForkFingerprint {
   public of(input: {
@@ -15,15 +21,12 @@ export class Sha256ForkFingerprint implements ForkFingerprint {
     messageId: string;
     title: string | null;
   }): string {
-    return createHash('sha256')
-      .update(
-        JSON.stringify([
-          input.sourceConversationId.toLowerCase(),
-          input.messageId.toLowerCase(),
-          input.title,
-        ]),
-      )
-      .digest('hex');
+    const canonical = JSON.stringify({
+      message_id: input.messageId.toLowerCase(),
+      source_conversation_id: input.sourceConversationId.toLowerCase(),
+      title: input.title,
+    });
+    return createHash('sha256').update(canonical, 'utf8').digest('hex');
   }
 }
 

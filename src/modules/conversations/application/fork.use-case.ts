@@ -161,7 +161,6 @@ export class ForkConversationUseCase {
       title: input.title,
       messageId: input.messageId,
       throughSequence: message.sequence,
-      copiedMessages: size.count,
       now: this.clock.now(),
     });
     await this.conversations.insertFork(child, {

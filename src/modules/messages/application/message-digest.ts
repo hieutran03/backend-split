@@ -13,8 +13,8 @@ export interface ConversationMessageDigest {
   /** Missing key ⇒ 0 messages. */
   countByConversation(conversationIds: string[]): Promise<Map<string, number>>;
   /**
-   * Up to `perConversation` most recent messages of each conversation, newest
-   * first (`-sequence`, like A10). Missing key ⇒ no messages.
+   * The `perConversation` most recent messages of each conversation, returned
+   * oldest first like Python (TC-41). Missing key ⇒ no messages.
    */
   latestByConversation(
     conversationIds: string[],

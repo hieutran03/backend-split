@@ -18,8 +18,9 @@ export interface ForkMessageSource {
     throughSequence: number,
   ): Promise<{ count: number; bytes: number }>;
   /**
-   * Copies those live messages into `childId` with new ids and sequences 1..n
-   * (original order, timestamps and metadata kept). Returns n.
+   * Copies those live messages into `childId` with new ids, keeping their source
+   * `sequence` (gaps included), timestamps and metadata — like Python
+   * `_insert_messages`. Returns the number copied.
    */
   copyPrefix(
     sourceId: string,

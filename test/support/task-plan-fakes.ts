@@ -1,5 +1,6 @@
 import type {
   PlanConversation,
+  PlanStateChange,
   TaskPlanRepository,
 } from '@modules/task-plans/application/ports';
 import { TaskPlan } from '@modules/task-plans/domain/task-plan';
@@ -13,11 +14,17 @@ export class InMemoryTaskPlanRepository implements TaskPlanRepository {
   public readonly conversations = new Map<string, FakeConversation>();
   public readonly rows = new Map<string, TaskPlan>();
 
-  public addConversation(id: string, ownerId: string): void {
+  public readonly planStateWrites: PlanStateChange[] = [];
+
+  public addConversation(
+    id: string,
+    ownerId: string,
+    planningModeEnabled = true,
+  ): void {
     this.conversations.set(id, {
       id,
       ownerId,
-      planningModeEnabled: true,
+      planningModeEnabled,
       planLifecycle: null,
       deleted: false,
     });
@@ -59,12 +66,12 @@ export class InMemoryTaskPlanRepository implements TaskPlanRepository {
     );
   }
 
-  public maxTaskOrder(conversationId: string): Promise<number> {
+  public maxTaskOrder(conversationId: string): Promise<number | null> {
     const orders = [...this.rows.values()]
       .map((t) => t.snapshot())
       .filter((t) => t.conversationId === conversationId)
       .map((t) => t.taskOrder);
-    return Promise.resolve(orders.length ? Math.max(...orders) : 0);
+    return Promise.resolve(orders.length ? Math.max(...orders) : null);
   }
 
   public insertMany(tasks: TaskPlan[]): Promise<void> {
@@ -79,6 +86,22 @@ export class InMemoryTaskPlanRepository implements TaskPlanRepository {
 
   public delete(taskPlanId: string): Promise<void> {
     this.rows.delete(taskPlanId);
+    return Promise.resolve();
+  }
+
+  public setPlanState(
+    conversationId: string,
+    change: PlanStateChange,
+  ): Promise<void> {
+    const c = this.conversations.get(conversationId);
+    if (c) {
+      this.planStateWrites.push(change);
+      this.conversations.set(conversationId, {
+        ...c,
+        planLifecycle: change.planLifecycle,
+        planningModeEnabled: c.planningModeEnabled || change.enablePlanningMode,
+      });
+    }
     return Promise.resolve();
   }
 }

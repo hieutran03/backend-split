@@ -79,7 +79,7 @@ export class ConversationsController {
   @ApiOperation({
     summary: 'List my conversations (A9)',
     description:
-      'Each item has `messageCount`; `include=messages` adds the latest `latestMessages` (0..20, default 3) messages, newest first. `search` matches the title or a message content.',
+      'Each item has `messageCount`; `include=messages` adds the latest `latestMessages` (0..20, default 3) messages, oldest first (Python order). `search` matches the title or a message content (case-insensitive substring); with `search` the order is by relevance (exact title, title prefix, title contains, message match, then newest) and `sort` is ignored, as in Python.',
   })
   @ApiZodQuery(listConversationsQuerySchema)
   @ApiEnvelope(conversationListItemSchema, {

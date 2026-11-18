@@ -191,6 +191,7 @@ Swagger `/docs` → nhóm **auth** → `POST /auth/login` với `dev@example.loc
 - **Đang chọn:** A — an toàn với dữ liệu cũ.
 - **Trạng thái:** **mở** — cần xem Python và thống kê DB thật có email trùng khi hạ chữ thường không.
 - **Nếu đổi sang C:** sửa `findActiveByEmail`/`emailExists` + thêm index `lower(email)` (expand).
+- **Đối chiếu Python (2026-11-18):** ~~mở~~ **đã sửa (2026-11-18)** — Python lưu dạng `.normalized` của `email_validator`: domain chữ thường, local part giữ hoa/thường (trừ `postmaster`, `abuse`…). NestJS port lại cho cả signup **và** login ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-18 — Giới hạn mật khẩu 72 byte
 - **Bối cảnh:** bcrypt chỉ dùng 72 byte đầu. Tiếng Việt có dấu tốn 2–3 byte/ký tự ⇒ ~25–36 ký tự đã chạm ngưỡng.
@@ -198,11 +199,13 @@ Swagger `/docs` → nhóm **auth** → `POST /auth/login` với `dev@example.loc
   (không giới hạn, nhưng **không tương thích** hash Python).
 - **Đang chọn:** A — rõ ràng với người dùng, giữ tương thích. Chỉ áp khi đăng ký, đăng nhập không áp.
 - **Trạng thái:** tạm chọn.
+- **Đối chiếu Python (2026-11-18):** **khớp Python** — Python chặn > 72 byte khi đăng ký, đăng nhập cắt 72 byte; `bcrypt` của Node cũng chỉ dùng 72 byte đầu ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-19 — Thời hạn refresh token
 - **Bối cảnh:** Spec không nói TTL. Python cũ: refresh là JWT, chưa đọc được hạn.
 - **Đang chọn:** 30 ngày, cấu hình qua `JWT_REFRESH_TTL_SECONDS`.
 - **Trạng thái:** tạm chọn — cần Hiếu chốt theo chính sách sản phẩm.
+- **Đối chiếu Python (2026-11-18):** Python: refresh **7 ngày**, access **600 phút** (`core/config.py`). NestJS (30 ngày / 15 phút, refresh opaque) là thiết kế mới — **vẫn chờ Hiếu chốt** ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-20 — Gộp auth + users thành một context `identity`?
 - **Bối cảnh:** Spec §5 tách module `auth` và `users`. Nhưng cả hai đều đọc/ghi bảng `users`, cùng model User.
@@ -216,6 +219,7 @@ Swagger `/docs` → nhóm **auth** → `POST /auth/login` với `dev@example.loc
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-09 | A1 signup, A2 login, refresh token opaque (phát hành), seed có mật khẩu thật | AUTH-01 |
+| v1.1 | 2026-11-18 | Chuẩn hoá email như Python (domain chữ thường), dùng chung cho login; TC-17/18/19 đối chiếu Python | [019](019-doi-chieu-hanh-vi-python.md) |
 
 ## Gợi ý review
 

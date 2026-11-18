@@ -5,7 +5,7 @@
  *
  * `withLock` holds the lock on its OWN connection for the whole `work` (Python keeps
  * it on a dedicated session too); `work` opens its own transactions as usual.
- * Not acquired within `timeoutMs` ⇒ ConflictError(conversation_busy).
+ * Not acquired within `timeoutMs` ⇒ ConflictError(conversation_turn_conflict) — Python's code.
  */
 export interface ConversationTurnLock {
   withLock<T>(

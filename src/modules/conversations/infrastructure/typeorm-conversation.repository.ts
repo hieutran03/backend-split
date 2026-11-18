@@ -22,6 +22,11 @@ const SORT_COLUMN: Record<(typeof SORTABLE)[number], string> = {
   createdAt: 'c.created_at',
 };
 
+const MESSAGE_MATCH = `EXISTS (
+  SELECT 1 FROM messages m
+   WHERE m.conversation_id = c.id AND m.deleted_at IS NULL
+     AND lower(m.content) LIKE :pattern)`;
+
 export class TypeOrmConversationRepository implements ConversationRepository {
   public constructor(private readonly db: DbContext) {}
 
@@ -65,20 +70,33 @@ export class TypeOrmConversationRepository implements ConversationRepository {
         projectId: filter.projectId,
       });
     }
-    if (filter.search) {
-      // Title OR the content of a live message. The messages table is read by
-      // name (read-only), like the messages context reads conversations (TC-35).
-      // No FTS index yet (TC-36): substring ILIKE, as Python's description says.
-      query.andWhere(
-        `(c.title ILIKE :pattern OR EXISTS (
-            SELECT 1 FROM messages m
-             WHERE m.conversation_id = c.id AND m.deleted_at IS NULL
-               AND m.content ILIKE :pattern))`,
-        { pattern: `%${escapeLike(filter.search)}%` },
-      );
+    // Port of Python repositories/conversation.py (TC-31): term = strip().lower();
+    // match lower(title) or the lower(content) of a live message (substring,
+    // LIKE-escaped; the FTS index is NOT used by this endpoint in Python either).
+    // The messages table is read by name (read-only), like TC-35.
+    const term = filter.search?.trim().toLowerCase() ?? '';
+    if (term) {
+      query.setParameters({
+        term,
+        prefix: `${escapeLike(term)}%`,
+        pattern: `%${escapeLike(term)}%`,
+      });
+      query.andWhere(`(lower(c.title) LIKE :pattern OR ${MESSAGE_MATCH})`);
+      // With a search, Python ignores the requested sort and orders by relevance:
+      // exact title 0, title prefix 1, title contains 2, message match 3.
+      query
+        .orderBy(
+          `CASE WHEN lower(c.title) = :term THEN 0
+                WHEN lower(c.title) LIKE :prefix THEN 1
+                WHEN lower(c.title) LIKE :pattern THEN 2
+                WHEN ${MESSAGE_MATCH} THEN 3 ELSE 4 END`,
+          'ASC',
+        )
+        .addOrderBy('c.updated_at', 'DESC');
+    } else {
+      query.orderBy(SORT_COLUMN[sort.field], sort.direction);
     }
     const [records, total] = await query
-      .orderBy(SORT_COLUMN[sort.field], sort.direction)
       .addOrderBy('c.id', 'ASC')
       .skip((page.page - 1) * page.limit)
       .take(page.limit)

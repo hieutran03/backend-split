@@ -82,7 +82,10 @@ export type ListConversationsQuery = z.infer<
   typeof listConversationsQuerySchema
 >;
 
-/** A12a — `title` optional (defaults to the source title); blank ⇒ 400. */
+/**
+ * A12a — `title` optional (default: "<source title> (fork)"); blank ⇒ 400.
+ * Not trimmed here: the fingerprint hashes the title exactly as sent (Python).
+ */
 export const forkConversationSchema = z.object({
   messageId: z.uuid().meta({
     description: 'Completed assistant message to fork at (inclusive)',
@@ -90,7 +93,7 @@ export const forkConversationSchema = z.object({
   requestId: z
     .uuid()
     .meta({ description: 'Idempotency key chosen by the client' }),
-  title: z.string().trim().min(1).max(TITLE_MAX).nullish(),
+  title: z.string().min(1).max(TITLE_MAX).nullish(),
 });
 export type ForkConversationBody = z.infer<typeof forkConversationSchema>;
 

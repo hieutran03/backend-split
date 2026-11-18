@@ -31,6 +31,15 @@ export const TITLE_MAX = 255;
 /** Same limit as Python `ConversationCreate.personaPrompt maxLength 8000`. */
 export const PERSONA_PROMPT_MAX = 8000;
 
+/**
+ * Python `default_fork_title`: the source title cut to 248 characters (code
+ * points), right-trimmed, plus " (fork)", so the result fits VARCHAR(255).
+ */
+export function defaultForkTitle(sourceTitle: string): string {
+  const head = Array.from(sourceTitle).slice(0, 248).join('').trimEnd();
+  return `${head} (fork)`.trim();
+}
+
 export class Conversation {
   private constructor(private readonly props: ConversationProps) {}
 
@@ -63,9 +72,10 @@ export class Conversation {
 
   /**
    * A12a — the child of a fork: a copy of the source's settings, cut after the
-   * source message `throughSequence`. Its own messages are the copied prefix,
-   * numbered 1..copiedMessages, so the next one gets copiedMessages + 1.
+   * source message `throughSequence`. Its own messages are the copied prefix with
+   * their source sequences, so the next one gets throughSequence + 1 (Python).
    * Copied: persona, planning flag, project (TC-54). Not copied: plan lifecycle.
+   * Default title: defaultForkTitle(source title).
    */
   public static forkFrom(
     source: Conversation,
@@ -74,7 +84,6 @@ export class Conversation {
       title?: string | null;
       messageId: string;
       throughSequence: number;
-      copiedMessages: number;
       now: Date;
     },
   ): Conversation {
@@ -82,12 +91,14 @@ export class Conversation {
     return new Conversation({
       id: input.id,
       ownerId: s.ownerId,
-      title: Conversation.validTitle(input.title ?? s.title),
+      title: Conversation.validTitle(input.title ?? defaultForkTitle(s.title)),
       personaPrompt: s.personaPrompt,
       planningModeEnabled: s.planningModeEnabled,
       planLifecycle: null,
       projectId: s.projectId,
-      nextMessageSequence: input.copiedMessages + 1,
+      // Copied messages keep their source sequence (gaps included), so the
+      // child continues after the cutoff — Python `cutoff.sequence + 1`.
+      nextMessageSequence: input.throughSequence + 1,
       forkedFromConversationId: s.id,
       forkedFromMessageId: input.messageId,
       forkedThroughSequence: input.throughSequence,
@@ -151,7 +162,9 @@ export class Conversation {
 
   private static validTitle(title: string): string {
     const trimmed = title.trim();
-    if (trimmed.length === 0 || trimmed.length > TITLE_MAX) {
+    // Code points, like VARCHAR(255) and pydantic max_length (not UTF-16 units).
+    const length = Array.from(trimmed).length;
+    if (length === 0 || length > TITLE_MAX) {
       throw new ValidationError([
         {
           field: 'title',

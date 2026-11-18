@@ -193,6 +193,7 @@ Thử đổi JWT cũ: đặt `JWT_LEGACY_REFRESH_UNTIL` (vd. `2030-01-01T00:00:0
 - **Đang chọn:** A — đúng spec, đơn giản, an toàn nhất. Đã đo: 5 request song song ⇒ 1 thành công, 4 bị chặn.
 - **Trạng thái:** tạm chọn — **FE/sidecar phải xếp hàng các lần refresh** (một lần tại một thời điểm).
 - **Nếu đổi sang B:** thêm cột (vd. `rotated_at`) + lưu bản mã hoá của vé kế tiếp — cần migration expand.
+- **Đối chiếu Python (2026-11-18):** Python không xoay vòng (refresh chỉ trả access mới, gọi song song đều thành công) ⇒ "FE phải refresh tuần tự" là **ràng buộc mới** với FE, cần báo FE ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-22 — Logout có huỷ luôn access token đang sống không?
 - **Bối cảnh:** Access token là JWT tự kiểm, không tra DB ⇒ logout chỉ huỷ được refresh token. Access token
@@ -201,6 +202,7 @@ Thử đổi JWT cũ: đặt `JWT_LEGACY_REFRESH_UNTIL` (vd. `2030-01-01T00:00:0
   chết ngay (cần guard kiểm `ver` — AUTH-03).
 - **Đang chọn:** A cho bản này; đề xuất làm B cùng AUTH-03.
 - **Trạng thái:** chờ Hiếu chốt.
+- **Đối chiếu Python (2026-11-18):** Python logout là no-op (`api/auth.py:61-73`); `token_version` chỉ tăng khi xoá user. Vẫn chờ Hiếu ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-23 — Logout bằng vé của người khác trả gì?
 - **Đang chọn:** 200 `revokedCount: 0`, không báo lỗi — không cho dò vé nào hợp lệ; vé của người kia không bị đụng.
@@ -216,6 +218,7 @@ Thử đổi JWT cũ: đặt `JWT_LEGACY_REFRESH_UNTIL` (vd. `2030-01-01T00:00:0
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-09 | A3 refresh xoay vòng + phát hiện dùng lại, A4 logout thu hồi thật, D19 đổi refresh JWT cũ một lần | AUTH-02 |
+| v1.1 | 2026-11-18 | Ghi nhận hành vi Python (refresh không xoay vòng, logout no-op) ở TC-21/22 — không đổi code | [019](019-doi-chieu-hanh-vi-python.md) |
 
 ## Gợi ý review
 

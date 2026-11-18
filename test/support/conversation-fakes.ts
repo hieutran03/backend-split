@@ -131,7 +131,7 @@ export class FakeThreadSource implements ConversationThreadSource {
   }
 }
 
-/** Live messages per conversation; returned newest first like the real digest. */
+/** Live messages per conversation (kept newest first); latest N come back oldest first like the real digest. */
 export class FakeConversationMessages implements ConversationMessages {
   public readonly byConversation = new Map<string, ConversationMessageView[]>();
   public latestCalls = 0;
@@ -183,7 +183,7 @@ export class FakeConversationMessages implements ConversationMessages {
           .filter((id) => this.byConversation.has(id))
           .map((id) => [
             id,
-            this.byConversation.get(id)!.slice(0, perConversation),
+            this.byConversation.get(id)!.slice(0, perConversation).reverse(),
           ]),
       ),
     );

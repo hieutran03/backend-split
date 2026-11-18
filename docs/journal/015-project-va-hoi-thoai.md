@@ -130,19 +130,23 @@ Phần chống race dựa vào khoá của Postgres, nên đã kiểm bằng ch�
 
 ### TC-45 — Chưa copy custom agent khi gắn
 - Làm ở PJ-08 (W2).
+- **Đối chiếu Python (2026-11-18):** Python copy agent của project khi tạo trong / gắn vào project (bỏ trùng, nối sau `agent_order` lớn nhất); gỡ thì giữ agent đã copy — quy tắc cho PJ-08 ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-46 — Gắn/gỡ có đổi `updated_at` của hội thoại
 - **Bối cảnh:** không rõ Python có đổi không.
 - **Đang chọn:** có đổi. Hội thoại vì vậy nhảy lên đầu danh sách (`-updatedAt`).
 - **Trạng thái:** tạm chọn — đối chiếu khi có code Python.
+- **Đối chiếu Python (2026-11-18):** **khớp Python** — `onupdate=func.now()` đổi `updated_at` khi gắn/gỡ; gắn lại đúng project cũ thì không UPDATE ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-47 — Response của PJ6/PJ7
 - **Bối cảnh:** Python trả `ApiResponse_Any`, không rõ nội dung.
 - **Đang chọn:** `{ conversationId, projectId }`.
 - **Trạng thái:** tạm chọn.
+- **Đối chiếu Python (2026-11-18):** Python trả `data: null`, message "Conversation attached"/"Conversation detached". NestJS giữ `{conversationId, projectId}` (tập lớn hơn) ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ## Lịch sử phiên bản
 
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-11 | PJ6/PJ7; PJ5 gỡ hội thoại + khoá theo thứ tự; A7 khoá project khi tạo | PJ-06, PJ-05 |
+| v1.1 | 2026-11-18 | TC-45/46/47 đối chiếu Python — không đổi code | [019](019-doi-chieu-hanh-vi-python.md) |

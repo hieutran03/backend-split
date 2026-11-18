@@ -49,7 +49,7 @@ export class PgConversationTurnLock implements ConversationTurnLock {
         if (Date.now() >= deadline) {
           throw new ConflictError(
             'Conversation is busy, try again later',
-            'conversation_busy',
+            'conversation_turn_conflict',
           );
         }
         await new Promise((resolve) => setTimeout(resolve, POLL_MS));

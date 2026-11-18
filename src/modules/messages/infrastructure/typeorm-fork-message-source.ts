@@ -50,7 +50,7 @@ export class TypeOrmForkMessageSource implements ForkMessageSource {
       `INSERT INTO messages (id, conversation_id, sender, content, message_metadata,
                              sequence, created_at, updated_at, deleted_at)
        SELECT gen_random_uuid(), $2, sender, content, message_metadata,
-              row_number() OVER (ORDER BY sequence), created_at, updated_at, NULL
+              sequence, created_at, updated_at, NULL
          FROM messages
         WHERE conversation_id = $1 AND deleted_at IS NULL AND sequence <= $3
        RETURNING id`,

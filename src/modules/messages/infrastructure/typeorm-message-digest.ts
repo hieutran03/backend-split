@@ -41,6 +41,11 @@ export class TypeOrmConversationMessageDigest implements ConversationMessageDige
     return new Map(rows.map((r) => [r.conversation_id, Number(r.count)]));
   }
 
+  /**
+   * The newest `perConversation` live messages of each conversation, returned
+   * OLDEST FIRST — Python repositories/conversation.py ranks by
+   * (created_at DESC, sequence DESC) and then sorts them ascending (TC-41).
+   */
   public async latestByConversation(
     conversationIds: string[],
     perConversation: number,
@@ -52,12 +57,13 @@ export class TypeOrmConversationMessageDigest implements ConversationMessageDige
               created_at, updated_at, deleted_at
          FROM (
            SELECT m.*, row_number() OVER (
-                    PARTITION BY m.conversation_id ORDER BY m.sequence DESC) AS rn
+                    PARTITION BY m.conversation_id
+                    ORDER BY m.created_at DESC, m.sequence DESC) AS rn
              FROM messages m
             WHERE m.conversation_id = ANY($1::uuid[]) AND m.deleted_at IS NULL
          ) latest
         WHERE rn <= $2
-        ORDER BY conversation_id, sequence DESC`,
+        ORDER BY conversation_id, created_at ASC, sequence ASC`,
       [conversationIds, perConversation],
     );
     for (const r of rows) {

@@ -1,6 +1,6 @@
 # 016 — Kế hoạch công việc (task plans)
 
-> Task: TP-01 (route A36–A42) · Ngày: 2026-11-11 · Trạng thái: chờ review · Phần còn thiếu: TP-02 bị chặn
+> Task: TP-01 (route A36–A42) · Ngày: 2026-11-11 · Trạng thái: chờ review · TP-02 (tính `plan_lifecycle`) làm ở v2 — xem [019](019-doi-chieu-hanh-vi-python.md)
 
 ## Tóm tắt dễ hiểu
 
@@ -142,26 +142,32 @@ Thêm 6 unit test, tổng cộng 108:
   generations cũng đặt `paused`.
 - **Đang chọn:** chưa ghi. Planning-status trả về giá trị đang lưu.
 - **Trạng thái:** **mở — cần code Python** (TP-02).
+- **Đối chiếu Python (2026-11-18):** ~~mở~~ **đóng (2026-11-18)** — quy tắc đã port (TP-02): thêm ⇒ `draft` + bật planning; sửa/hoàn thành/xoá ⇒ tính lại từ mọi task ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-49 — `progressPercentage` và `nextTask` (tạm)
 - **Đang chọn:**
   - `progressPercentage = completed / total × 100`, làm tròn 2 chữ số. Việc `skipped` không tính là xong.
   - `nextTask` = việc `in_progress` đầu tiên theo `task_order`; không có thì lấy việc `pending` đầu tiên.
 - **Trạng thái:** tạm chọn, đối chiếu khi có code Python. Chỉ là phép tính khi đọc nên đổi lại không tốn gì.
+- **Đối chiếu Python (2026-11-18):** **khớp Python**; thêm tác dụng phụ của Python: GET planning-status bật `planning_mode_enabled` khi có task (TC-60, [019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-50 — Xoá task không đánh lại số thứ tự
 - Spec chỉ nói "Still a hard delete". Các task còn lại giữ `task_order` cũ, nên có thể có lỗ hổng như
   1, 3, 4. Việc thêm mới vẫn nối sau số lớn nhất.
+- **Đối chiếu Python (2026-11-18):** **khớp Python** (xoá cứng, không đánh lại số) ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-51 — `task_order` bắt đầu từ 1
 - Không rõ Python bắt đầu từ 0 hay 1. Đang chọn 1.
+- **Đối chiếu Python (2026-11-18):** ~~từ 1~~ **đã sửa (2026-11-18)** — Python bắt đầu từ **0**; task mới có `task_metadata = {}` ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-52 — A36/A37 trả mảng, không phân trang
 - Python trả `ApiResponse_list_TaskPlanRead`, spec không yêu cầu S2. Một kế hoạch thường ngắn nên giữ dạng
   mảng.
+- **Đối chiếu Python (2026-11-18):** **khớp Python** (mảng, `includeCompleted` mặc định false) ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ## Lịch sử phiên bản
 
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-11 | Module task-plans A36–A42, bảng `task_plans` sinh bằng script; chưa tính `plan_lifecycle` | TP-01 |
+| v2 | 2026-11-18 | TP-02: ghi `plan_lifecycle` (thêm ⇒ draft + bật planning; sửa/hoàn thành/xoá ⇒ tính lại) trong cùng transaction có khoá hội thoại; `task_order` từ 0; `task_metadata {}`; GET planning-status bật planning mode; tên FK/default theo DB thật | [019](019-doi-chieu-hanh-vi-python.md), [018](018-dong-bo-schema-alembic.md) |

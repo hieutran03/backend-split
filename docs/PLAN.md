@@ -6,7 +6,7 @@
 > Nguồn yêu cầu: artifact "Chatbot Backend Split" (tách phần quản lý/lưu trữ của chatbot
 > FastAPI sang NestJS). Bản trích để tra cứu nằm ở [docs/reference/](reference/).
 
-**Cập nhật lần cuối:** 2026-11-18 · **Giai đoạn hiện tại:** Phase 1 (W1) — Phase 1 xong phần làm được — **chờ Hiếu review**; còn [!] MSG-02, TP-02
+**Cập nhật lần cuối:** 2026-11-18 · **Giai đoạn hiện tại:** Phase 1 (W1) — **chờ Hiếu review**; đang làm MSG-02
 
 ## Cách đọc
 
@@ -91,7 +91,9 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | MSG-02 | Projection UIMessage cho AI SDK (`?format=ui-message`) — port `ai_sdk_projection.py` | A26 | 🤖 | [!] cần code Python |
 | FB-01 | Feedback: 1 feedback/message, rating 1–5, 409 `feedback_exists`, ownership qua message; `include=feedback` cho A10/A20 — [nhật ký 014](journal/014-feedback.md) | A30, A32–A34 | 🤖 | [r] |
 | TP-01 | Task plans CRUD + complete + planning-status; bảng `task_plans` (enum `task_status`, unique DEFERRABLE INITIALLY DEFERRED) sinh bằng script — [nhật ký 016](journal/016-task-plans.md) | A36–A42 | 🤖 | [r] |
-| TP-02 | Tính lại `conversations.plan_lifecycle` sau mỗi thay đổi task (Engine đọc cột này — không đoán, TC-48) | A36–A41 | 🤖 | [!] cần code Python `task_plan` service |
+| TP-02 | Tính lại `conversations.plan_lifecycle` sau mỗi thay đổi task (port `TaskPlanService`: thêm ⇒ draft + bật planning; sửa/hoàn thành/xoá ⇒ tính lại; cùng transaction, khoá hội thoại); `task_order` từ 0 — [nhật ký 019](journal/019-doi-chieu-hanh-vi-python.md) | A36–A42 | 🤖 | [r] |
+| SYNC-02 | Đối chiếu hành vi Phase 1 với Python: fingerprint fork, tiêu đề "(fork)", giữ `sequence` khi copy, `conversation_turn_conflict`, preview cũ → mới, tìm kiếm theo độ liên quan, chuẩn hoá email (cả login) — [nhật ký 019](journal/019-doi-chieu-hanh-vi-python.md) | A2, A9, A12a | 🤖 | [r] |
+| CONV-05 | Fork phần còn lại theo Python: viết lại metadata (`snapshot_fork_message`), bỏ ảnh không còn sở hữu, bỏ hidden transcript artifact, `fork_cutoff_eligible`, copy agent, kiểm generation/document (thứ tự kiểm ở 019) | A12a | 🤖 | [ ] cần bảng W2–W4 |
 | PJ-05 | Hoàn thiện xoá project: khoá project → hội thoại; gỡ mọi hội thoại (`project_id = NULL`) trong cùng transaction — [nhật ký 015](journal/015-project-va-hoi-thoai.md) | PJ5 | 🤖 | [r] |
 | PJ-06 | Gắn/gỡ hội thoại vào project (kiểm 2 phía, khoá project `FOR SHARE`); copy custom agent ⇒ PJ-08 — [nhật ký 015](journal/015-project-va-hoi-thoai.md) | PJ6, PJ7 | 🤖 | [r] |
 
@@ -181,11 +183,11 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-10 | Xoá project đang có hội thoại: gỡ / chặn / xoá theo? | **đóng** — gỡ (spec PJ5) | [003](journal/003-projects.md), [015](journal/015-project-va-hoi-thoai.md) |
 | TC-11 | Giới hạn 20.000 ký tự cho instructions | tạm chọn | [003](journal/003-projects.md) |
 | TC-15 | Staging có bật Swagger không? | tạm chọn: không | [004](journal/004-swagger.md) |
-| TC-17 | Email có phân biệt hoa/thường khi đăng nhập? | **mở** — tạm giữ nguyên như DB | [005](journal/005-dang-ky-dang-nhap.md) |
-| TC-18 | Chặn mật khẩu > 72 byte khi đăng ký | tạm chọn | [005](journal/005-dang-ky-dang-nhap.md) |
-| TC-19 | Thời hạn refresh token (đang 30 ngày) | **chờ Hiếu** | [005](journal/005-dang-ky-dang-nhap.md) |
+| TC-17 | Email có phân biệt hoa/thường khi đăng nhập? | **đóng** — chuẩn hoá như Python (domain chữ thường) | [005](journal/005-dang-ky-dang-nhap.md), [019](journal/019-doi-chieu-hanh-vi-python.md) |
+| TC-18 | Chặn mật khẩu > 72 byte khi đăng ký | **đóng** — khớp Python | [005](journal/005-dang-ky-dang-nhap.md) |
+| TC-19 | Thời hạn refresh token (đang 30 ngày; Python 7 ngày, access 600 phút) | **chờ Hiếu** | [005](journal/005-dang-ky-dang-nhap.md) |
 | TC-20 | Gộp auth + users thành context `identity` | tạm chọn | [005](journal/005-dang-ky-dang-nhap.md) |
-| TC-21 | Refresh song song cùng một vé: nghiêm ngặt (huỷ chuỗi) hay ân hạn? | tạm chọn nghiêm ngặt — **FE phải refresh tuần tự** | [006](journal/006-refresh-logout.md) |
+| TC-21 | Refresh song song cùng một vé: nghiêm ngặt (huỷ chuỗi) hay ân hạn? | tạm chọn nghiêm ngặt — **FE phải refresh tuần tự** (Python không xoay vòng ⇒ ràng buộc mới với FE) | [006](journal/006-refresh-logout.md) |
 | TC-22 | Logout `allDevices` có vô hiệu luôn access token (tăng `token_version`)? | **chờ Hiếu** | [006](journal/006-refresh-logout.md) |
 | TC-23 | Logout bằng vé người khác ⇒ 200 `revokedCount: 0` | tạm chọn | [006](journal/006-refresh-logout.md) |
 | TC-24 | Logout cần access token | tạm chọn | [006](journal/006-refresh-logout.md) |
@@ -195,35 +197,37 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-28 | `outbox_events.aggregate_id` varchar thay vì uuid | tạm chọn | [009](journal/009-migration-sinh-bang-script.md) |
 | TC-29 | Biểu thức CHECK `ck_conversations_fork_request_fields_together` | **đóng** — lấy từ Alembic | [009](journal/009-migration-sinh-bang-script.md), [018](journal/018-dong-bo-schema-alembic.md) |
 | TC-30 | Không format lại file migration sinh ra | tạm chọn | [009](journal/009-migration-sinh-bang-script.md) |
-| TC-31 | Tìm hội thoại: tiêu đề hoặc nội dung tin (`ILIKE`, chưa FTS) | tạm chọn | [010](journal/010-hoi-thoai-crud.md), [013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) |
-| TC-32 | `planningModeEnabled: null` khi sửa ⇒ 400 | tạm chọn | [010](journal/010-hoi-thoai-crud.md) |
-| TC-33 | Xoá hội thoại đang có lượt active: không chặn (A12) hay 409 (D24)? | tạm chọn không chặn — **chờ Hiếu** | [011](journal/011-xoa-hoi-thoai.md) |
+| TC-31 | Tìm hội thoại: tiêu đề hoặc nội dung tin, xếp theo độ liên quan, bỏ qua sort | **đóng** — port Python | [010](journal/010-hoi-thoai-crud.md), [019](journal/019-doi-chieu-hanh-vi-python.md) |
+| TC-32 | `planningModeEnabled: null` khi sửa ⇒ 400 | **đóng** — khớp Python (422) | [010](journal/010-hoi-thoai-crud.md) |
+| TC-33 | Xoá hội thoại đang có lượt active: không chặn (A12) hay 409 (D24)? | tạm chọn không chặn (khớp Python) — **chờ Hiếu** | [011](journal/011-xoa-hoi-thoai.md) |
 | TC-34 | `threadIds` chụp lúc xoá (trong payload) hay bộ phát tự truy vấn | tạm chọn lúc xoá | [011](journal/011-xoa-hoi-thoai.md) |
 | TC-35 | Module messages join thẳng bảng `conversations` (chỉ đọc) để kiểm sở hữu | tạm chọn — **Hiếu xem** | [012](journal/012-doc-tin-nhan.md) |
 | TC-36 | Index FTS `idx_messages_content_simple_fts`: biểu thức đã có; 1 migration viết tay `AlembicOnlyDifferences` | **chờ Hiếu duyệt ngoại lệ viết tay** | [012](journal/012-doc-tin-nhan.md), [018](journal/018-dong-bo-schema-alembic.md) |
 | TC-37 | MessageView: thêm `sequence`; chưa có `feedback`/`interrupt`/`suggestedQuestions` | tạm chọn | [012](journal/012-doc-tin-nhan.md) |
 | TC-38 | `include=feedback` ⇒ 400 tới FB-01 | **đóng** — đã bật ở FB-01 | [012](journal/012-doc-tin-nhan.md), [014](journal/014-feedback.md) |
 | TC-39 | Tin nhắn phân trang S2 thay vì cursor | theo spec | [012](journal/012-doc-tin-nhan.md) |
-| TC-40 | `messageCount` luôn có trong danh sách hội thoại | tạm chọn | [013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) |
-| TC-41 | `messages` trong item: mới nhất trước | tạm chọn — **FE xác nhận** | [013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) |
+| TC-40 | `messageCount` luôn có trong danh sách hội thoại (Python: chỉ khi `include=messages`) | tạm chọn — tập lớn hơn | [013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) |
+| TC-41 | `messages` trong item: N mới nhất, trả cũ → mới | **đóng** — theo Python | [013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md), [019](journal/019-doi-chieu-hanh-vi-python.md) |
 | TC-42 | Biểu thức CHECK `ck_feedbacks_rating_range` (`>= 1 AND <= 5`) | **đóng** — giống hệt DB thật | [014](journal/014-feedback.md) |
 | TC-43 | Unique `feedbacks.message_id` không partial (xoá mềm vẫn chiếm chỗ) | theo spec | [014](journal/014-feedback.md) |
 | TC-44 | Module projects ghi cột `conversations.project_id` (SQL theo tên bảng) | tạm chọn — **Hiếu xem** | [015](journal/015-project-va-hoi-thoai.md) |
 | TC-45 | Copy custom agent của project khi gắn/tạo hội thoại ⇒ PJ-08 | hoãn | [015](journal/015-project-va-hoi-thoai.md) |
-| TC-46 | Gắn/gỡ đổi `updated_at` của hội thoại | tạm chọn | [015](journal/015-project-va-hoi-thoai.md) |
-| TC-47 | Response PJ6/PJ7 `{ conversationId, projectId }` | tạm chọn | [015](journal/015-project-va-hoi-thoai.md) |
-| TC-48 | Không ghi `plan_lifecycle` tới khi có quy tắc Python (TP-02) | **mở — cần code Python** | [016](journal/016-task-plans.md) |
-| TC-49 | `progressPercentage` (completed/total) và `nextTask` (in_progress rồi pending) | tạm chọn | [016](journal/016-task-plans.md) |
-| TC-50 | Xoá task không đánh lại `task_order` | tạm chọn | [016](journal/016-task-plans.md) |
-| TC-51 | `task_order` bắt đầu từ 1 | tạm chọn | [016](journal/016-task-plans.md) |
-| TC-52 | A36/A37 trả mảng, không phân trang | tạm chọn | [016](journal/016-task-plans.md) |
-| TC-53 | Cách ghép chuỗi fingerprint fork (JSON array → sha256 hex) | tạm chọn — cần code Python | [017](journal/017-fork-hoi-thoai.md) |
-| TC-54 | Con copy persona, planning flag, project; tiêu đề mặc định = nguồn | tạm chọn | [017](journal/017-fork-hoi-thoai.md) |
-| TC-55 | "32 MB" = content + metadata text (bytes) | tạm chọn | [017](journal/017-fork-hoi-thoai.md) |
-| TC-56 | Fork: kiểm generation active / documents / copy custom agent khi có bảng (W2–W4) | hoãn | [017](journal/017-fork-hoi-thoai.md) |
-| TC-57 | Chờ khoá lượt > 30 s ⇒ 409 `conversation_busy` | tạm chọn | [017](journal/017-fork-hoi-thoai.md) |
-| TC-58 | Fork trả `message: "OK"` cho cả 201 và 200 | tạm chọn | [017](journal/017-fork-hoi-thoai.md) |
+| TC-46 | Gắn/gỡ đổi `updated_at` của hội thoại | **đóng** — khớp Python | [015](journal/015-project-va-hoi-thoai.md) |
+| TC-47 | Response PJ6/PJ7 `{ conversationId, projectId }` (Python: `data: null`) | tạm chọn — tập lớn hơn | [015](journal/015-project-va-hoi-thoai.md) |
+| TC-48 | Ghi `plan_lifecycle` theo quy tắc Python (TP-02) | **đóng** | [016](journal/016-task-plans.md), [019](journal/019-doi-chieu-hanh-vi-python.md) |
+| TC-49 | `progressPercentage` (completed/total) và `nextTask` (in_progress rồi pending) | **đóng** — khớp Python | [016](journal/016-task-plans.md) |
+| TC-50 | Xoá task không đánh lại `task_order` | **đóng** — khớp Python | [016](journal/016-task-plans.md) |
+| TC-51 | `task_order` bắt đầu từ 0 (trước: 1) | **đóng** — theo Python | [016](journal/016-task-plans.md), [019](journal/019-doi-chieu-hanh-vi-python.md) |
+| TC-52 | A36/A37 trả mảng, không phân trang | **đóng** — khớp Python | [016](journal/016-task-plans.md) |
+| TC-53 | Fingerprint fork = công thức Python (JSON object khoá sắp xếp) | **đóng** | [017](journal/017-fork-hoi-thoai.md), [019](journal/019-doi-chieu-hanh-vi-python.md) |
+| TC-54 | Con copy persona, planning, project; tiêu đề mặc định "(fork)"; giữ `sequence` gốc; metadata/agent ⇒ CONV-05 | đóng phần W1 | [017](journal/017-fork-hoi-thoai.md), [019](journal/019-doi-chieu-hanh-vi-python.md) |
+| TC-55 | "32 MB" = content + metadata text (bytes) | **đóng** — khớp Python | [017](journal/017-fork-hoi-thoai.md) |
+| TC-56 | Fork: kiểm generation active / documents / copy custom agent khi có bảng (W2–W4) | hoãn ⇒ CONV-05 (quy tắc đã có) | [017](journal/017-fork-hoi-thoai.md), [019](journal/019-doi-chieu-hanh-vi-python.md) |
+| TC-57 | Chờ khoá lượt > 30 s ⇒ 409 `conversation_turn_conflict` (như Python) | **đóng** | [017](journal/017-fork-hoi-thoai.md) |
+| TC-58 | Fork trả `message: "OK"` cho cả 201 và 200 (Python: 2 câu riêng; user khác 403 — NestJS giữ 404) | tạm chọn | [017](journal/017-fork-hoi-thoai.md) |
 | TC-59 | Tên ràng buộc theo dump Alembic (`fk_*`, `feedback_pkey`…) thay vì quy ước tự đoán | tạm chọn | [018](journal/018-dong-bo-schema-alembic.md) |
+| TC-60 | GET planning-status bật planning mode khi có task (giống Python) | tạm chọn — **Hiếu xem** | [019](journal/019-doi-chieu-hanh-vi-python.md) |
+| TC-61 | Ghi lifecycle trong cùng transaction (Python: sau commit) | tạm chọn | [019](journal/019-doi-chieu-hanh-vi-python.md) |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
 ## Ghi chú review
@@ -253,3 +257,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-11 | 🤖 | Lượt TP-01: module `task-plans` (A36–A42), `completedAt` theo `status`, khoá hội thoại khi thêm việc; migration `AddTaskPlans` sinh bằng script (enum + unique deferrable), qua check/revert. Tách TP-02 [!] (tính `plan_lifecycle`, cần Python). 108 test; chạy thật 14 kịch bản + 5 lệnh thêm đồng thời ⇒ thứ tự 1..12 không trùng. |
 | 2026-11-11 | 🤖 | Lượt CONV-03: fork A12a; port `ConversationTurnLock` (advisory lock §11, connection riêng) + retry 40001 trong `TransactionManager`; copy prefix qua public API của messages; mã lỗi 413. 116 test; chạy thật 13 kịch bản (race 5 request ⇒ 1 con; chờ khoá do psql giữ ≈ 2,7 s; 413 ở 5.002 tin). |
 | 2026-11-18 | 🤖 | SYNC-01: dựng DB bằng Alembic của repo chatbot (head `c4f1a7b9d2e6`), lưu dump `docs/reference/python-schema.sql`; sửa 5 Record (tên FK/PK thật, default DB, 2 CHECK, index FTS); migration `AlignWithAlembicSchema` (sinh) + `AlembicOnlyDifferences` (viết tay). Diff catalog 6 bảng chỉ còn `users.role`; `check` trên DB Alembic chỉ đòi `refresh_tokens`, `outbox_events`, `users.role`. 116 test xanh. |
+| 2026-11-18 | 🤖 | TP-02 + SYNC-02: đọc code Python trả lời TC-17…58; port quy tắc `plan_lifecycle`, `task_order` từ 0; fork theo Python (fingerprint, "(fork)", giữ `sequence`, `conversation_turn_conflict`); preview cũ → mới; tìm kiếm theo độ liên quan; chuẩn hoá email cả login (bắt được lỗi login chưa chuẩn hoá). Tách CONV-05. 141 test; chạy thật 23 kịch bản trên Postgres. |

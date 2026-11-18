@@ -79,7 +79,7 @@ describe('fork conversation (A12a)', () => {
     expect(result.created).toBe(true);
     expect(result.conversation).toMatchObject({
       ownerId: 'alice',
-      title: 'Source',
+      title: 'Source (fork)',
       personaPrompt: 'Be brief',
       planningModeEnabled: true,
       projectId: 'p-alice',
@@ -183,5 +183,18 @@ describe('fork conversation (A12a)', () => {
       s2.fork.execute(alice, SOURCE, { messageId: 'm6', requestId: 'r1' }),
     );
     expect(tooBig.reason).toBe('fork_too_large');
+  });
+
+  it('copied messages keep their source sequences: next = cutoff + 1 even with gaps (Python)', async () => {
+    const s = setup();
+    s.messages.add(SOURCE, 'm9', 9, 'assistant');
+    const result = await s.fork.execute(alice, SOURCE, {
+      messageId: 'm9',
+      requestId: 'r1',
+      title: 'Gap',
+    });
+    const child = s.repo.rows.get(result.conversation.id)?.snapshot();
+    expect(child?.nextMessageSequence).toBe(10);
+    expect(child?.forkedThroughSequence).toBe(9);
   });
 });

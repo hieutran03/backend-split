@@ -152,6 +152,7 @@ Thêm 8 unit test, tổng cộng 116:
 - **Ảnh hưởng:** chỉ khi replay một fork **do Python tạo** bằng backend mới. Khi đó fingerprint khác nhau sẽ
   cho 409 thay vì 200.
 - **Trạng thái:** tạm chọn — cần code `conversation_fork_service.py` để khớp.
+- **Đối chiếu Python (2026-11-18):** ~~tạm chọn~~ **đã sửa (2026-11-18)** — công thức Python: JSON object khoá sắp xếp, không khoảng trắng, `ensure_ascii=False`; test vàng sinh bằng Python ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-54 — Hội thoại con copy những gì
 - **Đang chọn:**
@@ -159,24 +160,30 @@ Thêm 8 unit test, tổng cộng 116:
   - không copy: `planLifecycle`;
   - tiêu đề mặc định = tiêu đề nguồn.
 - **Trạng thái:** tạm chọn.
+- **Đối chiếu Python (2026-11-18):** **đã sửa một phần (2026-11-18)** — tiêu đề mặc định `"<gốc[:248]> (fork)"`, tin copy **giữ `sequence` gốc**, `next_message_sequence = cutoff + 1`. Phần viết lại metadata / copy agent ⇒ CONV-05 ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-55 — Cách đo "32 MB"
 - **Đang chọn:** tổng `octet_length(content) + octet_length(message_metadata::text)` của các tin chưa xoá
   trong prefix.
 - **Trạng thái:** tạm chọn.
+- **Đối chiếu Python (2026-11-18):** **khớp Python** ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-56 — Các điều kiện từ chối phụ thuộc bảng chưa có
 - Xem mục "Giới hạn". Sẽ bổ sung khi W2, W3, W4 tạo bảng.
+- **Đối chiếu Python (2026-11-18):** Thứ tự kiểm của Python đã ghi vào [019](019-doi-chieu-hanh-vi-python.md); làm ở CONV-05 khi có bảng.
 
 ### TC-57 — Khoá lượt chờ quá 30 s ⇒ 409 `conversation_busy`
 - Không rõ Python trả mã gì khi chờ khoá quá lâu. Đang chọn 409, giống `CONVERSATION_TURN_CONFLICT` của S7.
+- **Đối chiếu Python (2026-11-18):** **đã sửa (2026-11-18)** — mã lỗi đổi thành `conversation_turn_conflict` như Python; key khoá khớp ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-58 — Response message khi fork
 - Envelope trả `message: "OK"` cho cả 201 lẫn 200, vì interceptor chỉ có một message cố định cho mỗi route.
   Phân biệt tạo mới hay replay bằng status code.
+- **Đối chiếu Python (2026-11-18):** Python: 201 "Conversation forked successfully", 200 "Conversation fork replayed"; user khác ⇒ 403. NestJS giữ 404 (TC-12) ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ## Lịch sử phiên bản
 
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-11 | A12a; port khoá lượt dùng chung; retry 40001; mã lỗi 413 | CONV-03 |
+| v1.1 | 2026-11-18 | Fingerprint theo Python, tiêu đề mặc định "(fork)", giữ `sequence` gốc, mã `conversation_turn_conflict`; CHECK fork request đã có | [019](019-doi-chieu-hanh-vi-python.md) |

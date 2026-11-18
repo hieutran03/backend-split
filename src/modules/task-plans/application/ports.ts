@@ -1,8 +1,16 @@
+import type { PlanLifecycle } from '../domain/plan-lifecycle';
 import type { TaskPlan } from '../domain/task-plan';
 
-/** Same values as conversations.plan_lifecycle (Python PlanLifecycle). */
-export type PlanLifecycle =
-  'draft' | 'ready' | 'executing' | 'paused' | 'completed';
+export type { PlanLifecycle } from '../domain/plan-lifecycle';
+
+/**
+ * What a task change writes back to the conversation row (TP-02). Like Python,
+ * `planningModeEnabled: true` only ever turns the flag on.
+ */
+export interface PlanStateChange {
+  readonly planLifecycle: PlanLifecycle | null;
+  readonly enablePlanningMode: boolean;
+}
 
 /** The conversation a plan belongs to, as this context needs it. */
 export interface PlanConversation {
@@ -31,9 +39,20 @@ export interface TaskPlanRepository {
   /** A task of a live conversation owned by `ownerId`. */
   findOwned(taskPlanId: string, ownerId: string): Promise<TaskPlan | null>;
   listForConversation(conversationId: string): Promise<TaskPlan[]>;
-  maxTaskOrder(conversationId: string): Promise<number>;
+  /** Highest task_order of the conversation, null when it has no task. */
+  maxTaskOrder(conversationId: string): Promise<number | null>;
   insertMany(tasks: TaskPlan[]): Promise<void>;
   save(task: TaskPlan): Promise<void>;
   delete(taskPlanId: string): Promise<void>;
+  /**
+   * Writes `conversations.plan_lifecycle` (and turns planning mode on when asked).
+   * `updated_at` moves only when a value actually changes — Python writes through
+   * the ORM, which skips an UPDATE for unchanged attributes.
+   */
+  setPlanState(
+    conversationId: string,
+    change: PlanStateChange,
+    now: Date,
+  ): Promise<void>;
 }
 export const TASK_PLAN_REPOSITORY = Symbol('TASK_PLAN_REPOSITORY');

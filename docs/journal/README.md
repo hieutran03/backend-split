@@ -31,6 +31,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 016 | [Kế hoạch công việc](016-task-plans.md) | TP-01 (A36–A42) | 2026-11-11 | chờ review |
 | 017 | [Fork hội thoại](017-fork-hoi-thoai.md) | CONV-03 (A12a) | 2026-11-11 | chờ review |
 | 018 | [Đồng bộ schema với DB Alembic](018-dong-bo-schema-alembic.md) | SYNC-01 | 2026-11-18 | chờ review |
+| 019 | [Đối chiếu hành vi Phase 1 với Python](019-doi-chieu-hanh-vi-python.md) | SYNC-02, TP-02 | 2026-11-18 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -52,8 +53,8 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-14 | Cầu nối zod→OpenAPI tự viết | tạm chọn | 004 |
 | TC-15 | Bật Swagger ở môi trường nào | tạm chọn | 004 |
 | TC-16 | Response schema lệch dữ liệu thật | tạm chọn | 004 |
-| TC-17 | Email phân biệt hoa/thường | **mở** | 005 |
-| TC-18 | Mật khẩu ≤ 72 byte | tạm chọn | 005 |
+| TC-17 | Email phân biệt hoa/thường | **đóng** — như Python | 005, 019 |
+| TC-18 | Mật khẩu ≤ 72 byte | **đóng** | 005, 019 |
 | TC-19 | TTL refresh token 30 ngày | chờ Hiếu | 005 |
 | TC-20 | Context `identity` gộp auth + users | tạm chọn | 005 |
 | TC-21 | Refresh song song: nghiêm ngặt hay ân hạn | tạm chọn nghiêm ngặt | 006 |
@@ -66,8 +67,8 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-28 | `aggregate_id` varchar | tạm chọn | 009 |
 | TC-29 | CHECK fork_request_fields_together | **đóng** | 009, 018 |
 | TC-30 | Giữ nguyên file migration sinh ra | tạm chọn | 009 |
-| TC-31 | Tìm hội thoại: tiêu đề hoặc nội dung tin | tạm chọn | 010, 013 |
-| TC-32 | `planningModeEnabled: null` ⇒ 400 | tạm chọn | 010 |
+| TC-31 | Tìm hội thoại: tiêu đề hoặc nội dung tin, độ liên quan | **đóng** | 010, 013, 019 |
+| TC-32 | `planningModeEnabled: null` ⇒ 400 | **đóng** | 010 |
 | TC-33 | Lượt active không chặn xoá hội thoại (A12 vs D24) | **chờ Hiếu** | 011 |
 | TC-34 | `threadIds` chụp lúc xoá | tạm chọn | 011 |
 | TC-35 | messages join thẳng bảng `conversations` | tạm chọn — **Hiếu xem** | 012 |
@@ -76,25 +77,27 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-38 | `include=feedback` ⇒ 400 tới FB-01 | **đóng** (FB-01) | 012, 014 |
 | TC-39 | Phân trang S2, không cursor | theo spec | 012 |
 | TC-40 | `messageCount` luôn có | tạm chọn | 013 |
-| TC-41 | Tin trong item: mới nhất trước | tạm chọn | 013 |
+| TC-41 | Tin trong item: cũ → mới | **đóng** — như Python | 013, 019 |
 | TC-42 | CHECK rating 1–5 | **đóng** | 014, 018 |
 | TC-43 | Unique `message_id` không partial | theo spec | 014 |
 | TC-44 | Projects ghi `conversations.project_id` | tạm chọn — **Hiếu xem** | 015 |
 | TC-45 | Copy custom agent khi gắn ⇒ PJ-08 | hoãn | 015 |
-| TC-46 | Gắn/gỡ đổi `updated_at` | tạm chọn | 015 |
+| TC-46 | Gắn/gỡ đổi `updated_at` | **đóng** | 015 |
 | TC-47 | Response PJ6/PJ7 | tạm chọn | 015 |
-| TC-48 | Chưa ghi `plan_lifecycle` (TP-02) | **mở** | 016 |
-| TC-49 | Cách tính % và nextTask | tạm chọn | 016 |
-| TC-50 | Xoá không đánh lại thứ tự | tạm chọn | 016 |
-| TC-51 | `task_order` từ 1 | tạm chọn | 016 |
-| TC-52 | Task list không phân trang | tạm chọn | 016 |
-| TC-53 | Fingerprint fork | tạm chọn | 017 |
-| TC-54 | Con copy gì | tạm chọn | 017 |
-| TC-55 | Đo 32 MB | tạm chọn | 017 |
+| TC-48 | Ghi `plan_lifecycle` (TP-02) | **đóng** | 016, 019 |
+| TC-49 | Cách tính % và nextTask | **đóng** | 016 |
+| TC-50 | Xoá không đánh lại thứ tự | **đóng** | 016 |
+| TC-51 | `task_order` từ 0 | **đóng** — như Python | 016, 019 |
+| TC-52 | Task list không phân trang | **đóng** | 016 |
+| TC-53 | Fingerprint fork | **đóng** — như Python | 017, 019 |
+| TC-54 | Con copy gì | đóng phần W1 (còn CONV-05) | 017, 019 |
+| TC-55 | Đo 32 MB | **đóng** | 017 |
 | TC-56 | Kiểm generation/documents/agents khi có bảng | hoãn | 017 |
-| TC-57 | Chờ khoá > 30 s ⇒ 409 | tạm chọn | 017 |
+| TC-57 | Chờ khoá > 30 s ⇒ 409 `conversation_turn_conflict` | **đóng** | 017, 019 |
 | TC-58 | Fork message "OK" | tạm chọn | 017 |
 | TC-59 | Tên ràng buộc theo dump Alembic | tạm chọn | 018 |
+| TC-60 | GET planning-status bật planning mode | tạm chọn — Hiếu xem | 019 |
+| TC-61 | Ghi lifecycle trong cùng transaction | tạm chọn | 019 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

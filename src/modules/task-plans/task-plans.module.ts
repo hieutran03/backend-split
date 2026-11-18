@@ -59,26 +59,36 @@ import { TaskPlansController } from './presentation/task-plans.controller';
     },
     {
       provide: UpdateTaskUseCase,
-      useFactory: (repo: TaskPlanRepository, clock: Clock) =>
-        new UpdateTaskUseCase(repo, clock),
-      inject: [TASK_PLAN_REPOSITORY, CLOCK],
+      useFactory: (
+        repo: TaskPlanRepository,
+        tx: TransactionManager,
+        clock: Clock,
+      ) => new UpdateTaskUseCase(repo, tx, clock),
+      inject: [TASK_PLAN_REPOSITORY, TRANSACTION_MANAGER, CLOCK],
     },
     {
       provide: CompleteTaskUseCase,
-      useFactory: (repo: TaskPlanRepository, clock: Clock) =>
-        new CompleteTaskUseCase(repo, clock),
-      inject: [TASK_PLAN_REPOSITORY, CLOCK],
+      useFactory: (
+        repo: TaskPlanRepository,
+        tx: TransactionManager,
+        clock: Clock,
+      ) => new CompleteTaskUseCase(repo, tx, clock),
+      inject: [TASK_PLAN_REPOSITORY, TRANSACTION_MANAGER, CLOCK],
     },
     {
       provide: DeleteTaskUseCase,
-      useFactory: (repo: TaskPlanRepository) => new DeleteTaskUseCase(repo),
-      inject: [TASK_PLAN_REPOSITORY],
+      useFactory: (
+        repo: TaskPlanRepository,
+        tx: TransactionManager,
+        clock: Clock,
+      ) => new DeleteTaskUseCase(repo, tx, clock),
+      inject: [TASK_PLAN_REPOSITORY, TRANSACTION_MANAGER, CLOCK],
     },
     {
       provide: GetPlanningStatusUseCase,
-      useFactory: (repo: TaskPlanRepository) =>
-        new GetPlanningStatusUseCase(repo),
-      inject: [TASK_PLAN_REPOSITORY],
+      useFactory: (repo: TaskPlanRepository, clock: Clock) =>
+        new GetPlanningStatusUseCase(repo, clock),
+      inject: [TASK_PLAN_REPOSITORY, CLOCK],
     },
   ],
 })

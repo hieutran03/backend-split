@@ -3,6 +3,7 @@ import { TaskPlan } from '../domain/task-plan';
 import type {
   PlanConversation,
   PlanLifecycle,
+  PlanStateChange,
   TaskPlanRepository,
 } from '../application/ports';
 import { TaskPlanRecord } from './task-plan.record';
@@ -91,13 +92,13 @@ export class TypeOrmTaskPlanRepository implements TaskPlanRepository {
     return records.map(toDomain);
   }
 
-  public async maxTaskOrder(conversationId: string): Promise<number> {
+  public async maxTaskOrder(conversationId: string): Promise<number | null> {
     const row = await this.repo
       .createQueryBuilder('t')
-      .select('COALESCE(MAX(t.task_order), 0)', 'max')
+      .select('MAX(t.task_order)', 'max')
       .where('t.conversation_id = :conversationId', { conversationId })
-      .getRawOne<{ max: number | string }>();
-    return Number(row?.max ?? 0);
+      .getRawOne<{ max: number | string | null }>();
+    return row?.max === null || row?.max === undefined ? null : Number(row.max);
   }
 
   public async insertMany(tasks: TaskPlan[]): Promise<void> {
@@ -114,6 +115,27 @@ export class TypeOrmTaskPlanRepository implements TaskPlanRepository {
 
   public async delete(taskPlanId: string): Promise<void> {
     await this.repo.delete({ id: taskPlanId });
+  }
+
+  /**
+   * conversations is written by table NAME (same choice as TC-44): only the two
+   * plan columns + updated_at, and only when something changes.
+   */
+  public async setPlanState(
+    conversationId: string,
+    change: PlanStateChange,
+    now: Date,
+  ): Promise<void> {
+    await this.db.manager.query(
+      `UPDATE conversations
+          SET plan_lifecycle = $2,
+              planning_mode_enabled = planning_mode_enabled OR $3,
+              updated_at = $4
+        WHERE id = $1
+          AND (plan_lifecycle IS DISTINCT FROM $2
+               OR ($3 AND NOT planning_mode_enabled))`,
+      [conversationId, change.planLifecycle, change.enablePlanningMode, now],
+    );
   }
 }
 

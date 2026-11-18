@@ -153,17 +153,20 @@ toàn khoảng trắng ⇒ 400; danh sách chỉ của mình, lọc project, tì
 - **Bối cảnh:** Python tìm "title or message". Bảng messages chưa có.
 - **Đang chọn:** chỉ tiêu đề ở lượt này; mở rộng sang nội dung tin nhắn (dùng index FTS `idx_messages_content_simple_fts`) ở MSG-01.
 - **Trạng thái:** tạm chọn.
+- **Đối chiếu Python (2026-11-18):** **đã sửa (2026-11-18)** — Python: `strip().lower()`, tiêu đề **hoặc** nội dung tin (LIKE có escape), xếp theo độ liên quan và **bỏ qua sort** khi tìm. NestJS port nguyên ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-32 — `planningModeEnabled: null` khi sửa
 - **Bối cảnh:** Python `ConversationUpdate` cho phép `null` (nghĩa: không đổi). Spec mới chỉ nói về `title` và `personaPrompt`.
 - **Đang chọn:** chỉ nhận `true`/`false`; bỏ trường nếu không muốn đổi. Gửi `null` ⇒ 400.
 - **Trạng thái:** tạm chọn — lớp tương thích (LEG-01) sẽ chuyển `null` cũ thành "không đổi".
+- **Đối chiếu Python (2026-11-18):** **khớp Python** — Python cũng từ chối `null` (422) ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ## Lịch sử phiên bản
 
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-10 | A7/A8/A9/A11, migration `AddConversations` sinh bằng script, ProjectLookup công khai | CONV-01 |
+| v1.1 | 2026-11-18 | Tìm kiếm: `lower() LIKE`, xếp theo độ liên quan, bỏ qua sort (TC-31); tiêu đề đếm theo code point | [019](019-doi-chieu-hanh-vi-python.md) |
 
 ## Gợi ý review
 

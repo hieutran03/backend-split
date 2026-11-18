@@ -2,6 +2,7 @@ import type { Actor } from '@shared/auth/actor';
 import { NotFoundError } from '@shared/errors/app-error';
 import type { Clock, IdGenerator } from '@platform/ports/kernel.port';
 import type { TransactionManager } from '@platform/ports/transaction-manager.port';
+import { deriveLifecycle, LIFECYCLE_AFTER_ADD } from '../domain/plan-lifecycle';
 import { planProgress } from '../domain/planning-status';
 import { TaskPlan, type TaskStatus } from '../domain/task-plan';
 import type { PlanLifecycle, TaskPlanRepository } from './ports';
@@ -35,15 +36,59 @@ export function toTaskPlanView(t: TaskPlan): TaskPlanView {
 }
 
 /*
- * NOTE: Python recomputes conversations.plan_lifecycle after every task change.
- * The rule is not in the spec and the Engine reads that column, so these use cases
- * do NOT write it until the rule is ported (TP-02, TC-48).
+ * TP-02: every task change writes conversations.plan_lifecycle back, exactly like
+ * Python TaskPlanService (the Engine reads that column):
+ *  - add (A36)                  => planning mode on + 'draft'
+ *  - update / complete / delete => deriveLifecycle(all tasks of the conversation)
+ * Each runs in one transaction with the conversation row locked (FOR UPDATE), so
+ * two concurrent changes cannot write a lifecycle computed from a stale task list.
  */
+
+/**
+ * Recomputes the lifecycle from every task of the conversation (completed and
+ * skipped included — Python `include_completed=True`).
+ */
+async function refreshLifecycle(
+  tasks: TaskPlanRepository,
+  conversationId: string,
+  now: Date,
+): Promise<void> {
+  const all = await tasks.listForConversation(conversationId);
+  await tasks.setPlanState(
+    conversationId,
+    {
+      planLifecycle: deriveLifecycle(all.map((t) => t.snapshot().status)),
+      enablePlanningMode: false,
+    },
+    now,
+  );
+}
+
+/**
+ * Loads a task the actor owns and locks its conversation row first, so the
+ * lifecycle written afterwards sees every committed task change.
+ */
+async function lockOwnedTask(
+  tasks: TaskPlanRepository,
+  actorId: string,
+  taskPlanId: string,
+): Promise<TaskPlan> {
+  const found = await tasks.findOwned(taskPlanId, actorId);
+  if (!found) throw new NotFoundError('task_plan');
+  if (!(await tasks.lockConversation(found.conversationId, actorId))) {
+    throw new NotFoundError('task_plan');
+  }
+  // Re-read under the lock: another transaction may have changed or deleted it.
+  const task = await tasks.findOwned(taskPlanId, actorId);
+  if (!task) throw new NotFoundError('task_plan');
+  return task;
+}
 
 /**
  * A36 — append tasks after the current last one (Python: "If a plan already exists,
  * new tasks are appended after the current last task"). The conversation row is
  * locked first so two concurrent appends cannot pick the same task_order.
+ * The first task gets task_order 0 (Python `0 if max is None else max + 1`).
  */
 export class AddTasksUseCase {
   public constructor(
@@ -65,17 +110,23 @@ export class AddTasksUseCase {
       );
       if (!conversation) throw new NotFoundError('conversation');
       const last = await this.tasks.maxTaskOrder(conversationId);
+      const first = last === null ? 0 : last + 1;
       const now = this.clock.now();
       const created = descriptions.map((description, i) =>
         TaskPlan.add({
           id: this.ids.uuid(),
           conversationId,
-          taskOrder: last + i + 1,
+          taskOrder: first + i,
           description,
           now,
         }),
       );
       await this.tasks.insertMany(created);
+      await this.tasks.setPlanState(
+        conversationId,
+        { planLifecycle: LIFECYCLE_AFTER_ADD, enablePlanningMode: true },
+        now,
+      );
       return created.map(toTaskPlanView);
     });
   }
@@ -123,6 +174,7 @@ export class GetTaskUseCase {
 export class UpdateTaskUseCase {
   public constructor(
     private readonly tasks: TaskPlanRepository,
+    private readonly transactions: TransactionManager,
     private readonly clock: Clock,
   ) {}
 
@@ -135,18 +187,21 @@ export class UpdateTaskUseCase {
       taskMetadata?: Record<string, unknown> | null | undefined;
     },
   ): Promise<TaskPlanView> {
-    const task = await this.tasks.findOwned(taskPlanId, actor.userId);
-    if (!task) throw new NotFoundError('task_plan');
-    task.update(
-      {
-        description: input.description,
-        status: input.status,
-        metadata: input.taskMetadata,
-      },
-      this.clock.now(),
-    );
-    await this.tasks.save(task);
-    return toTaskPlanView(task);
+    return this.transactions.run(async () => {
+      const task = await lockOwnedTask(this.tasks, actor.userId, taskPlanId);
+      const now = this.clock.now();
+      task.update(
+        {
+          description: input.description,
+          status: input.status,
+          metadata: input.taskMetadata,
+        },
+        now,
+      );
+      await this.tasks.save(task);
+      await refreshLifecycle(this.tasks, task.conversationId, now);
+      return toTaskPlanView(task);
+    });
   }
 }
 
@@ -154,29 +209,36 @@ export class UpdateTaskUseCase {
 export class CompleteTaskUseCase {
   public constructor(
     private readonly tasks: TaskPlanRepository,
+    private readonly transactions: TransactionManager,
     private readonly clock: Clock,
   ) {}
 
-  public async execute(
-    actor: Actor,
-    taskPlanId: string,
-  ): Promise<TaskPlanView> {
-    const task = await this.tasks.findOwned(taskPlanId, actor.userId);
-    if (!task) throw new NotFoundError('task_plan');
-    task.complete(this.clock.now());
-    await this.tasks.save(task);
-    return toTaskPlanView(task);
+  public execute(actor: Actor, taskPlanId: string): Promise<TaskPlanView> {
+    return this.transactions.run(async () => {
+      const task = await lockOwnedTask(this.tasks, actor.userId, taskPlanId);
+      const now = this.clock.now();
+      task.complete(now);
+      await this.tasks.save(task);
+      await refreshLifecycle(this.tasks, task.conversationId, now);
+      return toTaskPlanView(task);
+    });
   }
 }
 
 /** A41 — still a hard delete; the remaining tasks keep their task_order (TC-50). */
 export class DeleteTaskUseCase {
-  public constructor(private readonly tasks: TaskPlanRepository) {}
+  public constructor(
+    private readonly tasks: TaskPlanRepository,
+    private readonly transactions: TransactionManager,
+    private readonly clock: Clock,
+  ) {}
 
-  public async execute(actor: Actor, taskPlanId: string): Promise<void> {
-    const task = await this.tasks.findOwned(taskPlanId, actor.userId);
-    if (!task) throw new NotFoundError('task_plan');
-    await this.tasks.delete(task.id);
+  public execute(actor: Actor, taskPlanId: string): Promise<void> {
+    return this.transactions.run(async () => {
+      const task = await lockOwnedTask(this.tasks, actor.userId, taskPlanId);
+      await this.tasks.delete(task.id);
+      await refreshLifecycle(this.tasks, task.conversationId, this.clock.now());
+    });
   }
 }
 
@@ -192,9 +254,16 @@ export interface PlanningStatusView {
   readonly nextTask: TaskPlanView | null;
 }
 
-/** A42 — `planLifecycle` is the stored value (see the NOTE above). */
+/**
+ * A42 — `planLifecycle` is the stored value. Like Python `get_planning_status`,
+ * reading the status turns planning mode on when the conversation has tasks but
+ * the flag is off (a write inside a GET — TC-60).
+ */
 export class GetPlanningStatusUseCase {
-  public constructor(private readonly tasks: TaskPlanRepository) {}
+  public constructor(
+    private readonly tasks: TaskPlanRepository,
+    private readonly clock: Clock,
+  ) {}
 
   public async execute(
     actor: Actor,
@@ -208,8 +277,17 @@ export class GetPlanningStatusUseCase {
     const progress = planProgress(
       await this.tasks.listForConversation(conversationId),
     );
+    let planningModeEnabled = conversation.planningModeEnabled;
+    if (!planningModeEnabled && progress.totalTasks > 0) {
+      await this.tasks.setPlanState(
+        conversationId,
+        { planLifecycle: conversation.planLifecycle, enablePlanningMode: true },
+        this.clock.now(),
+      );
+      planningModeEnabled = true;
+    }
     return {
-      planningModeEnabled: conversation.planningModeEnabled,
+      planningModeEnabled,
       planLifecycle: conversation.planLifecycle,
       totalTasks: progress.totalTasks,
       pendingTasks: progress.pendingTasks,
