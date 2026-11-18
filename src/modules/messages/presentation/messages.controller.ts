@@ -16,9 +16,11 @@ import { ZodValidationPipe } from '@platform/http/zod-validation.pipe';
 import {
   GetMessageUseCase,
   ListConversationMessagesUseCase,
+  ListConversationUiMessagesUseCase,
   ListMyMessagesUseCase,
 } from '../application/message.use-cases';
 import { type MessageView } from '../application/message.view';
+import { type UiMessage } from '../domain/ui-message/ui-message';
 import {
   type ListConversationMessagesQuery,
   listConversationMessagesQuerySchema,
@@ -28,8 +30,8 @@ import {
 } from './messages.schemas';
 
 /**
- * Read-only message routes: A10, A19, A20. Messages are written by the
- * generations context (W4). `format=ui-message` (A26) is MSG-02.
+ * Read-only message routes: A10 (+ `format=ui-message`, which replaces A26 —
+ * MSG-02), A19, A20. Messages are written by the generations context (W4).
  */
 @ApiTags('messages')
 @ApiBearerAuth(BEARER_AUTH)
@@ -42,13 +44,18 @@ export class MessagesController {
     private readonly listConversationMessages: ListConversationMessagesUseCase,
     @Inject(ListMyMessagesUseCase)
     private readonly listMyMessages: ListMyMessagesUseCase,
+    @Inject(ListConversationUiMessagesUseCase)
+    private readonly listUiMessages: ListConversationUiMessagesUseCase,
   ) {}
 
   @Get('conversations/:conversationId/messages')
   @ApiOperation({
     summary: 'List messages of a conversation (A10)',
     description:
-      'Default sort `-sequence`. Another user’s or a deleted conversation ⇒ 404 conversation_not_found.',
+      'Default sort `-sequence`. Another user’s or a deleted conversation ⇒ 404 conversation_not_found. ' +
+      '`format=ui-message` returns the same page as Vercel AI SDK UIMessages ' +
+      '(`id, role, content, parts, metadata, createdAt` — port of Python A26); ' +
+      '`inlineRichResponseV1` / `answerVisualsV1` / `sourceFiguresV1` choose the rich-response projection; `include` is then rejected.',
   })
   @ApiUuidParam('conversationId')
   @ApiZodQuery(listConversationMessagesQuerySchema)
@@ -60,8 +67,26 @@ export class MessagesController {
     conversationId: string,
     @Query(new ZodValidationPipe(listConversationMessagesQuerySchema))
     query: ListConversationMessagesQuery,
-  ): Promise<Page<MessageView>> {
+  ): Promise<Page<MessageView> | Page<UiMessage>> {
     const { page, limit, sort, include } = query;
+    if (query.format === 'ui-message') {
+      return this.listUiMessages.execute(
+        actor,
+        conversationId,
+        { page, limit, sort },
+        {
+          inlineRichResponseV1:
+            (query.inlineRichResponseV1 ?? false) ||
+            (query.inline_rich_response_v1 ?? false),
+          answerVisualsV1:
+            (query.answerVisualsV1 ?? false) ||
+            (query.answer_visuals_v1 ?? false),
+          sourceFiguresV1:
+            (query.sourceFiguresV1 ?? false) ||
+            (query.source_figures_v1 ?? false),
+        },
+      );
+    }
     return this.listConversationMessages.execute(
       actor,
       conversationId,

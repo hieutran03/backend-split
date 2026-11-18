@@ -6,7 +6,7 @@
 > Nguồn yêu cầu: artifact "Chatbot Backend Split" (tách phần quản lý/lưu trữ của chatbot
 > FastAPI sang NestJS). Bản trích để tra cứu nằm ở [docs/reference/](reference/).
 
-**Cập nhật lần cuối:** 2026-11-18 · **Giai đoạn hiện tại:** Phase 1 (W1) — **chờ Hiếu review**; đang làm MSG-02
+**Cập nhật lần cuối:** 2026-11-18 · **Giai đoạn hiện tại:** Phase 1 (W1) — **đủ task, chờ Hiếu review** (còn CONV-05 phụ thuộc bảng W2–W4)
 
 ## Cách đọc
 
@@ -88,7 +88,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | CONV-03 | Fork: REPEATABLE READ (retry 40001) dưới khoá lượt nguồn (advisory lock dùng chung với Python), fingerprint sha256, replay 200/409/410, 413, outbox `conversation.forked` — [nhật ký 017](journal/017-fork-hoi-thoai.md) | A12a | 🤖 | [r] |
 | MSG-01 | Messages đọc: `GET /messages/{id}`, list theo hội thoại (S2, mặc định `-sequence` — TC-39), list của tôi, `sender` số ⇒ chuỗi; bảng `messages` sinh bằng script — [nhật ký 012](journal/012-doc-tin-nhan.md) | A10, A19, A20 | 🤖 | [r] |
 | CONV-04 | Danh sách hội thoại: `include=messages` + `latestMessages` (0..20), `messageCount`, `include=feedback` ⇒ 400, tìm cả nội dung tin nhắn (TC-31, TC-36) — [nhật ký 013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) | A9 | 🤖 | [r] |
-| MSG-02 | Projection UIMessage cho AI SDK (`?format=ui-message`) — port `ai_sdk_projection.py` | A26 | 🤖 | [!] cần code Python |
+| MSG-02 | Projection UIMessage cho AI SDK (`?format=ui-message`) — port `ai_sdk_projection.py` + parser marker/sanitizer, 65 test vàng sinh từ Python; metadata làm sạch như `MessageRead` — [nhật ký 020](journal/020-ui-message-projection.md) | A26 | 🤖 | [r] |
 | FB-01 | Feedback: 1 feedback/message, rating 1–5, 409 `feedback_exists`, ownership qua message; `include=feedback` cho A10/A20 — [nhật ký 014](journal/014-feedback.md) | A30, A32–A34 | 🤖 | [r] |
 | TP-01 | Task plans CRUD + complete + planning-status; bảng `task_plans` (enum `task_status`, unique DEFERRABLE INITIALLY DEFERRED) sinh bằng script — [nhật ký 016](journal/016-task-plans.md) | A36–A42 | 🤖 | [r] |
 | TP-02 | Tính lại `conversations.plan_lifecycle` sau mỗi thay đổi task (port `TaskPlanService`: thêm ⇒ draft + bật planning; sửa/hoàn thành/xoá ⇒ tính lại; cùng transaction, khoá hội thoại); `task_order` từ 0 — [nhật ký 019](journal/019-doi-chieu-hanh-vi-python.md) | A36–A42 | 🤖 | [r] |
@@ -228,6 +228,9 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-59 | Tên ràng buộc theo dump Alembic (`fk_*`, `feedback_pkey`…) thay vì quy ước tự đoán | tạm chọn | [018](journal/018-dong-bo-schema-alembic.md) |
 | TC-60 | GET planning-status bật planning mode khi có task (giống Python) | tạm chọn — **Hiếu xem** | [019](journal/019-doi-chieu-hanh-vi-python.md) |
 | TC-61 | Ghi lifecycle trong cùng transaction (Python: sau commit) | tạm chọn | [019](journal/019-doi-chieu-hanh-vi-python.md) |
+| TC-62 | `include=feedback` cùng `format=ui-message` ⇒ 400 | tạm chọn | [020](journal/020-ui-message-projection.md) |
+| TC-63 | Nhận cờ rich dạng snake_case + bool kiểu FastAPI | tạm chọn | [020](journal/020-ui-message-projection.md) |
+| TC-64 | Làm sạch metadata ở mọi MessageView (như Python) | tạm chọn — sửa lỗi lộ `original_image_url` | [020](journal/020-ui-message-projection.md) |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
 ## Ghi chú review
@@ -258,3 +261,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-11 | 🤖 | Lượt CONV-03: fork A12a; port `ConversationTurnLock` (advisory lock §11, connection riêng) + retry 40001 trong `TransactionManager`; copy prefix qua public API của messages; mã lỗi 413. 116 test; chạy thật 13 kịch bản (race 5 request ⇒ 1 con; chờ khoá do psql giữ ≈ 2,7 s; 413 ở 5.002 tin). |
 | 2026-11-18 | 🤖 | SYNC-01: dựng DB bằng Alembic của repo chatbot (head `c4f1a7b9d2e6`), lưu dump `docs/reference/python-schema.sql`; sửa 5 Record (tên FK/PK thật, default DB, 2 CHECK, index FTS); migration `AlignWithAlembicSchema` (sinh) + `AlembicOnlyDifferences` (viết tay). Diff catalog 6 bảng chỉ còn `users.role`; `check` trên DB Alembic chỉ đòi `refresh_tokens`, `outbox_events`, `users.role`. 116 test xanh. |
 | 2026-11-18 | 🤖 | TP-02 + SYNC-02: đọc code Python trả lời TC-17…58; port quy tắc `plan_lifecycle`, `task_order` từ 0; fork theo Python (fingerprint, "(fork)", giữ `sequence`, `conversation_turn_conflict`); preview cũ → mới; tìm kiếm theo độ liên quan; chuẩn hoá email cả login (bắt được lỗi login chưa chuẩn hoá). Tách CONV-05. 141 test; chạy thật 23 kịch bản trên Postgres. |
+| 2026-11-18 | 🤖 | MSG-02: port projection UIMessage (marker parser, sanitizer, source figure, ảnh, nguồn web) sang domain thuần; script sinh 65 trường hợp vàng bằng code Python thật, test TS khớp 100 %; `format=ui-message` + 3 cờ rich trên A10; làm sạch metadata ở MessageView như `MessageRead`. 212 test; chạy thật 9 kịch bản. Phase 1 đủ task. |

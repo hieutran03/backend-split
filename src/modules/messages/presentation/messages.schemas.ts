@@ -15,10 +15,37 @@ const includeSchema = z
   )
   .meta({ description: '`feedback` adds my feedback to each message' });
 
-/** A10 — S2 pagination; `sort`: sequence | createdAt | updatedAt, default `-sequence`. */
-export const listConversationMessagesQuerySchema = paginationQuerySchema.extend(
-  { include: includeSchema },
-);
+/** FastAPI bool query parsing: true/false, 1/0, yes/no, on/off (case-insensitive). */
+const queryFlag = z
+  .string()
+  .toLowerCase()
+  .pipe(z.enum(['true', 'false', '1', '0', 'yes', 'no', 'on', 'off']))
+  .transform((v) => ['true', '1', 'yes', 'on'].includes(v))
+  .optional();
+
+/**
+ * A10 — S2 pagination; `sort`: sequence | createdAt | updatedAt, default `-sequence`.
+ * `format=ui-message` (MSG-02, replaces A26) returns AI SDK UIMessages; the
+ * capability flags exist in camelCase and, like Python, snake_case.
+ */
+export const listConversationMessagesQuerySchema = paginationQuerySchema
+  .extend({
+    include: includeSchema,
+    format: z.enum(['ui-message']).optional().meta({
+      description:
+        '`ui-message` returns Vercel AI SDK UIMessages (`id, role, content, parts, metadata, createdAt`)',
+    }),
+    inlineRichResponseV1: queryFlag,
+    inline_rich_response_v1: queryFlag,
+    answerVisualsV1: queryFlag,
+    answer_visuals_v1: queryFlag,
+    sourceFiguresV1: queryFlag,
+    source_figures_v1: queryFlag,
+  })
+  .refine((q) => q.format === undefined || q.include.length === 0, {
+    path: ['include'],
+    message: 'include is not supported with format=ui-message',
+  });
 export type ListConversationMessagesQuery = z.infer<
   typeof listConversationMessagesQuerySchema
 >;

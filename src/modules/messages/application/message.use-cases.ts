@@ -2,6 +2,12 @@ import type { Actor } from '@shared/auth/actor';
 import { NotFoundError } from '@shared/errors/app-error';
 import { mapPage, type Page, type PageRequest } from '@shared/pagination/page';
 import type { Message } from '../domain/message';
+import type { Json } from '../domain/ui-message/py-compat';
+import {
+  effectiveCapabilities,
+  toUiMessage,
+  type UiMessage,
+} from '../domain/ui-message/ui-message';
 import type { MessageRepository, MessageSort } from './ports';
 import { toMessageView, type MessageView } from './message.view';
 
@@ -42,6 +48,59 @@ export class ListConversationMessagesUseCase {
       CONVERSATION_DEFAULT_SORT,
     );
     return withFeedback(this.messages, result, actor, includeFeedback);
+  }
+}
+
+/**
+ * A10 `format=ui-message` (replaces A26, MSG-02): the same page as A10 — same
+ * ownership rule, filters and default sort — projected to Vercel AI SDK
+ * UIMessages for the client's rich-response capabilities.
+ */
+export class ListConversationUiMessagesUseCase {
+  public constructor(
+    private readonly messages: MessageRepository,
+    private readonly inlineRichResponseEnabled: boolean,
+  ) {}
+
+  public async execute(
+    actor: Actor,
+    conversationId: string,
+    page: PageRequest,
+    flags: {
+      inlineRichResponseV1: boolean;
+      answerVisualsV1: boolean;
+      sourceFiguresV1: boolean;
+    },
+  ): Promise<Page<UiMessage>> {
+    if (!(await this.messages.ownsConversation(conversationId, actor.userId))) {
+      throw new NotFoundError('conversation');
+    }
+    const result = await this.messages.listOwned(
+      actor.userId,
+      { conversationId },
+      page,
+      CONVERSATION_DEFAULT_SORT,
+    );
+    const caps = effectiveCapabilities({
+      ...flags,
+      serverEnabled: this.inlineRichResponseEnabled,
+    });
+    return {
+      ...result,
+      items: result.items.map((m) => {
+        const p = m.snapshot();
+        return toUiMessage(
+          {
+            id: p.id,
+            sender: p.sender,
+            content: p.content,
+            metadata: p.metadata as Json | null,
+            createdAt: p.createdAt.toISOString(),
+          },
+          caps,
+        );
+      }),
+    };
   }
 }
 

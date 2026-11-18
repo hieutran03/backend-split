@@ -1,0 +1,3670 @@
+[
+  {
+    "name": "user plain, no metadata",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "sender": "user",
+      "content": "Hello",
+      "metadata": null
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "role": "user",
+      "content": "Hello",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Hello"
+        }
+      ],
+      "metadata": null
+    }
+  },
+  {
+    "name": "user plain, no metadata",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "sender": "user",
+      "content": "Hello",
+      "metadata": null
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "role": "user",
+      "content": "Hello",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Hello"
+        }
+      ],
+      "metadata": null
+    }
+  },
+  {
+    "name": "user plain, no metadata",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "sender": "user",
+      "content": "Hello",
+      "metadata": null
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "role": "user",
+      "content": "Hello",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Hello"
+        }
+      ],
+      "metadata": null
+    }
+  },
+  {
+    "name": "user plain, no metadata",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "sender": "user",
+      "content": "Hello",
+      "metadata": null
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "role": "user",
+      "content": "Hello",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Hello"
+        }
+      ],
+      "metadata": null
+    }
+  },
+  {
+    "name": "user plain, no metadata",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "sender": "user",
+      "content": "Hello",
+      "metadata": null
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "role": "user",
+      "content": "Hello",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Hello"
+        }
+      ],
+      "metadata": null
+    }
+  },
+  {
+    "name": "user metadata scrubbed (legacy, internal, redundant keys)",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "sender": "user",
+      "content": "Hi <!--rich:img1--> stays for users",
+      "metadata": {
+        "persona": "x",
+        "images": [
+          {
+            "url": "https://a/b.png"
+          }
+        ],
+        "has_images": true,
+        "_internal": 1,
+        "conversation_id": "c",
+        "context_window": {
+          "limit": 1000,
+          "used": 10,
+          "ratio": 0.01
+        }
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "role": "user",
+      "content": "Hi <!--rich:img1--> stays for users",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Hi <!--rich:img1--> stays for users"
+        }
+      ],
+      "metadata": {
+        "persona": "x",
+        "context_window": {
+          "limit": 1000,
+          "used": 10,
+          "ratio": 0.01
+        }
+      }
+    }
+  },
+  {
+    "name": "user metadata scrubbed (legacy, internal, redundant keys)",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "sender": "user",
+      "content": "Hi <!--rich:img1--> stays for users",
+      "metadata": {
+        "persona": "x",
+        "images": [
+          {
+            "url": "https://a/b.png"
+          }
+        ],
+        "has_images": true,
+        "_internal": 1,
+        "conversation_id": "c",
+        "context_window": {
+          "limit": 1000,
+          "used": 10,
+          "ratio": 0.01
+        }
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "role": "user",
+      "content": "Hi <!--rich:img1--> stays for users",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Hi <!--rich:img1--> stays for users"
+        }
+      ],
+      "metadata": {
+        "persona": "x",
+        "context_window": {
+          "limit": 1000,
+          "used": 10,
+          "ratio": 0.01
+        }
+      }
+    }
+  },
+  {
+    "name": "user metadata scrubbed (legacy, internal, redundant keys)",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "sender": "user",
+      "content": "Hi <!--rich:img1--> stays for users",
+      "metadata": {
+        "persona": "x",
+        "images": [
+          {
+            "url": "https://a/b.png"
+          }
+        ],
+        "has_images": true,
+        "_internal": 1,
+        "conversation_id": "c",
+        "context_window": {
+          "limit": 1000,
+          "used": 10,
+          "ratio": 0.01
+        }
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "role": "user",
+      "content": "Hi <!--rich:img1--> stays for users",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Hi <!--rich:img1--> stays for users"
+        }
+      ],
+      "metadata": {
+        "persona": "x",
+        "context_window": {
+          "limit": 1000,
+          "used": 10,
+          "ratio": 0.01
+        }
+      }
+    }
+  },
+  {
+    "name": "user metadata scrubbed (legacy, internal, redundant keys)",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "sender": "user",
+      "content": "Hi <!--rich:img1--> stays for users",
+      "metadata": {
+        "persona": "x",
+        "images": [
+          {
+            "url": "https://a/b.png"
+          }
+        ],
+        "has_images": true,
+        "_internal": 1,
+        "conversation_id": "c",
+        "context_window": {
+          "limit": 1000,
+          "used": 10,
+          "ratio": 0.01
+        }
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "role": "user",
+      "content": "Hi <!--rich:img1--> stays for users",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Hi <!--rich:img1--> stays for users"
+        }
+      ],
+      "metadata": {
+        "persona": "x",
+        "context_window": {
+          "limit": 1000,
+          "used": 10,
+          "ratio": 0.01
+        }
+      }
+    }
+  },
+  {
+    "name": "user metadata scrubbed (legacy, internal, redundant keys)",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "sender": "user",
+      "content": "Hi <!--rich:img1--> stays for users",
+      "metadata": {
+        "persona": "x",
+        "images": [
+          {
+            "url": "https://a/b.png"
+          }
+        ],
+        "has_images": true,
+        "_internal": 1,
+        "conversation_id": "c",
+        "context_window": {
+          "limit": 1000,
+          "used": 10,
+          "ratio": 0.01
+        }
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "role": "user",
+      "content": "Hi <!--rich:img1--> stays for users",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Hi <!--rich:img1--> stays for users"
+        }
+      ],
+      "metadata": {
+        "persona": "x",
+        "context_window": {
+          "limit": 1000,
+          "used": 10,
+          "ratio": 0.01
+        }
+      }
+    }
+  },
+  {
+    "name": "assistant empty metadata",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "sender": "assistant",
+      "content": "Answer",
+      "metadata": {}
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "role": "assistant",
+      "content": "Answer",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Answer"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant empty metadata",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "sender": "assistant",
+      "content": "Answer",
+      "metadata": {}
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "role": "assistant",
+      "content": "Answer",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Answer"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant empty metadata",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "sender": "assistant",
+      "content": "Answer",
+      "metadata": {}
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "role": "assistant",
+      "content": "Answer",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Answer"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant empty metadata",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "sender": "assistant",
+      "content": "Answer",
+      "metadata": {}
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "role": "assistant",
+      "content": "Answer",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Answer"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant empty metadata",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "sender": "assistant",
+      "content": "Answer",
+      "metadata": {}
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "role": "assistant",
+      "content": "Answer",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Answer"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant blank content",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "sender": "assistant",
+      "content": "   ",
+      "metadata": {}
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "role": "assistant",
+      "content": "   ",
+      "parts": [],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant blank content",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "sender": "assistant",
+      "content": "   ",
+      "metadata": {}
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "role": "assistant",
+      "content": "   ",
+      "parts": [],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant blank content",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "sender": "assistant",
+      "content": "   ",
+      "metadata": {}
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "role": "assistant",
+      "content": "   ",
+      "parts": [],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant blank content",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "sender": "assistant",
+      "content": "   ",
+      "metadata": {}
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "role": "assistant",
+      "content": "   ",
+      "parts": [],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant blank content",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "sender": "assistant",
+      "content": "   ",
+      "metadata": {}
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "role": "assistant",
+      "content": "   ",
+      "parts": [],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant legacy images",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "sender": "assistant",
+      "content": "See images",
+      "metadata": {
+        "images": [
+          {
+            "data": "iVBORw0KGgo=",
+            "mime": "image/jpeg"
+          },
+          {
+            "url": "https://cdn.example.com/a.png"
+          },
+          {
+            "url": "/chat-images/123",
+            "mediaType": "image/webp"
+          },
+          {
+            "image": "data:image/gif;base64,R0lGOD=="
+          },
+          {
+            "source": {
+              "url": "blob:xyz"
+            }
+          },
+          {
+            "data": "abc"
+          },
+          {
+            "data": "anh-ả"
+          },
+          {
+            "data": "iVBORw0KGgo=",
+            "mime": "image/jpeg"
+          },
+          {
+            "base64": "  iVBORw0KGgo=  ",
+            "contentType": " image/png "
+          },
+          "not-a-dict",
+          {
+            "url": "",
+            "data": "",
+            "base64": null
+          }
+        ],
+        "images_count": 9
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "role": "assistant",
+      "content": "See images",
+      "parts": [
+        {
+          "type": "text",
+          "text": "See images"
+        },
+        {
+          "type": "file",
+          "url": "data:image/jpeg;base64,iVBORw0KGgo=",
+          "mediaType": "image/jpeg"
+        },
+        {
+          "type": "file",
+          "url": "https://cdn.example.com/a.png",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "/chat-images/123",
+          "mediaType": "image/webp"
+        },
+        {
+          "type": "file",
+          "url": "data:image/gif;base64,R0lGOD==",
+          "mediaType": "image/gif"
+        },
+        {
+          "type": "file",
+          "url": "blob:xyz",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "data:image/png;base64,iVBORw0KGgo=",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant legacy images",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "sender": "assistant",
+      "content": "See images",
+      "metadata": {
+        "images": [
+          {
+            "data": "iVBORw0KGgo=",
+            "mime": "image/jpeg"
+          },
+          {
+            "url": "https://cdn.example.com/a.png"
+          },
+          {
+            "url": "/chat-images/123",
+            "mediaType": "image/webp"
+          },
+          {
+            "image": "data:image/gif;base64,R0lGOD=="
+          },
+          {
+            "source": {
+              "url": "blob:xyz"
+            }
+          },
+          {
+            "data": "abc"
+          },
+          {
+            "data": "anh-ả"
+          },
+          {
+            "data": "iVBORw0KGgo=",
+            "mime": "image/jpeg"
+          },
+          {
+            "base64": "  iVBORw0KGgo=  ",
+            "contentType": " image/png "
+          },
+          "not-a-dict",
+          {
+            "url": "",
+            "data": "",
+            "base64": null
+          }
+        ],
+        "images_count": 9
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "role": "assistant",
+      "content": "See images",
+      "parts": [
+        {
+          "type": "text",
+          "text": "See images"
+        },
+        {
+          "type": "file",
+          "url": "data:image/jpeg;base64,iVBORw0KGgo=",
+          "mediaType": "image/jpeg"
+        },
+        {
+          "type": "file",
+          "url": "https://cdn.example.com/a.png",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "/chat-images/123",
+          "mediaType": "image/webp"
+        },
+        {
+          "type": "file",
+          "url": "data:image/gif;base64,R0lGOD==",
+          "mediaType": "image/gif"
+        },
+        {
+          "type": "file",
+          "url": "blob:xyz",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "data:image/png;base64,iVBORw0KGgo=",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant legacy images",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "sender": "assistant",
+      "content": "See images",
+      "metadata": {
+        "images": [
+          {
+            "data": "iVBORw0KGgo=",
+            "mime": "image/jpeg"
+          },
+          {
+            "url": "https://cdn.example.com/a.png"
+          },
+          {
+            "url": "/chat-images/123",
+            "mediaType": "image/webp"
+          },
+          {
+            "image": "data:image/gif;base64,R0lGOD=="
+          },
+          {
+            "source": {
+              "url": "blob:xyz"
+            }
+          },
+          {
+            "data": "abc"
+          },
+          {
+            "data": "anh-ả"
+          },
+          {
+            "data": "iVBORw0KGgo=",
+            "mime": "image/jpeg"
+          },
+          {
+            "base64": "  iVBORw0KGgo=  ",
+            "contentType": " image/png "
+          },
+          "not-a-dict",
+          {
+            "url": "",
+            "data": "",
+            "base64": null
+          }
+        ],
+        "images_count": 9
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "role": "assistant",
+      "content": "See images",
+      "parts": [
+        {
+          "type": "text",
+          "text": "See images"
+        },
+        {
+          "type": "file",
+          "url": "data:image/jpeg;base64,iVBORw0KGgo=",
+          "mediaType": "image/jpeg"
+        },
+        {
+          "type": "file",
+          "url": "https://cdn.example.com/a.png",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "/chat-images/123",
+          "mediaType": "image/webp"
+        },
+        {
+          "type": "file",
+          "url": "data:image/gif;base64,R0lGOD==",
+          "mediaType": "image/gif"
+        },
+        {
+          "type": "file",
+          "url": "blob:xyz",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "data:image/png;base64,iVBORw0KGgo=",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant legacy images",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "sender": "assistant",
+      "content": "See images",
+      "metadata": {
+        "images": [
+          {
+            "data": "iVBORw0KGgo=",
+            "mime": "image/jpeg"
+          },
+          {
+            "url": "https://cdn.example.com/a.png"
+          },
+          {
+            "url": "/chat-images/123",
+            "mediaType": "image/webp"
+          },
+          {
+            "image": "data:image/gif;base64,R0lGOD=="
+          },
+          {
+            "source": {
+              "url": "blob:xyz"
+            }
+          },
+          {
+            "data": "abc"
+          },
+          {
+            "data": "anh-ả"
+          },
+          {
+            "data": "iVBORw0KGgo=",
+            "mime": "image/jpeg"
+          },
+          {
+            "base64": "  iVBORw0KGgo=  ",
+            "contentType": " image/png "
+          },
+          "not-a-dict",
+          {
+            "url": "",
+            "data": "",
+            "base64": null
+          }
+        ],
+        "images_count": 9
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "role": "assistant",
+      "content": "See images",
+      "parts": [
+        {
+          "type": "text",
+          "text": "See images"
+        },
+        {
+          "type": "file",
+          "url": "data:image/jpeg;base64,iVBORw0KGgo=",
+          "mediaType": "image/jpeg"
+        },
+        {
+          "type": "file",
+          "url": "https://cdn.example.com/a.png",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "/chat-images/123",
+          "mediaType": "image/webp"
+        },
+        {
+          "type": "file",
+          "url": "data:image/gif;base64,R0lGOD==",
+          "mediaType": "image/gif"
+        },
+        {
+          "type": "file",
+          "url": "blob:xyz",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "data:image/png;base64,iVBORw0KGgo=",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant legacy images",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "sender": "assistant",
+      "content": "See images",
+      "metadata": {
+        "images": [
+          {
+            "data": "iVBORw0KGgo=",
+            "mime": "image/jpeg"
+          },
+          {
+            "url": "https://cdn.example.com/a.png"
+          },
+          {
+            "url": "/chat-images/123",
+            "mediaType": "image/webp"
+          },
+          {
+            "image": "data:image/gif;base64,R0lGOD=="
+          },
+          {
+            "source": {
+              "url": "blob:xyz"
+            }
+          },
+          {
+            "data": "abc"
+          },
+          {
+            "data": "anh-ả"
+          },
+          {
+            "data": "iVBORw0KGgo=",
+            "mime": "image/jpeg"
+          },
+          {
+            "base64": "  iVBORw0KGgo=  ",
+            "contentType": " image/png "
+          },
+          "not-a-dict",
+          {
+            "url": "",
+            "data": "",
+            "base64": null
+          }
+        ],
+        "images_count": 9
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "role": "assistant",
+      "content": "See images",
+      "parts": [
+        {
+          "type": "text",
+          "text": "See images"
+        },
+        {
+          "type": "file",
+          "url": "data:image/jpeg;base64,iVBORw0KGgo=",
+          "mediaType": "image/jpeg"
+        },
+        {
+          "type": "file",
+          "url": "https://cdn.example.com/a.png",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "/chat-images/123",
+          "mediaType": "image/webp"
+        },
+        {
+          "type": "file",
+          "url": "data:image/gif;base64,R0lGOD==",
+          "mediaType": "image/gif"
+        },
+        {
+          "type": "file",
+          "url": "blob:xyz",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "data:image/png;base64,iVBORw0KGgo=",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant v1 rich items with markers and code",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "sender": "assistant",
+      "content": "Intro <!--rich:img1--> after\n<!--rich:grp1-->\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad <!--rich:bad id--> marker\n<!--rich:bad id 2-->\nend",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "alt_text": "A",
+            "payload": {
+              "url": "https://x/1.png",
+              "mime_type": "image/png"
+            }
+          },
+          {
+            "id": "grp1",
+            "type": "image_group",
+            "payload": {
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/jpeg"
+                },
+                {
+                  "url": "https://x/2.png"
+                },
+                {
+                  "nothing": 1
+                }
+              ]
+            }
+          },
+          {
+            "id": "w1",
+            "type": "live_widget",
+            "payload": {
+              "html": "<b>"
+            }
+          }
+        ],
+        "rich_reference_warnings": [
+          "w"
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "role": "assistant",
+      "content": "Intro  after\n\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad  marker\nend",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Intro  after\n\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad  marker\nend"
+        },
+        {
+          "type": "file",
+          "url": "https://x/1.png",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "data:image/jpeg;base64,iVBORw0KGgo=",
+          "mediaType": "image/jpeg"
+        },
+        {
+          "type": "file",
+          "url": "https://x/2.png",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "assistant v1 rich items with markers and code",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "sender": "assistant",
+      "content": "Intro <!--rich:img1--> after\n<!--rich:grp1-->\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad <!--rich:bad id--> marker\n<!--rich:bad id 2-->\nend",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "alt_text": "A",
+            "payload": {
+              "url": "https://x/1.png",
+              "mime_type": "image/png"
+            }
+          },
+          {
+            "id": "grp1",
+            "type": "image_group",
+            "payload": {
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/jpeg"
+                },
+                {
+                  "url": "https://x/2.png"
+                },
+                {
+                  "nothing": 1
+                }
+              ]
+            }
+          },
+          {
+            "id": "w1",
+            "type": "live_widget",
+            "payload": {
+              "html": "<b>"
+            }
+          }
+        ],
+        "rich_reference_warnings": [
+          "w"
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "role": "assistant",
+      "content": "Intro <!--rich:img1--> after\n<!--rich:grp1-->\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad <!--rich:bad id--> marker\n<!--rich:bad id 2-->\nend",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Intro <!--rich:img1--> after\n<!--rich:grp1-->\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad <!--rich:bad id--> marker\n<!--rich:bad id 2-->\nend"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "alt_text": "A",
+            "payload": {
+              "url": "https://x/1.png",
+              "mime_type": "image/png"
+            }
+          },
+          {
+            "id": "grp1",
+            "type": "image_group",
+            "payload": {
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/jpeg"
+                },
+                {
+                  "url": "https://x/2.png"
+                },
+                {
+                  "nothing": 1
+                }
+              ]
+            }
+          },
+          {
+            "id": "w1",
+            "type": "live_widget",
+            "payload": {
+              "html": "<b>"
+            }
+          }
+        ],
+        "rich_reference_warnings": [
+          "w"
+        ]
+      }
+    }
+  },
+  {
+    "name": "assistant v1 rich items with markers and code",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "sender": "assistant",
+      "content": "Intro <!--rich:img1--> after\n<!--rich:grp1-->\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad <!--rich:bad id--> marker\n<!--rich:bad id 2-->\nend",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "alt_text": "A",
+            "payload": {
+              "url": "https://x/1.png",
+              "mime_type": "image/png"
+            }
+          },
+          {
+            "id": "grp1",
+            "type": "image_group",
+            "payload": {
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/jpeg"
+                },
+                {
+                  "url": "https://x/2.png"
+                },
+                {
+                  "nothing": 1
+                }
+              ]
+            }
+          },
+          {
+            "id": "w1",
+            "type": "live_widget",
+            "payload": {
+              "html": "<b>"
+            }
+          }
+        ],
+        "rich_reference_warnings": [
+          "w"
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "role": "assistant",
+      "content": "Intro <!--rich:img1--> after\n<!--rich:grp1-->\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad <!--rich:bad id--> marker\n<!--rich:bad id 2-->\nend",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Intro <!--rich:img1--> after\n<!--rich:grp1-->\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad <!--rich:bad id--> marker\n<!--rich:bad id 2-->\nend"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "alt_text": "A",
+            "payload": {
+              "url": "https://x/1.png",
+              "mime_type": "image/png"
+            }
+          },
+          {
+            "id": "grp1",
+            "type": "image_group",
+            "payload": {
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/jpeg"
+                },
+                {
+                  "url": "https://x/2.png"
+                },
+                {
+                  "nothing": 1
+                }
+              ]
+            }
+          },
+          {
+            "id": "w1",
+            "type": "live_widget",
+            "payload": {
+              "html": "<b>"
+            }
+          }
+        ],
+        "rich_reference_warnings": [
+          "w"
+        ]
+      }
+    }
+  },
+  {
+    "name": "assistant v1 rich items with markers and code",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "sender": "assistant",
+      "content": "Intro <!--rich:img1--> after\n<!--rich:grp1-->\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad <!--rich:bad id--> marker\n<!--rich:bad id 2-->\nend",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "alt_text": "A",
+            "payload": {
+              "url": "https://x/1.png",
+              "mime_type": "image/png"
+            }
+          },
+          {
+            "id": "grp1",
+            "type": "image_group",
+            "payload": {
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/jpeg"
+                },
+                {
+                  "url": "https://x/2.png"
+                },
+                {
+                  "nothing": 1
+                }
+              ]
+            }
+          },
+          {
+            "id": "w1",
+            "type": "live_widget",
+            "payload": {
+              "html": "<b>"
+            }
+          }
+        ],
+        "rich_reference_warnings": [
+          "w"
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "role": "assistant",
+      "content": "Intro <!--rich:img1--> after\n<!--rich:grp1-->\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad <!--rich:bad id--> marker\n<!--rich:bad id 2-->\nend",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Intro <!--rich:img1--> after\n<!--rich:grp1-->\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad <!--rich:bad id--> marker\n<!--rich:bad id 2-->\nend"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "alt_text": "A",
+            "payload": {
+              "url": "https://x/1.png",
+              "mime_type": "image/png"
+            }
+          },
+          {
+            "id": "grp1",
+            "type": "image_group",
+            "payload": {
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/jpeg"
+                },
+                {
+                  "url": "https://x/2.png"
+                },
+                {
+                  "nothing": 1
+                }
+              ]
+            }
+          },
+          {
+            "id": "w1",
+            "type": "live_widget",
+            "payload": {
+              "html": "<b>"
+            }
+          }
+        ],
+        "rich_reference_warnings": [
+          "w"
+        ]
+      }
+    }
+  },
+  {
+    "name": "assistant v1 rich items with markers and code",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "sender": "assistant",
+      "content": "Intro <!--rich:img1--> after\n<!--rich:grp1-->\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad <!--rich:bad id--> marker\n<!--rich:bad id 2-->\nend",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "alt_text": "A",
+            "payload": {
+              "url": "https://x/1.png",
+              "mime_type": "image/png"
+            }
+          },
+          {
+            "id": "grp1",
+            "type": "image_group",
+            "payload": {
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/jpeg"
+                },
+                {
+                  "url": "https://x/2.png"
+                },
+                {
+                  "nothing": 1
+                }
+              ]
+            }
+          },
+          {
+            "id": "w1",
+            "type": "live_widget",
+            "payload": {
+              "html": "<b>"
+            }
+          }
+        ],
+        "rich_reference_warnings": [
+          "w"
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "role": "assistant",
+      "content": "Intro  after\n\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad  marker\nend",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Intro  after\n\n```md\n<!--rich:img1--> in fence\n```\ninline `<!--rich:img1-->` code\n    <!--rich:img1--> indented\nbad  marker\nend"
+        },
+        {
+          "type": "file",
+          "url": "https://x/1.png",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "data:image/jpeg;base64,iVBORw0KGgo=",
+          "mediaType": "image/jpeg"
+        },
+        {
+          "type": "file",
+          "url": "https://x/2.png",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "answer visual with fallback, visual marker without descriptor",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "sender": "assistant",
+      "content": "Before\n\nText <!--rich:visual:v1--> mid <!--rich:visual:v1-->\n<!--rich:visual:gone-->\n\n\n\nAfter",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "visual:v1",
+            "type": "answer_visual",
+            "payload": {
+              "fallback_markdown": "| a | b |\n|---|---|",
+              "spec": {}
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "role": "assistant",
+      "content": "Before\n\nText\n\n| a | b |\n|---|---|\n\nmid\n\nAfter",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Before\n\nText\n\n| a | b |\n|---|---|\n\nmid\n\nAfter"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "answer visual with fallback, visual marker without descriptor",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "sender": "assistant",
+      "content": "Before\n\nText <!--rich:visual:v1--> mid <!--rich:visual:v1-->\n<!--rich:visual:gone-->\n\n\n\nAfter",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "visual:v1",
+            "type": "answer_visual",
+            "payload": {
+              "fallback_markdown": "| a | b |\n|---|---|",
+              "spec": {}
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "role": "assistant",
+      "content": "Before\n\nText\n\n| a | b |\n|---|---|\n\nmid\n\nAfter",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Before\n\nText\n\n| a | b |\n|---|---|\n\nmid\n\nAfter"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": []
+      }
+    }
+  },
+  {
+    "name": "answer visual with fallback, visual marker without descriptor",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "sender": "assistant",
+      "content": "Before\n\nText <!--rich:visual:v1--> mid <!--rich:visual:v1-->\n<!--rich:visual:gone-->\n\n\n\nAfter",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "visual:v1",
+            "type": "answer_visual",
+            "payload": {
+              "fallback_markdown": "| a | b |\n|---|---|",
+              "spec": {}
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "role": "assistant",
+      "content": "Before\n\nText <!--rich:visual:v1--> mid <!--rich:visual:v1-->\n<!--rich:visual:gone-->\n\n\n\nAfter",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Before\n\nText <!--rich:visual:v1--> mid <!--rich:visual:v1-->\n<!--rich:visual:gone-->\n\n\n\nAfter"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "visual:v1",
+            "type": "answer_visual",
+            "payload": {
+              "fallback_markdown": "| a | b |\n|---|---|",
+              "spec": {}
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "answer visual with fallback, visual marker without descriptor",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "sender": "assistant",
+      "content": "Before\n\nText <!--rich:visual:v1--> mid <!--rich:visual:v1-->\n<!--rich:visual:gone-->\n\n\n\nAfter",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "visual:v1",
+            "type": "answer_visual",
+            "payload": {
+              "fallback_markdown": "| a | b |\n|---|---|",
+              "spec": {}
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "role": "assistant",
+      "content": "Before\n\nText <!--rich:visual:v1--> mid <!--rich:visual:v1-->\n<!--rich:visual:gone-->\n\n\n\nAfter",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Before\n\nText <!--rich:visual:v1--> mid <!--rich:visual:v1-->\n<!--rich:visual:gone-->\n\n\n\nAfter"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "visual:v1",
+            "type": "answer_visual",
+            "payload": {
+              "fallback_markdown": "| a | b |\n|---|---|",
+              "spec": {}
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "answer visual with fallback, visual marker without descriptor",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "sender": "assistant",
+      "content": "Before\n\nText <!--rich:visual:v1--> mid <!--rich:visual:v1-->\n<!--rich:visual:gone-->\n\n\n\nAfter",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "visual:v1",
+            "type": "answer_visual",
+            "payload": {
+              "fallback_markdown": "| a | b |\n|---|---|",
+              "spec": {}
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "role": "assistant",
+      "content": "Before\n\nText\n\n| a | b |\n|---|---|\n\nmid\n\nAfter",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Before\n\nText\n\n| a | b |\n|---|---|\n\nmid\n\nAfter"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "source figures (group of 2, group of 1)",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000008",
+      "sender": "assistant",
+      "content": "Compare <!--rich:figure:f1-->\n<!--rich:figure:f2-->",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "figure:f1",
+            "type": "image_group",
+            "source": "source_figure",
+            "alt_text": "Fig",
+            "payload": {
+              "caption": "Cap",
+              "caption_evidence": [
+                {
+                  "label": "S",
+                  "url": "https://s"
+                }
+              ],
+              "fallback_markdown": "**Figure:** Cap",
+              "label": "L",
+              "items": [
+                {
+                  "url": "https://x/a.png",
+                  "label": "A",
+                  "alt_text": "a",
+                  "source_url": "https://s/a"
+                },
+                {
+                  "url": "https://x/b.png",
+                  "label": "B",
+                  "alt_text": "b"
+                }
+              ]
+            }
+          },
+          {
+            "id": "figure:f2",
+            "type": "image_group",
+            "source": "source_figure",
+            "payload": {
+              "comparison_unavailable": true,
+              "fallback_markdown": "**Figure**",
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/png",
+                  "label": "Only",
+                  "alt_text": "only one"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000008",
+      "role": "assistant",
+      "content": "Compare\n\n**Figure:** Cap\n**Figure**",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Compare\n\n**Figure:** Cap\n**Figure**"
+        },
+        {
+          "type": "file",
+          "url": "https://x/a.png",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "https://x/b.png",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "data:image/png;base64,iVBORw0KGgo=",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "source figures (group of 2, group of 1)",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000008",
+      "sender": "assistant",
+      "content": "Compare <!--rich:figure:f1-->\n<!--rich:figure:f2-->",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "figure:f1",
+            "type": "image_group",
+            "source": "source_figure",
+            "alt_text": "Fig",
+            "payload": {
+              "caption": "Cap",
+              "caption_evidence": [
+                {
+                  "label": "S",
+                  "url": "https://s"
+                }
+              ],
+              "fallback_markdown": "**Figure:** Cap",
+              "label": "L",
+              "items": [
+                {
+                  "url": "https://x/a.png",
+                  "label": "A",
+                  "alt_text": "a",
+                  "source_url": "https://s/a"
+                },
+                {
+                  "url": "https://x/b.png",
+                  "label": "B",
+                  "alt_text": "b"
+                }
+              ]
+            }
+          },
+          {
+            "id": "figure:f2",
+            "type": "image_group",
+            "source": "source_figure",
+            "payload": {
+              "comparison_unavailable": true,
+              "fallback_markdown": "**Figure**",
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/png",
+                  "label": "Only",
+                  "alt_text": "only one"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000008",
+      "role": "assistant",
+      "content": "Compare\n\n**Figure:** Cap\n\n<!--rich:figure:f1-->\n**Figure**\n\n<!--rich:figure:f2-->",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Compare\n\n**Figure:** Cap\n\n<!--rich:figure:f1-->\n**Figure**\n\n<!--rich:figure:f2-->"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "figure:f1",
+            "type": "image_group",
+            "source": "source_figure",
+            "alt_text": "Fig",
+            "payload": {
+              "items": [
+                {
+                  "url": "https://x/a.png",
+                  "source_url": "https://s/a"
+                },
+                {
+                  "url": "https://x/b.png"
+                }
+              ]
+            }
+          },
+          {
+            "id": "figure:f2",
+            "type": "image",
+            "source": "source_figure",
+            "payload": {
+              "data": "iVBORw0KGgo=",
+              "mime_type": "image/png"
+            },
+            "alt_text": "only one"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "source figures (group of 2, group of 1)",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000008",
+      "sender": "assistant",
+      "content": "Compare <!--rich:figure:f1-->\n<!--rich:figure:f2-->",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "figure:f1",
+            "type": "image_group",
+            "source": "source_figure",
+            "alt_text": "Fig",
+            "payload": {
+              "caption": "Cap",
+              "caption_evidence": [
+                {
+                  "label": "S",
+                  "url": "https://s"
+                }
+              ],
+              "fallback_markdown": "**Figure:** Cap",
+              "label": "L",
+              "items": [
+                {
+                  "url": "https://x/a.png",
+                  "label": "A",
+                  "alt_text": "a",
+                  "source_url": "https://s/a"
+                },
+                {
+                  "url": "https://x/b.png",
+                  "label": "B",
+                  "alt_text": "b"
+                }
+              ]
+            }
+          },
+          {
+            "id": "figure:f2",
+            "type": "image_group",
+            "source": "source_figure",
+            "payload": {
+              "comparison_unavailable": true,
+              "fallback_markdown": "**Figure**",
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/png",
+                  "label": "Only",
+                  "alt_text": "only one"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000008",
+      "role": "assistant",
+      "content": "Compare\n\n**Figure:** Cap\n\n<!--rich:figure:f1-->\n**Figure**\n\n<!--rich:figure:f2-->",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Compare\n\n**Figure:** Cap\n\n<!--rich:figure:f1-->\n**Figure**\n\n<!--rich:figure:f2-->"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "figure:f1",
+            "type": "image_group",
+            "source": "source_figure",
+            "alt_text": "Fig",
+            "payload": {
+              "items": [
+                {
+                  "url": "https://x/a.png",
+                  "source_url": "https://s/a"
+                },
+                {
+                  "url": "https://x/b.png"
+                }
+              ]
+            }
+          },
+          {
+            "id": "figure:f2",
+            "type": "image",
+            "source": "source_figure",
+            "payload": {
+              "data": "iVBORw0KGgo=",
+              "mime_type": "image/png"
+            },
+            "alt_text": "only one"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "source figures (group of 2, group of 1)",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000008",
+      "sender": "assistant",
+      "content": "Compare <!--rich:figure:f1-->\n<!--rich:figure:f2-->",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "figure:f1",
+            "type": "image_group",
+            "source": "source_figure",
+            "alt_text": "Fig",
+            "payload": {
+              "caption": "Cap",
+              "caption_evidence": [
+                {
+                  "label": "S",
+                  "url": "https://s"
+                }
+              ],
+              "fallback_markdown": "**Figure:** Cap",
+              "label": "L",
+              "items": [
+                {
+                  "url": "https://x/a.png",
+                  "label": "A",
+                  "alt_text": "a",
+                  "source_url": "https://s/a"
+                },
+                {
+                  "url": "https://x/b.png",
+                  "label": "B",
+                  "alt_text": "b"
+                }
+              ]
+            }
+          },
+          {
+            "id": "figure:f2",
+            "type": "image_group",
+            "source": "source_figure",
+            "payload": {
+              "comparison_unavailable": true,
+              "fallback_markdown": "**Figure**",
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/png",
+                  "label": "Only",
+                  "alt_text": "only one"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000008",
+      "role": "assistant",
+      "content": "Compare <!--rich:figure:f1-->\n<!--rich:figure:f2-->",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Compare <!--rich:figure:f1-->\n<!--rich:figure:f2-->"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "figure:f1",
+            "type": "image_group",
+            "source": "source_figure",
+            "alt_text": "Fig",
+            "payload": {
+              "caption": "Cap",
+              "caption_evidence": [
+                {
+                  "label": "S",
+                  "url": "https://s"
+                }
+              ],
+              "fallback_markdown": "**Figure:** Cap",
+              "label": "L",
+              "items": [
+                {
+                  "url": "https://x/a.png",
+                  "label": "A",
+                  "alt_text": "a",
+                  "source_url": "https://s/a"
+                },
+                {
+                  "url": "https://x/b.png",
+                  "label": "B",
+                  "alt_text": "b"
+                }
+              ]
+            }
+          },
+          {
+            "id": "figure:f2",
+            "type": "image_group",
+            "source": "source_figure",
+            "payload": {
+              "comparison_unavailable": true,
+              "fallback_markdown": "**Figure**",
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/png",
+                  "label": "Only",
+                  "alt_text": "only one"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "source figures (group of 2, group of 1)",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000008",
+      "sender": "assistant",
+      "content": "Compare <!--rich:figure:f1-->\n<!--rich:figure:f2-->",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "figure:f1",
+            "type": "image_group",
+            "source": "source_figure",
+            "alt_text": "Fig",
+            "payload": {
+              "caption": "Cap",
+              "caption_evidence": [
+                {
+                  "label": "S",
+                  "url": "https://s"
+                }
+              ],
+              "fallback_markdown": "**Figure:** Cap",
+              "label": "L",
+              "items": [
+                {
+                  "url": "https://x/a.png",
+                  "label": "A",
+                  "alt_text": "a",
+                  "source_url": "https://s/a"
+                },
+                {
+                  "url": "https://x/b.png",
+                  "label": "B",
+                  "alt_text": "b"
+                }
+              ]
+            }
+          },
+          {
+            "id": "figure:f2",
+            "type": "image_group",
+            "source": "source_figure",
+            "payload": {
+              "comparison_unavailable": true,
+              "fallback_markdown": "**Figure**",
+              "items": [
+                {
+                  "data": "iVBORw0KGgo=",
+                  "mime_type": "image/png",
+                  "label": "Only",
+                  "alt_text": "only one"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000008",
+      "role": "assistant",
+      "content": "Compare\n\n**Figure:** Cap\n**Figure**",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Compare\n\n**Figure:** Cap\n**Figure**"
+        },
+        {
+          "type": "file",
+          "url": "https://x/a.png",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "https://x/b.png",
+          "mediaType": "image/png"
+        },
+        {
+          "type": "file",
+          "url": "data:image/png;base64,iVBORw0KGgo=",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "web sources",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000009",
+      "sender": "assistant",
+      "content": "Sourced",
+      "metadata": {
+        "web_sources": [
+          {
+            "url": "https://a",
+            "title": "A",
+            "source_id": "s1"
+          },
+          {
+            "url": "https://b"
+          },
+          {
+            "url": "https://a",
+            "source_id": "s1"
+          },
+          {
+            "title": "no url"
+          },
+          "junk"
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000009",
+      "role": "assistant",
+      "content": "Sourced",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Sourced"
+        },
+        {
+          "type": "source-url",
+          "sourceId": "s1",
+          "url": "https://a",
+          "title": "A"
+        },
+        {
+          "type": "source-url",
+          "sourceId": "https://b",
+          "url": "https://b",
+          "title": "https://b"
+        }
+      ],
+      "metadata": {
+        "web_sources": [
+          {
+            "url": "https://a",
+            "title": "A",
+            "source_id": "s1"
+          },
+          {
+            "url": "https://b"
+          },
+          {
+            "url": "https://a",
+            "source_id": "s1"
+          },
+          {
+            "title": "no url"
+          },
+          "junk"
+        ]
+      }
+    }
+  },
+  {
+    "name": "web sources",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000009",
+      "sender": "assistant",
+      "content": "Sourced",
+      "metadata": {
+        "web_sources": [
+          {
+            "url": "https://a",
+            "title": "A",
+            "source_id": "s1"
+          },
+          {
+            "url": "https://b"
+          },
+          {
+            "url": "https://a",
+            "source_id": "s1"
+          },
+          {
+            "title": "no url"
+          },
+          "junk"
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000009",
+      "role": "assistant",
+      "content": "Sourced",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Sourced"
+        },
+        {
+          "type": "source-url",
+          "sourceId": "s1",
+          "url": "https://a",
+          "title": "A"
+        },
+        {
+          "type": "source-url",
+          "sourceId": "https://b",
+          "url": "https://b",
+          "title": "https://b"
+        }
+      ],
+      "metadata": {
+        "web_sources": [
+          {
+            "url": "https://a",
+            "title": "A",
+            "source_id": "s1"
+          },
+          {
+            "url": "https://b"
+          },
+          {
+            "url": "https://a",
+            "source_id": "s1"
+          },
+          {
+            "title": "no url"
+          },
+          "junk"
+        ]
+      }
+    }
+  },
+  {
+    "name": "web sources",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000009",
+      "sender": "assistant",
+      "content": "Sourced",
+      "metadata": {
+        "web_sources": [
+          {
+            "url": "https://a",
+            "title": "A",
+            "source_id": "s1"
+          },
+          {
+            "url": "https://b"
+          },
+          {
+            "url": "https://a",
+            "source_id": "s1"
+          },
+          {
+            "title": "no url"
+          },
+          "junk"
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000009",
+      "role": "assistant",
+      "content": "Sourced",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Sourced"
+        },
+        {
+          "type": "source-url",
+          "sourceId": "s1",
+          "url": "https://a",
+          "title": "A"
+        },
+        {
+          "type": "source-url",
+          "sourceId": "https://b",
+          "url": "https://b",
+          "title": "https://b"
+        }
+      ],
+      "metadata": {
+        "web_sources": [
+          {
+            "url": "https://a",
+            "title": "A",
+            "source_id": "s1"
+          },
+          {
+            "url": "https://b"
+          },
+          {
+            "url": "https://a",
+            "source_id": "s1"
+          },
+          {
+            "title": "no url"
+          },
+          "junk"
+        ]
+      }
+    }
+  },
+  {
+    "name": "web sources",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000009",
+      "sender": "assistant",
+      "content": "Sourced",
+      "metadata": {
+        "web_sources": [
+          {
+            "url": "https://a",
+            "title": "A",
+            "source_id": "s1"
+          },
+          {
+            "url": "https://b"
+          },
+          {
+            "url": "https://a",
+            "source_id": "s1"
+          },
+          {
+            "title": "no url"
+          },
+          "junk"
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000009",
+      "role": "assistant",
+      "content": "Sourced",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Sourced"
+        },
+        {
+          "type": "source-url",
+          "sourceId": "s1",
+          "url": "https://a",
+          "title": "A"
+        },
+        {
+          "type": "source-url",
+          "sourceId": "https://b",
+          "url": "https://b",
+          "title": "https://b"
+        }
+      ],
+      "metadata": {
+        "web_sources": [
+          {
+            "url": "https://a",
+            "title": "A",
+            "source_id": "s1"
+          },
+          {
+            "url": "https://b"
+          },
+          {
+            "url": "https://a",
+            "source_id": "s1"
+          },
+          {
+            "title": "no url"
+          },
+          "junk"
+        ]
+      }
+    }
+  },
+  {
+    "name": "web sources",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-000000000009",
+      "sender": "assistant",
+      "content": "Sourced",
+      "metadata": {
+        "web_sources": [
+          {
+            "url": "https://a",
+            "title": "A",
+            "source_id": "s1"
+          },
+          {
+            "url": "https://b"
+          },
+          {
+            "url": "https://a",
+            "source_id": "s1"
+          },
+          {
+            "title": "no url"
+          },
+          "junk"
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-000000000009",
+      "role": "assistant",
+      "content": "Sourced",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Sourced"
+        },
+        {
+          "type": "source-url",
+          "sourceId": "s1",
+          "url": "https://a",
+          "title": "A"
+        },
+        {
+          "type": "source-url",
+          "sourceId": "https://b",
+          "url": "https://b",
+          "title": "https://b"
+        }
+      ],
+      "metadata": {
+        "web_sources": [
+          {
+            "url": "https://a",
+            "title": "A",
+            "source_id": "s1"
+          },
+          {
+            "url": "https://b"
+          },
+          {
+            "url": "https://a",
+            "source_id": "s1"
+          },
+          {
+            "title": "no url"
+          },
+          "junk"
+        ]
+      }
+    }
+  },
+  {
+    "name": "private image url redaction",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000a",
+      "sender": "assistant",
+      "content": "Private",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "/web-images/9",
+              "original_image_url": "https://origin.example.com/private/raw.png",
+              "original_image_digests": [
+                "d"
+              ]
+            },
+            "provenance": {
+              "note": "fetched from https://origin.example.com/private/raw.png",
+              "copy": "https://origin.example.com/private/raw.png "
+            }
+          }
+        ],
+        "tool_output": "{\"original_image_url\": \"https://origin.example.com/private/raw.png\", \"k\": [1, 2], \"s\": \"x\"}",
+        "broken": "{original_image_url: oops",
+        "mention": "see https://origin.example.com/private/raw.png"
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000a",
+      "role": "assistant",
+      "content": "Private",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Private"
+        },
+        {
+          "type": "file",
+          "url": "/web-images/9",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {
+        "tool_output": "{\"k\": [1, 2], \"s\": \"x\"}",
+        "broken": "[private image metadata redacted]",
+        "mention": "see [private image metadata redacted]"
+      }
+    }
+  },
+  {
+    "name": "private image url redaction",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000a",
+      "sender": "assistant",
+      "content": "Private",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "/web-images/9",
+              "original_image_url": "https://origin.example.com/private/raw.png",
+              "original_image_digests": [
+                "d"
+              ]
+            },
+            "provenance": {
+              "note": "fetched from https://origin.example.com/private/raw.png",
+              "copy": "https://origin.example.com/private/raw.png "
+            }
+          }
+        ],
+        "tool_output": "{\"original_image_url\": \"https://origin.example.com/private/raw.png\", \"k\": [1, 2], \"s\": \"x\"}",
+        "broken": "{original_image_url: oops",
+        "mention": "see https://origin.example.com/private/raw.png"
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000a",
+      "role": "assistant",
+      "content": "Private",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Private"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "/web-images/9"
+            },
+            "provenance": {
+              "note": "fetched from [private image metadata redacted]"
+            }
+          }
+        ],
+        "tool_output": "{\"k\": [1, 2], \"s\": \"x\"}",
+        "broken": "[private image metadata redacted]",
+        "mention": "see [private image metadata redacted]"
+      }
+    }
+  },
+  {
+    "name": "private image url redaction",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000a",
+      "sender": "assistant",
+      "content": "Private",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "/web-images/9",
+              "original_image_url": "https://origin.example.com/private/raw.png",
+              "original_image_digests": [
+                "d"
+              ]
+            },
+            "provenance": {
+              "note": "fetched from https://origin.example.com/private/raw.png",
+              "copy": "https://origin.example.com/private/raw.png "
+            }
+          }
+        ],
+        "tool_output": "{\"original_image_url\": \"https://origin.example.com/private/raw.png\", \"k\": [1, 2], \"s\": \"x\"}",
+        "broken": "{original_image_url: oops",
+        "mention": "see https://origin.example.com/private/raw.png"
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000a",
+      "role": "assistant",
+      "content": "Private",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Private"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "/web-images/9"
+            },
+            "provenance": {
+              "note": "fetched from [private image metadata redacted]"
+            }
+          }
+        ],
+        "tool_output": "{\"k\": [1, 2], \"s\": \"x\"}",
+        "broken": "[private image metadata redacted]",
+        "mention": "see [private image metadata redacted]"
+      }
+    }
+  },
+  {
+    "name": "private image url redaction",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000a",
+      "sender": "assistant",
+      "content": "Private",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "/web-images/9",
+              "original_image_url": "https://origin.example.com/private/raw.png",
+              "original_image_digests": [
+                "d"
+              ]
+            },
+            "provenance": {
+              "note": "fetched from https://origin.example.com/private/raw.png",
+              "copy": "https://origin.example.com/private/raw.png "
+            }
+          }
+        ],
+        "tool_output": "{\"original_image_url\": \"https://origin.example.com/private/raw.png\", \"k\": [1, 2], \"s\": \"x\"}",
+        "broken": "{original_image_url: oops",
+        "mention": "see https://origin.example.com/private/raw.png"
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000a",
+      "role": "assistant",
+      "content": "Private",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Private"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "/web-images/9"
+            },
+            "provenance": {
+              "note": "fetched from [private image metadata redacted]"
+            }
+          }
+        ],
+        "tool_output": "{\"k\": [1, 2], \"s\": \"x\"}",
+        "broken": "[private image metadata redacted]",
+        "mention": "see [private image metadata redacted]"
+      }
+    }
+  },
+  {
+    "name": "private image url redaction",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000a",
+      "sender": "assistant",
+      "content": "Private",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "/web-images/9",
+              "original_image_url": "https://origin.example.com/private/raw.png",
+              "original_image_digests": [
+                "d"
+              ]
+            },
+            "provenance": {
+              "note": "fetched from https://origin.example.com/private/raw.png",
+              "copy": "https://origin.example.com/private/raw.png "
+            }
+          }
+        ],
+        "tool_output": "{\"original_image_url\": \"https://origin.example.com/private/raw.png\", \"k\": [1, 2], \"s\": \"x\"}",
+        "broken": "{original_image_url: oops",
+        "mention": "see https://origin.example.com/private/raw.png"
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000a",
+      "role": "assistant",
+      "content": "Private",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Private"
+        },
+        {
+          "type": "file",
+          "url": "/web-images/9",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {
+        "tool_output": "{\"k\": [1, 2], \"s\": \"x\"}",
+        "broken": "[private image metadata redacted]",
+        "mention": "see [private image metadata redacted]"
+      }
+    }
+  },
+  {
+    "name": "rich_items_version true counts as v1",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000b",
+      "sender": "assistant",
+      "content": "x <!--rich:img1-->",
+      "metadata": {
+        "rich_items_version": true,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000b",
+      "role": "assistant",
+      "content": "x ",
+      "parts": [
+        {
+          "type": "text",
+          "text": "x "
+        },
+        {
+          "type": "file",
+          "url": "https://x/1.png",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "rich_items_version true counts as v1",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000b",
+      "sender": "assistant",
+      "content": "x <!--rich:img1-->",
+      "metadata": {
+        "rich_items_version": true,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000b",
+      "role": "assistant",
+      "content": "x <!--rich:img1-->",
+      "parts": [
+        {
+          "type": "text",
+          "text": "x <!--rich:img1-->"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": true,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "rich_items_version true counts as v1",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000b",
+      "sender": "assistant",
+      "content": "x <!--rich:img1-->",
+      "metadata": {
+        "rich_items_version": true,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000b",
+      "role": "assistant",
+      "content": "x <!--rich:img1-->",
+      "parts": [
+        {
+          "type": "text",
+          "text": "x <!--rich:img1-->"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": true,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "rich_items_version true counts as v1",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000b",
+      "sender": "assistant",
+      "content": "x <!--rich:img1-->",
+      "metadata": {
+        "rich_items_version": true,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000b",
+      "role": "assistant",
+      "content": "x <!--rich:img1-->",
+      "parts": [
+        {
+          "type": "text",
+          "text": "x <!--rich:img1-->"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": true,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "rich_items_version true counts as v1",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000b",
+      "sender": "assistant",
+      "content": "x <!--rich:img1-->",
+      "metadata": {
+        "rich_items_version": true,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000b",
+      "role": "assistant",
+      "content": "x ",
+      "parts": [
+        {
+          "type": "text",
+          "text": "x "
+        },
+        {
+          "type": "file",
+          "url": "https://x/1.png",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "CRLF, tilde fence, line separator",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000c",
+      "sender": "assistant",
+      "content": "a <!--rich:img1-->\r\n~~~\r\n<!--rich:img1-->\r\n~~~\r\nb <!--rich:visual:z-->",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000c",
+      "role": "assistant",
+      "content": "a \n~~~\n<!--rich:img1-->\n~~~\nb ",
+      "parts": [
+        {
+          "type": "text",
+          "text": "a \n~~~\n<!--rich:img1-->\n~~~\nb "
+        },
+        {
+          "type": "file",
+          "url": "https://x/1.png",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "CRLF, tilde fence, line separator",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000c",
+      "sender": "assistant",
+      "content": "a <!--rich:img1-->\r\n~~~\r\n<!--rich:img1-->\r\n~~~\r\nb <!--rich:visual:z-->",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000c",
+      "role": "assistant",
+      "content": "a <!--rich:img1-->\n~~~\n<!--rich:img1-->\n~~~\nb ",
+      "parts": [
+        {
+          "type": "text",
+          "text": "a <!--rich:img1-->\n~~~\n<!--rich:img1-->\n~~~\nb "
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "CRLF, tilde fence, line separator",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000c",
+      "sender": "assistant",
+      "content": "a <!--rich:img1-->\r\n~~~\r\n<!--rich:img1-->\r\n~~~\r\nb <!--rich:visual:z-->",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000c",
+      "role": "assistant",
+      "content": "a <!--rich:img1-->\r\n~~~\r\n<!--rich:img1-->\r\n~~~\r\nb <!--rich:visual:z-->",
+      "parts": [
+        {
+          "type": "text",
+          "text": "a <!--rich:img1-->\r\n~~~\r\n<!--rich:img1-->\r\n~~~\r\nb <!--rich:visual:z-->"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "CRLF, tilde fence, line separator",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000c",
+      "sender": "assistant",
+      "content": "a <!--rich:img1-->\r\n~~~\r\n<!--rich:img1-->\r\n~~~\r\nb <!--rich:visual:z-->",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000c",
+      "role": "assistant",
+      "content": "a <!--rich:img1-->\r\n~~~\r\n<!--rich:img1-->\r\n~~~\r\nb <!--rich:visual:z-->",
+      "parts": [
+        {
+          "type": "text",
+          "text": "a <!--rich:img1-->\r\n~~~\r\n<!--rich:img1-->\r\n~~~\r\nb <!--rich:visual:z-->"
+        }
+      ],
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "CRLF, tilde fence, line separator",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000c",
+      "sender": "assistant",
+      "content": "a <!--rich:img1-->\r\n~~~\r\n<!--rich:img1-->\r\n~~~\r\nb <!--rich:visual:z-->",
+      "metadata": {
+        "rich_items_version": 1,
+        "rich_items": [
+          {
+            "id": "img1",
+            "type": "image",
+            "payload": {
+              "url": "https://x/1.png"
+            }
+          }
+        ]
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000c",
+      "role": "assistant",
+      "content": "a \n~~~\n<!--rich:img1-->\n~~~\nb ",
+      "parts": [
+        {
+          "type": "text",
+          "text": "a \n~~~\n<!--rich:img1-->\n~~~\nb "
+        },
+        {
+          "type": "file",
+          "url": "https://x/1.png",
+          "mediaType": "image/png"
+        }
+      ],
+      "metadata": {}
+    }
+  },
+  {
+    "name": "markers but no rich items, legacy message",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000d",
+      "sender": "assistant",
+      "content": "x <!--rich:a--> y",
+      "metadata": {
+        "suggested_questions": [
+          "q1",
+          2
+        ],
+        "interrupt": null
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000d",
+      "role": "assistant",
+      "content": "x  y",
+      "parts": [
+        {
+          "type": "text",
+          "text": "x  y"
+        }
+      ],
+      "metadata": {
+        "suggested_questions": [
+          "q1",
+          2
+        ],
+        "interrupt": null
+      }
+    }
+  },
+  {
+    "name": "markers but no rich items, legacy message",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": false,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000d",
+      "sender": "assistant",
+      "content": "x <!--rich:a--> y",
+      "metadata": {
+        "suggested_questions": [
+          "q1",
+          2
+        ],
+        "interrupt": null
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000d",
+      "role": "assistant",
+      "content": "x <!--rich:a--> y",
+      "parts": [
+        {
+          "type": "text",
+          "text": "x <!--rich:a--> y"
+        }
+      ],
+      "metadata": {
+        "suggested_questions": [
+          "q1",
+          2
+        ],
+        "interrupt": null
+      }
+    }
+  },
+  {
+    "name": "markers but no rich items, legacy message",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": false
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000d",
+      "sender": "assistant",
+      "content": "x <!--rich:a--> y",
+      "metadata": {
+        "suggested_questions": [
+          "q1",
+          2
+        ],
+        "interrupt": null
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000d",
+      "role": "assistant",
+      "content": "x <!--rich:a--> y",
+      "parts": [
+        {
+          "type": "text",
+          "text": "x <!--rich:a--> y"
+        }
+      ],
+      "metadata": {
+        "suggested_questions": [
+          "q1",
+          2
+        ],
+        "interrupt": null
+      }
+    }
+  },
+  {
+    "name": "markers but no rich items, legacy message",
+    "flags": {
+      "inlineRichResponseV1": true,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000d",
+      "sender": "assistant",
+      "content": "x <!--rich:a--> y",
+      "metadata": {
+        "suggested_questions": [
+          "q1",
+          2
+        ],
+        "interrupt": null
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000d",
+      "role": "assistant",
+      "content": "x <!--rich:a--> y",
+      "parts": [
+        {
+          "type": "text",
+          "text": "x <!--rich:a--> y"
+        }
+      ],
+      "metadata": {
+        "suggested_questions": [
+          "q1",
+          2
+        ],
+        "interrupt": null
+      }
+    }
+  },
+  {
+    "name": "markers but no rich items, legacy message",
+    "flags": {
+      "inlineRichResponseV1": false,
+      "answerVisualsV1": true,
+      "sourceFiguresV1": true
+    },
+    "input": {
+      "id": "00000000-0000-0000-0000-00000000000d",
+      "sender": "assistant",
+      "content": "x <!--rich:a--> y",
+      "metadata": {
+        "suggested_questions": [
+          "q1",
+          2
+        ],
+        "interrupt": null
+      }
+    },
+    "expected": {
+      "id": "00000000-0000-0000-0000-00000000000d",
+      "role": "assistant",
+      "content": "x  y",
+      "parts": [
+        {
+          "type": "text",
+          "text": "x  y"
+        }
+      ],
+      "metadata": {
+        "suggested_questions": [
+          "q1",
+          2
+        ],
+        "interrupt": null
+      }
+    }
+  }
+]

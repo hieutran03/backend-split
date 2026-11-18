@@ -210,6 +210,7 @@ Thêm 7 unit test, tổng cộng 88:
 |---|---|---|---|
 | v1 | 2026-11-11 | Module messages: A10/A19/A20; bảng `messages` + FK `forked_from_message_id` sinh bằng script | MSG-01 |
 | v1.1 | 2026-11-18 | Record khai index FTS (`synchronize: false`) + default `message_metadata '{}'::jsonb` theo DB thật; TC-36 đóng phần biểu thức, TC-37 bổ sung nguồn `suggestedQuestions` | Đối chiếu repo Python ([018](018-dong-bo-schema-alembic.md)) |
+| v1.2 | 2026-11-18 | `messageMetadata` được làm sạch như Python `MessageRead` (bỏ `original_image_url`…) ở A10/A19/A20 và tin xem trước; `format=ui-message` (MSG-02) | [020](020-ui-message-projection.md) |
 
 ## Gợi ý review
 

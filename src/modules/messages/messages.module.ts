@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 
+import { APP_CONFIG, type AppConfig } from '@platform/config/app-config';
 import { DbContext } from '@platform/database/db-context';
 import {
   GetMessageUseCase,
   ListConversationMessagesUseCase,
+  ListConversationUiMessagesUseCase,
   ListMyMessagesUseCase,
 } from './application/message.use-cases';
 import { CONVERSATION_MESSAGE_DIGEST } from './application/message-digest';
@@ -61,6 +63,15 @@ import { MessagesController } from './presentation/messages.controller';
       useFactory: (repo: MessageRepository) =>
         new ListConversationMessagesUseCase(repo),
       inject: [MESSAGE_REPOSITORY],
+    },
+    {
+      provide: ListConversationUiMessagesUseCase,
+      useFactory: (repo: MessageRepository, config: AppConfig) =>
+        new ListConversationUiMessagesUseCase(
+          repo,
+          config.messages.inlineRichResponseEnabled,
+        ),
+      inject: [MESSAGE_REPOSITORY, APP_CONFIG],
     },
     {
       provide: ListMyMessagesUseCase,

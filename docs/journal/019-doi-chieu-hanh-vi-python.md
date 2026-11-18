@@ -114,7 +114,7 @@ UPDATE conversations
 ```text
 fork_request_fingerprint(source=0f8c3a52-…, message=a1b2c3d4-…, title=None)
   = 74a675481730c70624a9ccbab9044ec9e44319eb6cf9b423b29ac3204302ca5b
-title = 'Nhánh thử "x"\n \t\x01😀'
+title = 'Nhánh thử "x"\n\u2028\t\x01😀'
   = 370e856a794c5d188be9076f7b74760a79ab30708c327e9616fed83d77119818
 pydantic EmailStr: '  Hieu@Example.COM ' → 'Hieu@example.com'; 'PostMaster@Example.com' → 'postmaster@example.com';
                    'Info.Team@X.io' → 'Info.Team@x.io'   (khớp 5/5 với User.normalizeEmail)

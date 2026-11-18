@@ -32,6 +32,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 017 | [Fork hội thoại](017-fork-hoi-thoai.md) | CONV-03 (A12a) | 2026-11-11 | chờ review |
 | 018 | [Đồng bộ schema với DB Alembic](018-dong-bo-schema-alembic.md) | SYNC-01 | 2026-11-18 | chờ review |
 | 019 | [Đối chiếu hành vi Phase 1 với Python](019-doi-chieu-hanh-vi-python.md) | SYNC-02, TP-02 | 2026-11-18 | chờ review |
+| 020 | [Tin nhắn dạng UIMessage cho AI SDK](020-ui-message-projection.md) | MSG-02 (A26) | 2026-11-18 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -98,6 +99,9 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-59 | Tên ràng buộc theo dump Alembic | tạm chọn | 018 |
 | TC-60 | GET planning-status bật planning mode | tạm chọn — Hiếu xem | 019 |
 | TC-61 | Ghi lifecycle trong cùng transaction | tạm chọn | 019 |
+| TC-62 | `include` + `format=ui-message` ⇒ 400 | tạm chọn | 020 |
+| TC-63 | Cờ rich snake_case + bool FastAPI | tạm chọn | 020 |
+| TC-64 | Làm sạch metadata ở mọi MessageView | tạm chọn | 020 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

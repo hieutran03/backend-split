@@ -61,6 +61,12 @@ const schema = z
       .max(30)
       .default(30),
 
+    /**
+     * Python `inline_rich_response_enabled` kill switch: when false no client gets
+     * rich items / markers in the UIMessage projection (MSG-02).
+     */
+    INLINE_RICH_RESPONSE_ENABLED: bool.default(true),
+
     AI_ENGINE_MODE: z.enum(['mock', 'http']).default('mock'),
     AI_ENGINE_BASE_URL: z.string().default('http://localhost:8001'),
     AI_ENGINE_SERVICE_TOKEN: z.string().min(1).default('dev-service-token'),
@@ -118,6 +124,7 @@ export interface AppConfig {
     /** 0 disables the cache (every request hits the DB). */
     readonly userStateCacheSeconds: number;
   };
+  readonly messages: { readonly inlineRichResponseEnabled: boolean };
   readonly aiEngine: {
     readonly mode: 'mock' | 'http';
     readonly baseUrl: string;
@@ -175,6 +182,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       adminUserIds: e.ADMIN_USER_IDS,
       userStateCacheSeconds: e.AUTH_USER_STATE_CACHE_SECONDS,
     },
+    messages: { inlineRichResponseEnabled: e.INLINE_RICH_RESPONSE_ENABLED },
     aiEngine: {
       mode: e.AI_ENGINE_MODE,
       baseUrl: e.AI_ENGINE_BASE_URL,

@@ -295,7 +295,7 @@
    "new": "GET /api/v1/conversations/{conversationId}/messages?format=ui-message",
    "internal": "—",
    "handledBy": "Backend",
-   "notes": "UIMessage projection (`id, role, content, parts, metadata, createdAt`) now inside the standard list envelope `{ items, meta }` (today `{ messages, meta }`). `inlineRichResponseV1` query kept.",
+   "notes": "UIMessage projection (`id, role, content, parts, metadata, createdAt`) now inside the standard list envelope `{ items, meta }` (today `{ messages, meta }`). `inlineRichResponseV1` query kept. Cập nhật 2026-11-18 (MSG-02, theo code Python): thêm `answerVisualsV1`, `sourceFiguresV1`; mỗi cờ nhận cả dạng snake_case (`inline_rich_response_v1`…) và giá trị bool kiểu FastAPI; công tắc server `INLINE_RICH_RESPONSE_ENABLED`; `include` + `format=ui-message` ⇒ 400; `createdAt` dạng ISO `Z` (Python: `+00:00`).",
    "wave": "W1"
   },
   {

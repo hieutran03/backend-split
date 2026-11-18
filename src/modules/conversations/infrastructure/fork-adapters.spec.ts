@@ -20,7 +20,7 @@ describe('Sha256ForkFingerprint (port of Python fork_request_fingerprint)', () =
       fp.of({
         sourceConversationId: source,
         messageId: message,
-        title: 'Nhánh thử "x"\n \t\u0001\u{1F600}',
+        title: `Nhánh thử "x"\n${String.fromCharCode(0x2028)}\t\u0001\u{1F600}`,
       }),
     ).toBe('370e856a794c5d188be9076f7b74760a79ab30708c327e9616fed83d77119818');
   });
