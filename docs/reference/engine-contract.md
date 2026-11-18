@@ -84,3 +84,9 @@ Dispatch: `Idempotency-Key = outbox_events.id`; backoff 5 s × 2ⁿ, tối đa 1
 - **bigint** TypeORM trả string.
 - **WS**: dùng `ws` adapter, không socket.io; frame snake_case theo `app/schemas/runtime_protocol.py`.
 - **Redis BLPOP** chặn connection ⇒ connection riêng cho mỗi device loop.
+- **Cờ rich-response** (thêm 18/11, theo chatbot `de4a12b1`, `e48fa5cb`): E1, E3, E4 mang
+  `inlineRichResponseV1`, `answerVisualsV1`, `sourceFiguresV1` **đã tính hiệu lực** (cờ client ∧
+  `inlineRichResponseV1` ∧ công tắc `INLINE_RICH_RESPONSE_ENABLED`) — kiểu `RichCapabilitiesV1`. Bản DRAFT trước
+  đó thiếu cả `inlineRichResponseV1` ở E3/E4. Python: `WorkflowExecutionRequest.answer_visuals_v1/source_figures_v1`.
+- **WS thiết bị** (chatbot `7cb2a535`, 06/11): `heartbeat` khi phiên runtime trong Redis đã hết hạn ⇒ đóng mã
+  1012 "Runtime session expired; register and reconnect." thay vì `ack`.

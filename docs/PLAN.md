@@ -162,6 +162,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | ID | Task | Owner | Trạng thái |
 |---|---|---|---|
 | SYNC-01 | Đồng bộ schema 6 bảng Phase 1 với DB dựng bằng Alembic (dump `python-schema.sql`, tên FK/PK thật, default DB, CHECK, index FTS) — [nhật ký 018](journal/018-dong-bo-schema-alembic.md) | 🤖 | [r] |
+| SYNC-03 | Đồng bộ artifact ↔ repo ↔ Python `80d9bc9b`: mục ◆ trong artifact, script `sync-route-mapping.mjs`, cờ rich E1/E3/E4; danh sách "Việc Hiếu bắt buộc quyết" — [nhật ký 018 v1.1](journal/018-dong-bo-schema-alembic.md) | 🤖 | [r] |
 | ENG-01 | Đối chiếu & freeze hợp đồng V3/E1 với code Python (`events.py`, `workflow.py`, `ai_sdk_v6.py`, `internal_sse.py`) — đã có repo chatbot, làm trước W4 | 🤖 | [ ] |
 | ENG-02 | Mock Engine **dạng HTTP server** riêng (`pnpm mock:engine`) để test `HttpAiEngineClient` + timeout im lặng | 🤖 | [ ] |
 | ENG-03 | Cứng hoá `HttpAiEngineClient`: retry call idempotent, circuit breaker, timeout im lặng 5 s × 3 | 🤖 | [ ] |
@@ -169,6 +170,23 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | SEC-01 | Đối chiếu §9.3 lỗi bảo mật: không bypass qua đường cũ | 🤖 | [ ] |
 
 ---
+
+## Việc Hiếu bắt buộc quyết (Claude nhắc khi tới mốc)
+
+Lọc từ bảng TC bên dưới: chỉ những điểm ảnh hưởng chính sách bảo mật, FE, hoặc mâu thuẫn với spec.
+Mọi TC khác là lựa chọn kỹ thuật Claude tự chịu, đã ghi lý do trong nhật ký. Chưa quyết thì Claude giữ
+phương án đang chạy và **hỏi lại đúng lúc bắt đầu mốc** ghi ở cột cuối.
+
+| # | Cần quyết | Đang chạy tạm | Vì sao phải là Hiếu | Hạn chót |
+|---|---|---|---|---|
+| Q1 | Thời hạn refresh token (TC-19) | 30 ngày (Python: 7 ngày; access 15 phút, Python 600 phút) | Chính sách bảo mật / trải nghiệm đăng nhập | Trước cutover W1 |
+| Q2 | Refresh xoay vòng nghiêm ngặt ⇒ FE/sidecar phải gọi refresh **tuần tự** (TC-21) | Nghiêm ngặt: dùng lại vé cũ ⇒ huỷ cả chuỗi | Ràng buộc mới với FE, Python không có | Trước cutover W1 — cần FE đồng ý |
+| Q3 | Logout "mọi thiết bị" có vô hiệu luôn access token đang sống (tăng `token_version`) không (TC-22) | Không | Chính sách bảo mật | Trước cutover W1 |
+| Q4 | Client ngắt kết nối có huỷ lượt chat không (TC-9, D5) | Spec D5: không huỷ; Python hiện **huỷ** | Mâu thuẫn spec ↔ hành vi hiện tại, FE thấy được | Trước GEN-04 (W4) |
+| Q5 | Xoá hội thoại đang có lượt chạy: cho xoá (như Python, A12) hay 409 (spec D24) (TC-33) | Cho xoá | Mâu thuẫn trong chính spec | Trước GEN-04 (W4) |
+| Q6 | Cho phép **một** migration viết tay `AlembicOnlyDifferences` (TC-36) | Đã dùng | Trái quy tắc anh đặt ở F-17 | Khi review SYNC-01 |
+| Q7 | GET planning-status được ghi DB (bật planning mode như Python) (TC-60) | Giữ như Python | GET có tác dụng phụ — quy ước API | Khi review TP-02 |
+| Q8 | Kiến trúc clean (đang dùng) hay layered theo chuẩn team (TC-1) | Clean | Chuẩn team; đổi muộn rất tốn | Càng sớm càng tốt |
 
 ## Câu hỏi / quyết định đang mở
 
@@ -262,3 +280,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-18 | 🤖 | SYNC-01: dựng DB bằng Alembic của repo chatbot (head `c4f1a7b9d2e6`), lưu dump `docs/reference/python-schema.sql`; sửa 5 Record (tên FK/PK thật, default DB, 2 CHECK, index FTS); migration `AlignWithAlembicSchema` (sinh) + `AlembicOnlyDifferences` (viết tay). Diff catalog 6 bảng chỉ còn `users.role`; `check` trên DB Alembic chỉ đòi `refresh_tokens`, `outbox_events`, `users.role`. 116 test xanh. |
 | 2026-11-18 | 🤖 | TP-02 + SYNC-02: đọc code Python trả lời TC-17…58; port quy tắc `plan_lifecycle`, `task_order` từ 0; fork theo Python (fingerprint, "(fork)", giữ `sequence`, `conversation_turn_conflict`); preview cũ → mới; tìm kiếm theo độ liên quan; chuẩn hoá email cả login (bắt được lỗi login chưa chuẩn hoá). Tách CONV-05. 141 test; chạy thật 23 kịch bản trên Postgres. |
 | 2026-11-18 | 🤖 | MSG-02: port projection UIMessage (marker parser, sanitizer, source figure, ảnh, nguồn web) sang domain thuần; script sinh 65 trường hợp vàng bằng code Python thật, test TS khớp 100 %; `format=ui-message` + 3 cờ rich trên A10; làm sạch metadata ở MessageView như `MessageRead`. 212 test; chạy thật 9 kịch bản. Phase 1 đủ task. |
+| 2026-11-18 | 🤖 | SYNC-03: artifact spec lên version 9 (mục ◆ đối chiếu 18/11, sửa 4 dòng §11 sai, ghi chú 7 route); route-mapping sinh bằng script từ artifact; hợp đồng E1/E3/E4 thêm cờ rich; lập danh sách Q1–Q8 Hiếu bắt buộc quyết (có hạn chót). |

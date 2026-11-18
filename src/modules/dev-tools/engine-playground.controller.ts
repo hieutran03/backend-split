@@ -95,6 +95,8 @@ export class EnginePlaygroundController {
       deviceId: null,
       deviceSessionId: null,
       inlineRichResponseV1: true,
+      answerVisualsV1: false,
+      sourceFiguresV1: false,
     });
     for await (const event of stream) {
       res.write(`${JSON.stringify(event)}\n`);

@@ -31,6 +31,8 @@ function turn(message: string, generationId = 'gen-1'): TurnRequestV1 {
     deviceId: null,
     deviceSessionId: null,
     inlineRichResponseV1: true,
+    answerVisualsV1: false,
+    sourceFiguresV1: false,
   };
 }
 

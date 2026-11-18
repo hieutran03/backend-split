@@ -104,6 +104,20 @@ docker exec backend-split-postgres-1 psql -U chatbot -c "CREATE DATABASE pyschem
 DATABASE_URL=postgres://chatbot:chatbot@localhost:5432/pyschema pnpm db:migrate:check
 ```
 
+## Đồng bộ với artifact và Python mới (v1.1, 2026-11-18)
+
+- **Repo Python sau mốc artifact** (`4bf74a95` → `80d9bc9b`, 41 commit): không có migration; 2 thay đổi API:
+  cờ `answerVisualsV1`/`sourceFiguresV1` (A26 và body Chat/Resume/Continue, truyền vào `WorkflowExecutionRequest`),
+  và WS thiết bị đóng mã 1012 khi heartbeat trên phiên runtime đã hết hạn.
+- **Artifact** (version 9, cùng link): thêm mục ◆ "Đối chiếu 18/11" (DB thật, Python mới, hành vi đã rõ); sửa 4 dòng
+  §11 đã sai/thiếu (default DB, CHECK rating, fingerprint, index FTS); ghi chú route A17, A18, A26, A27a, A28, A29, R1.
+  Nội dung cũ giữ nguyên, phần thêm có nhãn ngày.
+- **Bảng route trong repo** giờ sinh bằng `node scripts/reference/sync-route-mapping.mjs <artifact.html> <commit>`.
+  Kiểm script trên bản artifact cũ: tái tạo đúng bản trích ngày 09/11, chỉ khác là escape `|` trong ô bảng
+  (bản cũ không escape nên dòng A15, A18, H13 bị vỡ cột khi hiển thị).
+- **Hợp đồng Engine** (DRAFT): thêm `RichCapabilitiesV1` cho E3/E4 và 2 cờ mới cho E1 (`src/contracts/engine/internal-api.ts`,
+  `docs/reference/engine-contract.md`). Bản DRAFT trước thiếu cả `inlineRichResponseV1` ở E3/E4.
+
 ## Giới hạn & việc còn lại
 
 - Mới so 6 bảng Phase 1. Bảng W2–W6 sẽ so khi làm task tương ứng — dump đã có sẵn.
@@ -136,6 +150,7 @@ DATABASE_URL=postgres://chatbot:chatbot@localhost:5432/pyschema pnpm db:migrate:
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-18 | Dump schema Alembic; sửa 5 Record; migration `AlignWithAlembicSchema` (sinh) + `AlembicOnlyDifferences` (viết tay); cập nhật database-schema.md | Có repo Python để đối chiếu |
+| v1.1 | 2026-11-18 | Đồng bộ artifact (mục ◆, §11, 7 route) với code Python `80d9bc9b`; script sinh route-mapping; cờ rich trong hợp đồng E1/E3/E4 | Hiếu yêu cầu đồng bộ 3 nguồn |
 
 ## Gợi ý review
 

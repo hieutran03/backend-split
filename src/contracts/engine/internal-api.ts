@@ -50,6 +50,20 @@ export interface TurnRequestV1 {
   readonly deviceId: string | null;
   readonly deviceSessionId: string | null;
   readonly inlineRichResponseV1: boolean;
+  readonly answerVisualsV1: boolean;
+  readonly sourceFiguresV1: boolean;
+}
+
+/**
+ * Rich-response capabilities of one turn, sent ALREADY EFFECTIVE (Python
+ * `effective_answer_visuals` / `effective_source_figures`, 26/10): a feature is
+ * true only when the client asked for it, `inlineRichResponseV1` is true and the
+ * server switch INLINE_RICH_RESPONSE_ENABLED is on. E1 carries the same fields.
+ */
+export interface RichCapabilitiesV1 {
+  readonly inlineRichResponseV1: boolean;
+  readonly answerVisualsV1: boolean;
+  readonly sourceFiguresV1: boolean;
 }
 
 /** E2 POST /internal/v1/turns/{generationId}/stop */
@@ -62,7 +76,7 @@ export interface StopTurnResponseV1 {
 }
 
 /** E3 POST /internal/v1/interrupts/{interruptId}/resume */
-export interface ResumeInterruptRequestV1 {
+export interface ResumeInterruptRequestV1 extends RichCapabilitiesV1 {
   readonly generationId: string;
   readonly generationVersion: number;
   readonly userId: string;
@@ -78,7 +92,7 @@ export interface ResumeInterruptRequestV1 {
 }
 
 /** E4 POST /internal/v1/generations/{generationId}/continue */
-export interface ContinueGenerationRequestV1 {
+export interface ContinueGenerationRequestV1 extends RichCapabilitiesV1 {
   readonly generationVersion: number;
   readonly executionEpoch: number;
   readonly userId: string;

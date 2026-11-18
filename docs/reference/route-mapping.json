@@ -196,7 +196,7 @@
    "new": "POST /api/v1/generations/{generationId}/continue",
    "internal": "E4 POST /internal/v1/generations/{generationId}/continue",
    "handledBy": "Backend→Engine",
-   "notes": "`generationId` in the path; body `{ continuationId, expectedVersion, idempotencyKey, inlineRichResponseV1 }`. `protocol=sse` (default) or `protocol=ai-sdk` selects the stream protocol (replaces A29). Refusals (`stale_command`, `continuation_unavailable`, …) → `409` before the stream (S7).",
+   "notes": "`generationId` in the path; body `{ continuationId, expectedVersion, idempotencyKey, inlineRichResponseV1 }`. `protocol=sse` (default) or `protocol=ai-sdk` selects the stream protocol (replaces A29). Refusals (`stale_command`, `continuation_unavailable`, …) → `409` before the stream (S7). Từ 26/10 (`de4a12b1`, `e48fa5cb`): body nhận thêm `answerVisualsV1`, `sourceFiguresV1`; cờ hiệu lực = cờ client ∧ `inlineRichResponseV1` ∧ `inline_rich_response_enabled`, gửi sang Engine (E4).",
    "wave": "W4"
   },
   {
@@ -207,7 +207,7 @@
    "new": "POST /api/v1/hitl-interrupts/{interruptId}/resume",
    "internal": "E3 POST /internal/v1/interrupts/{interruptId}/resume",
    "handledBy": "Backend→Engine",
-   "notes": "interruptId in the path; body { threadId, conversationId, deviceId?, decisions[], inlineRichResponseV1 }, decisions camelCase only. INTERRUPT_* validation errors become 4xx before the stream (404/409/422 as today's in-stream status_code). **Expired interrupt → 409 conflict with data.errorCode = interrupt_expired (D16; today 410 INTERRUPT_EXPIRED).** Stream protocol via query protocol=sse|ai-sdk (D23). protocol=ai-sdk replaces A28.",
+   "notes": "interruptId in the path; body { threadId, conversationId, deviceId?, decisions[], inlineRichResponseV1 }, decisions camelCase only. INTERRUPT_* validation errors become 4xx before the stream (404/409/422 as today's in-stream status_code). **Expired interrupt → 409 conflict with data.errorCode = interrupt_expired (D16; today 410 INTERRUPT_EXPIRED).** Stream protocol via query protocol=sse|ai-sdk (D23). protocol=ai-sdk replaces A28. Từ 26/10 (`de4a12b1`, `e48fa5cb`): body nhận thêm `answerVisualsV1`, `sourceFiguresV1`; cờ hiệu lực = cờ client ∧ `inlineRichResponseV1` ∧ `inline_rich_response_enabled`, gửi sang Engine (E3).",
    "wave": "W4"
   },
   {
@@ -295,7 +295,7 @@
    "new": "GET /api/v1/conversations/{conversationId}/messages?format=ui-message",
    "internal": "—",
    "handledBy": "Backend",
-   "notes": "UIMessage projection (`id, role, content, parts, metadata, createdAt`) now inside the standard list envelope `{ items, meta }` (today `{ messages, meta }`). `inlineRichResponseV1` query kept. Cập nhật 2026-11-18 (MSG-02, theo code Python): thêm `answerVisualsV1`, `sourceFiguresV1`; mỗi cờ nhận cả dạng snake_case (`inline_rich_response_v1`…) và giá trị bool kiểu FastAPI; công tắc server `INLINE_RICH_RESPONSE_ENABLED`; `include` + `format=ui-message` ⇒ 400; `createdAt` dạng ISO `Z` (Python: `+00:00`).",
+   "notes": "UIMessage projection (`id, role, content, parts, metadata, createdAt`) now inside the standard list envelope `{ items, meta }` (today `{ messages, meta }`). `inlineRichResponseV1` query kept. Cập nhật 2026-11-18 (theo code Python tới `80d9bc9b`): thêm `answerVisualsV1`, `sourceFiguresV1`; mỗi cờ nhận cả dạng snake_case (`inline_rich_response_v1`…) và giá trị bool kiểu FastAPI; công tắc server `inline_rich_response_enabled`; `include` cùng `format=ui-message` ⇒ 400; metadata làm sạch như `MessageRead`; `createdAt` dạng ISO `Z` (Python: `+00:00`).",
    "wave": "W1"
   },
   {
@@ -306,7 +306,7 @@
    "new": "POST /api/v1/conversations/{conversationId}/chat",
    "internal": "E1",
    "handledBy": "Backend→Engine",
-   "notes": "AI SDK UI Message Stream v1 (`x-vercel-ai-ui-message-stream: v1`, one `[DONE]`). `messageId` = reserved assistant id (unchanged). Body `userId` ignored (as today). S7 for pre-stream errors. Từ 15/10 (`3a8baab3`): frame phải qua parser `ai@6.0.0`; keepalive là comment `: keepalive` mỗi 15 s (không còn frame `heartbeat`); `statusCode`/`errorCode` chuyển sang `data-stream-error`, `render` sang `data-tool-render`; kết thúc lỗi/thiếu có `finishReason: \"error\"` (`stream_incomplete`, `stream_malformed`, `stream_event_too_large`); một frame tối đa 8 MiB; tuỳ chọn `streamWebAnswerV1` (bản nháp + `data-answer-reconcile`). Sơ đồ S1.7.",
+   "notes": "AI SDK UI Message Stream v1 (`x-vercel-ai-ui-message-stream: v1`, one `[DONE]`). `messageId` = reserved assistant id (unchanged). Body `userId` ignored (as today). S7 for pre-stream errors. Từ 15/10 (`3a8baab3`): frame phải qua parser `ai@6.0.0`; keepalive là comment `: keepalive` mỗi 15 s (không còn frame `heartbeat`); `statusCode`/`errorCode` chuyển sang `data-stream-error`, `render` sang `data-tool-render`; kết thúc lỗi/thiếu có `finishReason: \"error\"` (`stream_incomplete`, `stream_malformed`, `stream_event_too_large`); một frame tối đa 8 MiB; tuỳ chọn `streamWebAnswerV1` (bản nháp + `data-answer-reconcile`). Sơ đồ S1.7. Từ 26/10 (`de4a12b1`, `e48fa5cb`): body nhận thêm `answerVisualsV1`, `sourceFiguresV1`; cờ hiệu lực = cờ client ∧ `inlineRichResponseV1` ∧ `inline_rich_response_enabled`, gửi sang Engine (E1).",
    "wave": "W4"
   },
   {
@@ -328,7 +328,7 @@
    "new": "POST /api/v1/hitl-interrupts/{interruptId}/resume?protocol=ai-sdk",
    "internal": "E3",
    "handledBy": "Backend→Engine",
-   "notes": "Same as A18 with the AI SDK projector. Từ 15/10 body nhận `streamWebAnswerV1` và dùng chung hợp đồng frame mới của A27a.",
+   "notes": "Same as A18 with the AI SDK projector. Từ 15/10 body nhận `streamWebAnswerV1` và dùng chung hợp đồng frame mới của A27a. Cờ `answerVisualsV1`, `sourceFiguresV1` như A18.",
    "wave": "W4"
   },
   {
@@ -339,7 +339,7 @@
    "new": "POST /api/v1/generations/{generationId}/continue?protocol=ai-sdk",
    "internal": "E4",
    "handledBy": "Backend→Engine",
-   "notes": "Same as A17 with the AI SDK projector. Từ 15/10 body nhận `streamWebAnswerV1` và dùng chung hợp đồng frame mới của A27a.",
+   "notes": "Same as A17 with the AI SDK projector. Từ 15/10 body nhận `streamWebAnswerV1` và dùng chung hợp đồng frame mới của A27a. Cờ `answerVisualsV1`, `sourceFiguresV1` như A17.",
    "wave": "W4"
   },
   {
@@ -1142,7 +1142,7 @@
    "new": "WS /ws/device-runtime/{deviceId}?sessionId=",
    "internal": "— (Redis client-runtime:request-queue/result-queue, engine dispatches)",
    "handledBy": "Backend",
-   "notes": "WS gateway moves to the backend (D7). Frames unchanged (`ack`, `heartbeat`, `tool_request`, `tool_result`, `error`, snake_case per `runtime_protocol.py`). `session_id` query accepted as alias. On connect the backend expires stale client-tool `hitl_interrupts` (as today).",
+   "notes": "WS gateway moves to the backend (D7). Frames unchanged (`ack`, `heartbeat`, `tool_request`, `tool_result`, `error`, snake_case per `runtime_protocol.py`). `session_id` query accepted as alias. On connect the backend expires stale client-tool `hitl_interrupts` (as today). Từ 06/11 (`7cb2a535`): `heartbeat` khi phiên runtime trong Redis đã hết hạn ⇒ đóng WS mã 1012 \"Runtime session expired; register and reconnect.\" thay vì `ack`, để client đăng ký lại.",
    "wave": "W5"
   },
   {
