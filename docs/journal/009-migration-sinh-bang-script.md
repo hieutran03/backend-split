@@ -1,6 +1,8 @@
 # 009 — Migration sinh bằng script, không viết tay
 
 > Task: F-17 · Ngày: 2026-11-10 · Trạng thái: chờ review
+>
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Migration không còn là "baseline cho DB local": backend có **DB riêng** và migration NestJS là schema thật của nó. Tên ràng buộc giống Alembic vẫn giữ để chép dữ liệu 1:1 lúc cutover (TC-69).
 
 ## Tóm tắt dễ hiểu
 
@@ -147,6 +149,7 @@ pnpm db:migrate && pnpm db:seed
 |---|---|---|---|
 | v1 | 2026-11-10 | Bỏ baseline viết tay; Record khai đủ schema; `db:migrate:generate`, `db:migrate:check`; migration `InitialSchema` sinh bằng script | Hiếu yêu cầu |
 | v1.1 | 2026-11-18 | Đã chạy `db:migrate:check` trên DB dựng bằng Alembic (hẹn ở mục "Giới hạn"): lệch tên FK (`fk_*`, `feedback_*`), default DB, CHECK, index FTS — sửa ở [018](018-dong-bo-schema-alembic.md). Quy ước `<table>_<column>_fkey` không còn đúng cho mọi bảng: tên lấy theo dump (TC-59) | Có repo Python |
+| v1.2 | 2026-11-20 | Migration là schema thật của DB backend (DB riêng); giữ tên giống Alembic cho ETL | [021](021-tach-database.md) |
 
 ## Gợi ý review
 

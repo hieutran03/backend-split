@@ -1,6 +1,8 @@
 # 017 — Fork (tách nhánh) hội thoại
 
 > Task: CONV-03 (route A12a) · Ngày: 2026-11-11 · Trạng thái: chờ review
+>
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Khoá lượt chỉ còn backend dùng, trên DB của mình (không chung với Python). `conversation.forked` là **sự kiện**: Engine dựng memory cho hội thoại con từ summary của nó + B2, thay việc ghi `conversation_summary_jobs` trong transaction fork.
 
 ## Tóm tắt dễ hiểu
 
@@ -187,3 +189,4 @@ Thêm 8 unit test, tổng cộng 116:
 |---|---|---|---|
 | v1 | 2026-11-11 | A12a; port khoá lượt dùng chung; retry 40001; mã lỗi 413 | CONV-03 |
 | v1.1 | 2026-11-18 | Fingerprint theo Python, tiêu đề mặc định "(fork)", giữ `sequence` gốc, mã `conversation_turn_conflict`; CHECK fork request đã có | [019](019-doi-chieu-hanh-vi-python.md) |
+| v1.2 | 2026-11-20 | Ghi chú tách DB: khoá lượt chỉ backend; `conversation.forked` là sự kiện | [021](021-tach-database.md) |

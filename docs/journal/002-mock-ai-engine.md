@@ -1,6 +1,8 @@
 # 002 — AI Engine giả lập (mock)
 
 > Task: F-07, F-08, F-09, F-11 · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
+>
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** E5/E8/E9 và callback B1 bỏ khỏi hợp đồng, port, mock, http client — đã thành **sự kiện** Redis Streams. E1/E3/E4 có `modelRuntime` bắt buộc; E1 có `history.throughSequence` (thay `historyHint`) và `planning.planLifecycle`. Bỏ env `AI_ENGINE_MOCK_INDEX_DELAY_MS`; giả lập index tài liệu chuyển sang BUS-01.
 
 ## Tóm tắt dễ hiểu
 
@@ -178,6 +180,7 @@ curl -N -X POST localhost:3000/api/v1/dev/engine/turns \
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-09 | Hợp đồng DRAFT, mock in-process 12 marker, http client cơ bản, playground | — |
+| v1.1 | 2026-11-20 | Bỏ E5/E8/E9/B1 (thành sự kiện); E1/E3/E4 thêm `modelRuntime`, E1 thêm `history`, `planning.planLifecycle` | [021](021-tach-database.md) |
 
 ## Gợi ý review
 

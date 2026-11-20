@@ -1,5 +1,7 @@
 # Local development infrastructure. The AI Engine is NOT here: the in-process mock is used
 # by default (AI_ENGINE_MODE=mock). Point AI_ENGINE_MODE=http at the real Python Engine when available.
+# Postgres holds the BACKEND's own database only; the Engine has a separate one (docs/integration.md).
+# Redis is also the integration event bus (streams bus:backend:events / bus:engine:events).
 services:
   postgres:
     image: postgres:16-alpine

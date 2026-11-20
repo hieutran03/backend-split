@@ -20,12 +20,12 @@ function turn(message: string, generationId = 'gen-1'): TurnRequestV1 {
     persona: null,
     attachments: [],
     modelRequest: null,
-    modelRuntime: null,
-    historyHint: null,
+    modelRuntime: { agents: {} },
+    history: { throughSequence: 0 },
     documents: [],
     projectId: null,
     projectInstructions: null,
-    planning: { planningModeEnabled: false, tasks: [] },
+    planning: { planningModeEnabled: false, planLifecycle: null, tasks: [] },
     customAgents: {},
     hitlPolicy: { clientRules: {} },
     deviceId: null,
@@ -47,9 +47,6 @@ async function collect(
 const engine = () =>
   new MockAiEngineClient({
     delayMs: 0,
-    indexDelayMs: 0,
-    backendCallbackBaseUrl: '',
-    serviceToken: 't',
   });
 
 describe('MockAiEngineClient — honors the V3 contract', () => {

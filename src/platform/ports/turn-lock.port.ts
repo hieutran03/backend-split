@@ -1,7 +1,8 @@
 /**
- * Per-conversation turn lock (D3, §11 "Khoá lượt"). Shared with the Python service
- * while both run: same Postgres advisory-lock key, so a fork here and a turn there
- * exclude each other.
+ * Per-conversation turn lock (D3, §11 "Khoá lượt"). Only the backend locks: forks and
+ * turns (W4) of one conversation exclude each other. The lock lives in the backend's
+ * own database; the Engine never takes it and no longer shares a database with us
+ * (docs/integration.md).
  *
  * `withLock` holds the lock on its OWN connection for the whole `work` (Python keeps
  * it on a dedicated session too); `work` opens its own transactions as usual.

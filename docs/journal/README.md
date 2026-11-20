@@ -33,6 +33,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 018 | [Đồng bộ schema với DB Alembic](018-dong-bo-schema-alembic.md) | SYNC-01 | 2026-11-18 | chờ review |
 | 019 | [Đối chiếu hành vi Phase 1 với Python](019-doi-chieu-hanh-vi-python.md) | SYNC-02, TP-02 | 2026-11-18 | chờ review |
 | 020 | [Tin nhắn dạng UIMessage cho AI SDK](020-ui-message-projection.md) | MSG-02 (A26) | 2026-11-18 | chờ review |
+| 021 | [Tách database backend ↔ Engine](021-tach-database.md) | DS-01 | 2026-11-20 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -102,6 +103,14 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-62 | `include` + `format=ui-message` ⇒ 400 | tạm chọn | 020 |
 | TC-63 | Cờ rich snake_case + bool FastAPI | tạm chọn | 020 |
 | TC-64 | Làm sạch metadata ở mọi MessageView | tạm chọn | 020 |
+| TC-65 | Bus sự kiện Redis Streams hay RabbitMQ | tạm chọn — chờ Hiếu (Q9) | 021 |
+| TC-66 | Lịch sử chat: Engine kéo qua B2 | tạm chọn | 021 |
+| TC-67 | Key provider đã giải mã đi trong E1/B4 | tạm chọn — chờ Hiếu (Q11) | 021 |
+| TC-68 | Cutover dữ liệu một lần (ETL) | tạm chọn — chờ Hiếu (Q10) | 021 |
+| TC-69 | DB riêng, giữ schema giống Alembic | tạm chọn | 021 |
+| TC-70 | Xoá object tài liệu ngay, không chờ Engine | tạm chọn | 021 |
+| TC-71 | Engine tự dừng run khi hội thoại bị xoá | tạm chọn | 021 |
+| TC-72 | Gỡ E5/E8/E9/B1 trước khi có relay | tạm chọn | 021 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

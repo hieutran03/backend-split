@@ -50,9 +50,6 @@ import { JwtTokenService } from './auth/jwt-token.service';
         logger.warn('AI Engine: MOCK in-process (AI_ENGINE_MODE=mock)');
         return new MockAiEngineClient({
           delayMs: c.mockDelayMs,
-          indexDelayMs: c.mockIndexDelayMs,
-          backendCallbackBaseUrl: `http://localhost:${config.http.port}`,
-          serviceToken: c.serviceToken,
           log: (message, meta) =>
             logger.log(meta ? `${message} ${JSON.stringify(meta)}` : message),
         });

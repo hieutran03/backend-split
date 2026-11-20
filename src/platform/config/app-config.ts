@@ -72,11 +72,6 @@ const schema = z
     AI_ENGINE_SERVICE_TOKEN: z.string().min(1).default('dev-service-token'),
     AI_ENGINE_TIMEOUT_MS: positiveInt.default(30_000),
     AI_ENGINE_MOCK_DELAY_MS: z.coerce.number().int().nonnegative().default(40),
-    AI_ENGINE_MOCK_INDEX_DELAY_MS: z.coerce
-      .number()
-      .int()
-      .nonnegative()
-      .default(2_000),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === 'production' && env.AI_ENGINE_MODE === 'mock') {
@@ -131,7 +126,6 @@ export interface AppConfig {
     readonly serviceToken: string;
     readonly timeoutMs: number;
     readonly mockDelayMs: number;
-    readonly mockIndexDelayMs: number;
   };
 }
 
@@ -189,7 +183,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       serviceToken: e.AI_ENGINE_SERVICE_TOKEN,
       timeoutMs: e.AI_ENGINE_TIMEOUT_MS,
       mockDelayMs: e.AI_ENGINE_MOCK_DELAY_MS,
-      mockIndexDelayMs: e.AI_ENGINE_MOCK_INDEX_DELAY_MS,
     },
   });
 }

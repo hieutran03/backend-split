@@ -1,6 +1,8 @@
 # 018 — Đồng bộ schema với DB Alembic thật
 
 > Task: SYNC-01 · Ngày: 2026-11-18 · Trạng thái: chờ review
+>
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Backend và Engine **không dùng chung DB** nữa. Dump `python-schema.sql` giờ là nguồn cho ETL-01 và cho danh sách 20 FK chéo phía Engine phải bỏ; schema NestJS vẫn giữ giống để chép 1:1.
 
 ## Tóm tắt dễ hiểu
 
@@ -151,6 +153,7 @@ DATABASE_URL=postgres://chatbot:chatbot@localhost:5432/pyschema pnpm db:migrate:
 |---|---|---|---|
 | v1 | 2026-11-18 | Dump schema Alembic; sửa 5 Record; migration `AlignWithAlembicSchema` (sinh) + `AlembicOnlyDifferences` (viết tay); cập nhật database-schema.md | Có repo Python để đối chiếu |
 | v1.1 | 2026-11-18 | Đồng bộ artifact (mục ◆, §11, 7 route) với code Python `80d9bc9b`; script sinh route-mapping; cờ rich trong hợp đồng E1/E3/E4 | Hiếu yêu cầu đồng bộ 3 nguồn |
+| v1.2 | 2026-11-20 | Vai trò mới của dump: nguồn ETL + danh sách 20 FK chéo | [021](021-tach-database.md) |
 
 ## Gợi ý review
 

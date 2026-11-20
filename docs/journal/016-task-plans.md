@@ -1,6 +1,8 @@
 # 016 — Kế hoạch công việc (task plans)
 
 > Task: TP-01 (route A36–A42) · Ngày: 2026-11-11 · Trạng thái: chờ review · TP-02 (tính `plan_lifecycle`) làm ở v2 — xem [019](019-doi-chieu-hanh-vi-python.md)
+>
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Engine không đọc `conversations.plan_lifecycle`/`task_plans` nữa (ENGINE_READ cũ): backend gửi trong E1 `planning` (`planningModeEnabled`, `planLifecycle`, `tasks`).
 
 ## Tóm tắt dễ hiểu
 
@@ -171,3 +173,4 @@ Thêm 6 unit test, tổng cộng 108:
 |---|---|---|---|
 | v1 | 2026-11-11 | Module task-plans A36–A42, bảng `task_plans` sinh bằng script; chưa tính `plan_lifecycle` | TP-01 |
 | v2 | 2026-11-18 | TP-02: ghi `plan_lifecycle` (thêm ⇒ draft + bật planning; sửa/hoàn thành/xoá ⇒ tính lại) trong cùng transaction có khoá hội thoại; `task_order` từ 0; `task_metadata {}`; GET planning-status bật planning mode; tên FK/default theo DB thật | [019](019-doi-chieu-hanh-vi-python.md), [018](018-dong-bo-schema-alembic.md) |
+| v2.1 | 2026-11-20 | Ghi chú tách DB: trạng thái planning đi trong E1 | [021](021-tach-database.md) |

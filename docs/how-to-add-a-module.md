@@ -63,6 +63,17 @@ Hai cách:
 2. Đơn giản hơn ở phase này: repository của feedback join bảng `messages`/`conversations` để kiểm
    owner (đọc thôi, không ghi bảng module khác).
 
+## 5b. Cần dữ liệu của AI Engine, hoặc phải báo cho Engine?
+
+Engine có **database riêng** ([integration.md](integration.md)) — không có Record, không có SQL nào trỏ vào bảng của nó
+(`src/app.entities.spec.ts` sẽ đỏ).
+- Cần đọc dữ liệu Engine để trả FE ⇒ gọi `AiEngineClient` (E10–E12, MCP).
+- Thay đổi mà Engine phải biết (xoá, sửa, upload…) ⇒ `outbox.enqueue({ eventType, … })` **trong transaction**; nếu là
+  loại sự kiện mới thì thêm vào `src/contracts/events/backend-events.ts` và bảng §6.4 của integration.md trước.
+- Engine cần đọc dữ liệu của module mới ⇒ đưa kèm vào E1, hoặc thêm một route B-API ở
+  `src/contracts/backend/internal-api.ts`. Không cấp quyền DB cho Engine.
+- Bảng mới ⇒ thêm tên bảng vào danh sách bảng backend trong `src/app.entities.spec.ts` và `database-schema.md`.
+
 ## 6. Kiểm tra
 
 ```bash

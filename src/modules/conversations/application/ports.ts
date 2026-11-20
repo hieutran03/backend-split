@@ -70,8 +70,8 @@ export const PROJECT_ACCESS = Symbol('PROJECT_ACCESS');
 /**
  * Engine checkpoint threads that belong to a conversation, i.e.
  * generations.checkpoint_thread_id ∪ hitl_interrupts.thread_id (engine-contract,
- * outbox `conversation.deleted`). Read inside the delete transaction so the outbox
- * payload is self-contained.
+ * event `conversation.deleted`). Read inside the delete transaction so the event
+ * payload is self-contained — the Engine cannot read these backend tables.
  */
 export interface ConversationThreadSource {
   threadIdsOf(conversationId: string): Promise<string[]>;

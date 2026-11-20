@@ -1,6 +1,8 @@
 # 001 — Nền tảng & kiến trúc
 
 > Task: F-01 … F-06, F-12 · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
+>
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Luật "schema DB thuộc Alembic" và "migration chỉ cho DB local" không còn đúng: backend có **DB riêng**, migration NestJS là schema thật của nó. Outbox sẽ được relay đẩy lên Redis Streams (BUS-01), không gọi HTTP Engine. Thêm luật 7 + máy canh `src/app.entities.spec.ts`.
 
 ## Tóm tắt dễ hiểu
 
@@ -167,6 +169,7 @@ pnpm verify                 # typecheck + lint + 20 unit test + kiến trúc + b
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-09 | Bản đầu: 4 tầng, guard JWT, envelope, transaction, outbox, baseline DB | — |
+| v1.1 | 2026-11-20 | Tách database backend ↔ Engine: DB riêng, outbox ⇒ Redis Streams, máy canh bảng Engine | [021](021-tach-database.md) |
 
 ## Gợi ý review
 

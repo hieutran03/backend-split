@@ -39,13 +39,14 @@ export interface ForkResult {
  *
  *  1. preflight: (owner, requestId) already used? same fingerprint ⇒ 200 replay,
  *     other fingerprint ⇒ 409 request_conflict, child deleted ⇒ 410 result_deleted;
- *  2. hold the SOURCE turn lock (≤ 30 s, shared key with Python);
+ *  2. hold the SOURCE turn lock (≤ 30 s; a turn of the same conversation waits);
  *  3. REPEATABLE READ transaction, rerun on 40001: lock project (FOR SHARE), then the
  *     source conversation (FOR UPDATE) — same order as deleting a project;
  *  4. checks: message in source (404), assistant (409), prefix ≤ 5 000 messages
  *     and ≤ 32 MB (413);
- *  5. insert child + copy the prefix + outbox `conversation.forked` (the Engine
- *     prepares the child's first-turn summary; Python wrote conversation_summary_jobs).
+ *  5. insert child + copy the prefix + outbox `conversation.forked`: the Engine
+ *     prepares the child's memory from its own data + B2 (Python wrote
+ *     conversation_summary_jobs in this transaction — not possible across databases).
  * A concurrent fork with the same requestId loses on the unique index and answers
  * like a replay.
  *

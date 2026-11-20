@@ -1,6 +1,8 @@
 # 011 — Xoá hội thoại
 
 > Task: CONV-02 (route A12; gộp A25) · Ngày: 2026-11-11 · Trạng thái: chờ review
+>
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** `conversation.deleted` là **sự kiện** Redis Streams; Engine tự dừng run của hội thoại rồi xoá thread (TC-71), thay "bộ phát gọi E2 rồi E5". Payload có kiểu `ConversationDeletedV1`; bỏ interface `ConversationDeletedPayload` trong module.
 
 ## Tóm tắt dễ hiểu
 
@@ -159,6 +161,7 @@ Phần chống ghi hai event khi xoá đồng thời phụ thuộc khoá của P
 |---|---|---|---|
 | v1 | 2026-11-11 | A12/A25: xoá mềm + outbox `conversation.deleted`, khoá dòng chống xoá trùng | CONV-02 |
 | v1.1 | 2026-11-18 | TC-33/34 đối chiếu Python — không đổi code | [019](019-doi-chieu-hanh-vi-python.md) |
+| v1.2 | 2026-11-20 | Event `conversation.deleted` theo hợp đồng; Engine tự dừng run + xoá thread (TC-71) | [021](021-tach-database.md) |
 
 ## Gợi ý review
 

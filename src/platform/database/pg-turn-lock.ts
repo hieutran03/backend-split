@@ -6,8 +6,9 @@ import type { ConversationTurnLock } from '@platform/ports/turn-lock.port';
 
 /**
  * §11: key = first 8 bytes of sha256(str(conversation_id)), big-endian, as a
- * signed int64. Python's str(UUID) is lowercase with hyphens. Returned as a
- * decimal string so it survives the trip to Postgres as `$1::bigint`.
+ * signed int64. Python's str(UUID) is lowercase with hyphens. The formula is kept
+ * from Python although no Python process locks on this database any more. Returned
+ * as a decimal string so it survives the trip to Postgres as `$1::bigint`.
  */
 export function turnLockKey(conversationId: string): string {
   const digest = createHash('sha256')

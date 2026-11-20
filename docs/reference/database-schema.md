@@ -1,7 +1,13 @@
 # Database schema (nguồn: tài liệu Backend Split §6, metadata SQLAlchemy 905e52f6)
 
-> Backend sở hữu 22 bảng hiện có + 2 bảng mới (`refresh_tokens`, `outbox_events`). Engine sở hữu 11 bảng + 4 bảng checkpoint.
-> Tên cột snake_case GIỮ NGUYÊN. Không `synchronize`.
+> **Hai database riêng (2026-11-20, [integration.md](../integration.md)).** Bảng "BACKEND sở hữu" nằm trong DB của
+> backend, schema do migration NestJS làm chủ; bảng "ENGINE sở hữu" nằm trong DB của Engine, do Alembic phía Engine
+> làm chủ. Không bên nào kết nối DB bên kia, không FK chéo (danh sách FK phải bỏ: cuối file). Câu cũ "Engine đọc bảng
+> backend bằng role read-only" không còn đúng.
+>
+> Backend sở hữu 22 bảng hiện có + 3 bảng mới (`refresh_tokens`, `outbox_events`, `inbox_events` — BUS-02). Engine sở
+> hữu 11 bảng + 4 bảng checkpoint. Tên cột snake_case GIỮ NGUYÊN như Alembic để chép dữ liệu 1:1 lúc cutover (ETL-01).
+> Không `synchronize`.
 >
 > **Đối chiếu với DB thật (2026-11-18, nhật ký [018](../journal/018-dong-bo-schema-alembic.md)).** Bảng dưới đây sinh từ
 > metadata SQLAlchemy nên **thiếu** default phía DB, biểu thức CHECK/index và tên FK thật. Nguồn chính xác là
@@ -9,7 +15,8 @@
 > của repo chatbot. Câu cũ "Python không đặt DB default" **sai một phần**: nhiều bảng có `DEFAULT now()` cho
 > `created_at`/`updated_at` (vd. `projects`, `task_plans`) và default cho cột cờ/jsonb — xem từng bảng hoặc file dump.
 > Cách đối chiếu lại: dựng DB bằng Alembic rồi `DATABASE_URL=<db đó> pnpm db:migrate:check` — chỉ được phép còn
-> `outbox_events`, `refresh_tokens`, `users.role` (phần NestJS thêm).
+> `outbox_events`, `refresh_tokens`, `users.role` (phần NestJS thêm). Dump này từ nay là **nguồn của ETL**, không phải
+> DB mà NestJS chạy chung.
 
 ## Bảng BACKEND sở hữu
 
@@ -467,7 +474,7 @@
 - `INDEX ix_web_image_references_expires_at (expires_at)`
 - `INDEX ix_web_image_references_lifecycle_state (lifecycle_state)`
 
-## Bảng ENGINE sở hữu (backend không ghi)
+## Bảng ENGINE sở hữu (DB của Engine — backend không kết nối)
 
 ### `conversation_memory_summaries`
 
@@ -803,3 +810,35 @@
 - `INDEX ix_user_memories_user_project (user_id, project_id, deleted_at)`
 - `INDEX ix_user_memories_project_id (project_id)`
 
+## FK chéo phải bỏ khi tách DB (phía Engine, ENG-04)
+
+Lấy từ [python-schema.sql](python-schema.sql) (head `c4f1a7b9d2e6`): 20 FK từ bảng Engine sang bảng backend. Sau khi
+tách, các cột này là UUID thường; việc cascade do sự kiện làm thay ([integration.md §6.4](../integration.md)).
+Chiều ngược lại (bảng backend trỏ sang bảng Engine): không có.
+
+| Bảng Engine | Cột | Trỏ tới | ON DELETE | Tên ràng buộc | Sự kiện thay cascade |
+|---|---|---|---|---|---|
+| conversation_memory_summaries | conversation_id | conversations(id) | CASCADE | fk_memory_summary_conversation | conversation.deleted |
+| conversation_memory_summaries | (conversation_id, last_summarized_sequence) | messages(conversation_id, sequence) | — | fk_memory_summary_conversation_sequence | message.mutated |
+| conversation_summary_jobs | conversation_id | conversations(id) | CASCADE | fk_summary_job_conversation | conversation.deleted |
+| conversation_summary_jobs | (conversation_id, requested_through_sequence) | messages(conversation_id, sequence) | — | fk_summary_job_conversation_sequence | message.mutated |
+| document_chunks | document_id | documents(id) | CASCADE | document_chunks_document_id_fkey | document.deleted |
+| document_images | document_id | documents(id) | — | document_images_document_id_fkey | document.deleted |
+| document_index_generations | document_id | documents(id) | CASCADE | document_index_generations_document_id_fkey | document.deleted |
+| document_parse_artifacts | document_id | documents(id) | — | document_parse_artifacts_document_id_fkey | document.deleted |
+| model_usage_events | user_id | users(id) | CASCADE | fk_model_usage_events_user | — (giữ số liệu) |
+| model_usage_events | conversation_id | conversations(id) | CASCADE | fk_model_usage_events_conversation | — (backend lọc hội thoại đã xoá) |
+| model_usage_events | request_message_id | messages(id) | SET NULL | fk_model_usage_events_request_message | — |
+| model_usage_events | document_id | documents(id) | SET NULL | fk_model_usage_events_document | — |
+| model_usage_minute | user_id | users(id) | CASCADE | fk_model_usage_minute_user | — |
+| model_usage_minute | conversation_id | conversations(id) | CASCADE | fk_model_usage_minute_conversation | — |
+| tool_execution_receipts | user_id | users(id) | — | tool_execution_receipts_user_id_fkey | — |
+| tool_execution_receipts | conversation_id | conversations(id) | — | tool_execution_receipts_conversation_id_fkey | conversation.deleted |
+| tool_result_blobs | user_id | users(id) | — | tool_result_blobs_user_id_fkey | — |
+| tool_result_blobs | conversation_id | conversations(id) | — | tool_result_blobs_conversation_id_fkey | conversation.deleted |
+| user_memories | user_id | users(id) | — | user_memories_user_id_fkey | — |
+| user_memories | project_id | projects(id) | SET NULL | fk_user_memories_project_id | project.deleted |
+
+Ghi chú: trong hệ cũ `users`, `conversations`, `projects`, `messages` chỉ xoá mềm, nên các CASCADE trên chúng thực tế
+không chạy; chỉ `documents` bị xoá cứng nên cascade tài liệu có chạy. Dòng "—" ở cột sự kiện nghĩa là hệ cũ cũng không
+dọn, giữ nguyên hành vi.

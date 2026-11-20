@@ -2,14 +2,11 @@ import { createHash, randomUUID } from 'node:crypto';
 
 import type {
   ContinueGenerationRequestV1,
-  DeleteThreadsRequestV1,
-  DocumentStatusCallbackV1,
   EngineHealthV1,
   GenerateTaskPlanRequestV1,
   GenerateTaskPlanResponseV1,
   GenerateTitleRequestV1,
   GenerateTitleResponseV1,
-  IndexDocumentRequestV1,
   McpServerV1,
   McpToolV1,
   ResumeInterruptRequestV1,
@@ -30,14 +27,6 @@ import { parseScenario, type MockScenario } from './mock-scenario';
 export interface MockAiEngineOptions {
   /** Delay between 2 events (ms). 0 in unit tests. */
   readonly delayMs: number;
-  /**
-   * Base URL of the backend itself, for the mock to call callback B1 once "indexing" is done.
-   * Empty => no callback (tests check `documentCallbacks` instead).
-   */
-  readonly backendCallbackBaseUrl: string;
-  readonly serviceToken: string;
-  /** Simulated document parse + index time (ms). */
-  readonly indexDelayMs: number;
   readonly log?: (message: string, meta?: Record<string, unknown>) => void;
 }
 
@@ -116,14 +105,6 @@ export class MockAiEngineClient implements AiEngineClient {
       },
     },
   ];
-  /** Records "sent" B1 callbacks — handy for tests. */
-  public readonly documentCallbacks: Array<{
-    documentId: string;
-    body: DocumentStatusCallbackV1;
-  }> = [];
-  /** Records every side-effect call (E5/E8/E9) — handy for outbox tests. */
-  public readonly calls: Array<{ op: string; args: unknown }> = [];
-
   public constructor(private readonly options: MockAiEngineOptions) {}
 
   // =================================================================== E1–E4
@@ -143,11 +124,12 @@ export class MockAiEngineClient implements AiEngineClient {
 
   public stopTurn(
     generationId: string,
-    _request: StopTurnRequestV1,
+    request: StopTurnRequestV1,
   ): Promise<StopTurnResponseV1> {
     const turn = this.inflight.get(generationId);
     if (!turn) return Promise.resolve({ status: 'not_inflight' });
     turn.stopRequested = true;
+    this.log('E2 stop requested', { generationId, reason: request.reason });
     return Promise.resolve({ status: 'stop_requested' });
   }
 
@@ -184,58 +166,6 @@ export class MockAiEngineClient implements AiEngineClient {
       'Continuing the unfinished answer',
       signal,
     );
-  }
-
-  // ============================================================== E5, E8, E9
-  public deleteThreads(
-    request: DeleteThreadsRequestV1,
-    idempotencyKey: string,
-  ): Promise<void> {
-    this.calls.push({ op: 'deleteThreads', args: { request, idempotencyKey } });
-    this.log('E5 deleteThreads', { threads: request.threadIds.length });
-    return Promise.resolve();
-  }
-
-  public indexDocument(
-    documentId: string,
-    request: IndexDocumentRequestV1,
-    idempotencyKey: string,
-  ): Promise<void> {
-    this.calls.push({
-      op: 'indexDocument',
-      args: { documentId, request, idempotencyKey },
-    });
-    this.log('E8 indexDocument (mock) — will call back B1', { documentId });
-    // Simulates Celery parse + index, then callback B1. File name containing "fail" => failed.
-    const timer = setTimeout(() => {
-      const failed = /fail/i.test(request.filename);
-      const body: DocumentStatusCallbackV1 = failed
-        ? {
-            attemptId: request.attemptId,
-            indexGenerationId: null,
-            status: 'failed',
-            failureCode: 'mock_parse_failed',
-          }
-        : {
-            attemptId: request.attemptId,
-            indexGenerationId: randomUUID(),
-            status: 'ready',
-          };
-      void this.sendDocumentCallback(documentId, body);
-    }, this.options.indexDelayMs);
-    timer.unref();
-    return Promise.resolve();
-  }
-
-  public deindexDocument(
-    documentId: string,
-    idempotencyKey: string,
-  ): Promise<void> {
-    this.calls.push({
-      op: 'deindexDocument',
-      args: { documentId, idempotencyKey },
-    });
-    return Promise.resolve();
   }
 
   // ================================================================== E6, E7
@@ -637,34 +567,6 @@ export class MockAiEngineClient implements AiEngineClient {
         },
       ],
     };
-  }
-
-  private async sendDocumentCallback(
-    documentId: string,
-    body: DocumentStatusCallbackV1,
-  ): Promise<void> {
-    this.documentCallbacks.push({ documentId, body });
-    if (!this.options.backendCallbackBaseUrl) return;
-    const url = `${this.options.backendCallbackBaseUrl}/internal/v1/documents/${documentId}/status`;
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          authorization: `Bearer ${this.options.serviceToken}`,
-        },
-        body: JSON.stringify(body),
-      });
-      this.log('B1 callback (mock) sent', {
-        documentId,
-        status: response.status,
-      });
-    } catch (error) {
-      this.log('B1 callback (mock) failed', {
-        documentId,
-        error: String(error),
-      });
-    }
   }
 
   private sleep(ms: number, signal?: AbortSignal): Promise<void> {

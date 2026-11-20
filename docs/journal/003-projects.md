@@ -1,6 +1,8 @@
 # 003 — Quản lý Project
 
 > Task: F-10 (route PJ1–PJ5) · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
+>
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** `project.deleted` là **sự kiện** có kiểu theo hợp đồng (`ProjectDeletedV1`); relay đưa lên Redis Streams, Engine xoá mềm `user_memories` khi nhận. Code module không đổi.
 
 ## Tóm tắt dễ hiểu
 
@@ -178,6 +180,7 @@ lấy token thứ hai bằng `pnpm -s token:dev` kèm `OTHER_USER_ID` trong [scr
 |---|---|---|---|
 | v1 | 2026-11-09 | PJ1–PJ5: CRUD, phân trang, xoá mềm + outbox | — |
 | v1.1 | 2026-11-09 | Thêm tài liệu Swagger cho 5 route, `projectViewSchema` | F-16 |
+| v1.2 | 2026-11-20 | Payload `project.deleted` có kiểu theo `src/contracts/events`; đi qua Redis Streams | [021](021-tach-database.md) |
 
 ## Gợi ý review
 

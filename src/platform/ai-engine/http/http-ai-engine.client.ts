@@ -2,13 +2,11 @@ import { randomUUID } from 'node:crypto';
 
 import type {
   ContinueGenerationRequestV1,
-  DeleteThreadsRequestV1,
   EngineHealthV1,
   GenerateTaskPlanRequestV1,
   GenerateTaskPlanResponseV1,
   GenerateTitleRequestV1,
   GenerateTitleResponseV1,
-  IndexDocumentRequestV1,
   McpServerV1,
   McpToolV1,
   ResumeInterruptRequestV1,
@@ -86,41 +84,6 @@ export class HttpAiEngineClient implements AiEngineClient {
       'POST',
       `/internal/v1/turns/${enc(generationId)}/stop`,
       request,
-    );
-  }
-
-  // ----------------------------------------------------------- side effects
-  public async deleteThreads(
-    request: DeleteThreadsRequestV1,
-    idempotencyKey: string,
-  ): Promise<void> {
-    await this.json('POST', '/internal/v1/threads/delete', request, {
-      idempotencyKey,
-    });
-  }
-
-  public async indexDocument(
-    documentId: string,
-    request: IndexDocumentRequestV1,
-    idempotencyKey: string,
-  ): Promise<void> {
-    await this.json(
-      'POST',
-      `/internal/v1/documents/${enc(documentId)}/index`,
-      request,
-      { idempotencyKey },
-    );
-  }
-
-  public async deindexDocument(
-    documentId: string,
-    idempotencyKey: string,
-  ): Promise<void> {
-    await this.json(
-      'DELETE',
-      `/internal/v1/documents/${enc(documentId)}/index`,
-      undefined,
-      { idempotencyKey },
     );
   }
 

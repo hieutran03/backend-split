@@ -16,9 +16,9 @@ Giữ **đúng hợp đồng** để test được mọi nhánh của orchestrat
 
 - E1/E3/E4: stream V3 với `seq` tăng dần, `run_start` → `agent_selected` → delta → **đúng 1 terminal**.
 - E2 Stop: lượt đang chạy kết thúc bằng `complete{status:"stopped"}` + text dở; gọi lại ⇒ `not_inflight`.
-- E5/E8/E9: ghi lại vào `mock.calls` (test outbox). E8 sau `AI_ENGINE_MOCK_INDEX_DELAY_MS` gọi **B1**
-  về chính backend (`http://localhost:$PORT/internal/v1/documents/{id}/status`); tên file chứa
-  `fail` ⇒ callback `failed`.
+- ~~E5/E8/E9, callback B1~~: bỏ từ 2026-11-20 — đã thành sự kiện Redis Streams ([integration.md](integration.md)).
+  Mock **tiêu thụ sự kiện** (vd. giả lập index tài liệu rồi phát `document.processing_status_changed`, tên file chứa
+  `fail` ⇒ `failed`) sẽ làm cùng relay ở task BUS-01.
 - E6 title, E7 task plan, E10–E12 usage/tool result, E13–E20 MCP (registry in-memory 2 server, 3 tool), E21 health.
 
 ## Kịch bản bằng marker trong tin nhắn
@@ -53,7 +53,7 @@ curl -N -X POST localhost:3000/api/v1/dev/engine/turns \
 ## Trong unit test
 
 ```ts
-const engine = new MockAiEngineClient({ delayMs: 0, indexDelayMs: 0, backendCallbackBaseUrl: '', serviceToken: 't' });
+const engine = new MockAiEngineClient({ delayMs: 0 });
 ```
 
 ## Khi đổi hợp đồng

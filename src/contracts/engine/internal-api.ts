@@ -1,6 +1,12 @@
 /**
- * Bodies/responses of /internal/v1 (§8). The Engine does NOT receive the user JWT: userId is
- * data asserted by the backend after it has checked ownership.
+ * Bodies/responses of the Engine's /internal/v1 (§8), called BY the backend. The Engine
+ * does NOT receive the user JWT: userId is data asserted by the backend after it has
+ * checked ownership.
+ *
+ * The backend and the Engine own separate databases (docs/integration.md): everything a
+ * turn needs from backend data travels in the request (E1/E3/E4) or is pulled through
+ * the backend's internal API (src/contracts/backend/internal-api.ts); side effects travel
+ * as events (src/contracts/events/).
  *
  * ⚠️ DRAFT — reconcile with `app/schemas/workflow.py` (WorkflowExecutionRequest)
  * and apis/ai-engine-internal-api.md (task ENG-01) before freezing.
@@ -27,13 +33,21 @@ export interface TurnRequestV1 {
     readonly sizeBytes: number;
   }>;
   readonly modelRequest: Record<string, unknown> | null;
-  /** Phase 5. */
-  readonly modelRuntime: Record<string, unknown> | null;
-  /** Phase 5. */
-  readonly historyHint: ReadonlyArray<{
-    sender: 'user' | 'assistant';
-    content: string;
-  }> | null;
+  /**
+   * Resolved models + DECRYPTED provider credentials for this turn (C2). The Engine
+   * has no access to model_providers / agent_model_configs / server_secrets any more.
+   */
+  readonly modelRuntime: ModelRuntimeV1;
+  /**
+   * C1: the Engine loads prompt history itself through B2 (messages after its own
+   * memory cursor, up to `throughSequence` = the sequence just before this turn's
+   * user message). It never reads the messages table.
+   */
+  readonly history: { readonly throughSequence: number };
+  /**
+   * Every document the turn may route to or retrieve from (C3, C4). RAG scopes its
+   * chunk queries to these ids instead of joining documents/conversations.
+   */
   readonly documents: ReadonlyArray<{
     documentId: string;
     filename: string;
@@ -41,8 +55,11 @@ export interface TurnRequestV1 {
   }>;
   readonly projectId: string | null;
   readonly projectInstructions: string | null;
+  /** The Engine used to read conversations.planning_mode_enabled / plan_lifecycle and task_plans. */
   readonly planning: {
     readonly planningModeEnabled: boolean;
+    /** conversations.plan_lifecycle as stored (null = never planned). */
+    readonly planLifecycle: string | null;
     readonly tasks: readonly unknown[];
   };
   readonly customAgents: Record<string, unknown>;
@@ -52,6 +69,30 @@ export interface TurnRequestV1 {
   readonly inlineRichResponseV1: boolean;
   readonly answerVisualsV1: boolean;
   readonly sourceFiguresV1: boolean;
+}
+
+/**
+ * One resolved model (backend-proposed shape — reconcile with Python
+ * ModelConfigService in ENG-01). `credential: null` ⇒ the Engine uses its own
+ * server default key (e.g. title generation).
+ */
+export interface ResolvedModelV1 {
+  readonly providerType: string;
+  readonly model: string;
+  readonly temperature: number | null;
+  readonly reasoningEffort: string | null;
+  readonly credential: {
+    readonly apiKey: string;
+    readonly baseUrl: string | null;
+  } | null;
+}
+
+/**
+ * Models per agent key (Python AGENT_CONFIG keys) for one user. Carried by E1/E3/E4
+ * and returned by B4. Contains secrets: never log it, never persist it.
+ */
+export interface ModelRuntimeV1 {
+  readonly agents: Readonly<Record<string, ResolvedModelV1>>;
 }
 
 /**
@@ -83,6 +124,7 @@ export interface ResumeInterruptRequestV1 extends RichCapabilitiesV1 {
   readonly conversationId: string;
   readonly threadId: string;
   readonly assistantMessageId: string;
+  readonly modelRuntime: ModelRuntimeV1;
   readonly decisions: ReadonlyArray<{
     readonly toolCallId: string;
     readonly decision: 'approve' | 'reject' | 'edit';
@@ -99,14 +141,16 @@ export interface ContinueGenerationRequestV1 extends RichCapabilitiesV1 {
   readonly conversationId: string;
   readonly continuationId: string;
   readonly assistantMessageId: string;
+  readonly modelRuntime: ModelRuntimeV1;
 }
 
-/** E5 POST /internal/v1/threads/delete */
-export interface DeleteThreadsRequestV1 {
-  readonly conversationId: string;
-  readonly threadIds: readonly string[];
-  readonly reason: 'conversation_deleted' | 'interrupt_expired';
-}
+/*
+ * E5 (threads/delete), E8 (documents/{id}/index), E9 (DELETE .../index) and the
+ * callback B1 (documents/{id}/status) are gone: they are integration events now —
+ * conversation.deleted / interrupt.expired, document.uploaded, document.deleted
+ * (src/contracts/events/backend-events.ts) and document.processing_status_changed
+ * (src/contracts/events/engine-events.ts).
+ */
 
 /** E6 POST /internal/v1/titles */
 export interface GenerateTitleRequestV1 {
@@ -132,24 +176,6 @@ export interface GenerateTaskPlanResponseV1 {
   }>;
 }
 
-/** E8 POST /internal/v1/documents/{documentId}/index — 202 */
-export interface IndexDocumentRequestV1 {
-  readonly attemptId: string;
-  readonly userId: string;
-  readonly conversationId: string;
-  readonly storageKey: string;
-  readonly filename: string;
-  readonly mimeType: string;
-}
-
-/** B1 POST /internal/v1/documents/{documentId}/status — the Engine calls BACK into the backend. */
-export interface DocumentStatusCallbackV1 {
-  readonly attemptId: string;
-  readonly indexGenerationId: string | null;
-  readonly status: 'ready' | 'failed';
-  readonly failureCode?: string;
-}
-
 /** E10 GET /internal/v1/tool-results/{blobId} */
 export interface ToolResultV1 {
   readonly blobId: string;
@@ -157,7 +183,11 @@ export interface ToolResultV1 {
   readonly content: string;
 }
 
-/** E11 / E12 */
+/**
+ * E11 / E12. Usage rows keep plain user/conversation ids (no FK to backend tables any
+ * more): anything per conversation is returned by id only, and the backend adds the
+ * titles and drops deleted conversations from its own data.
+ */
 export interface UsageDashboardV1 {
   readonly totals: {
     inputTokens: number;

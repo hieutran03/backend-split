@@ -1,6 +1,8 @@
 # 012 — Đọc tin nhắn
 
 > Task: MSG-01 (route A10, A19, A20) · Ngày: 2026-11-11 · Trạng thái: chờ review
+>
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** S4 ghi `sender` là số "khi còn dùng chung DB": DB đã tách nhưng vẫn giữ số để chép dữ liệu 1:1 (TC-69). TC-35 không bị ảnh hưởng — `messages` và `conversations` cùng nằm trong DB backend. Engine đọc tin nhắn qua B-API B2, không đọc bảng.
 
 ## Tóm tắt dễ hiểu
 
@@ -211,6 +213,7 @@ Thêm 7 unit test, tổng cộng 88:
 | v1 | 2026-11-11 | Module messages: A10/A19/A20; bảng `messages` + FK `forked_from_message_id` sinh bằng script | MSG-01 |
 | v1.1 | 2026-11-18 | Record khai index FTS (`synchronize: false`) + default `message_metadata '{}'::jsonb` theo DB thật; TC-36 đóng phần biểu thức, TC-37 bổ sung nguồn `suggestedQuestions` | Đối chiếu repo Python ([018](018-dong-bo-schema-alembic.md)) |
 | v1.2 | 2026-11-18 | `messageMetadata` được làm sạch như Python `MessageRead` (bỏ `original_image_url`…) ở A10/A19/A20 và tin xem trước; `format=ui-message` (MSG-02) | [020](020-ui-message-projection.md) |
+| v1.3 | 2026-11-20 | Ghi chú tách DB: `sender` số giữ cho ETL; Engine đọc tin nhắn qua B2 | [021](021-tach-database.md) |
 
 ## Gợi ý review
 

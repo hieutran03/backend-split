@@ -4,8 +4,12 @@ Phần quản lý & lưu trữ của chatbot, tách khỏi FastAPI + LangGraph: 
 điều phối lượt chat, file/media, WebSocket thiết bị. Phần AI ở lại **AI Engine** (Python),
 gọi qua `/internal/v1`. Khi chưa có Engine, dùng **mock** trong tiến trình.
 
+Backend và Engine có **database riêng**; dữ liệu đi qua API nội bộ, sự kiện Redis Streams, key Redis
+dùng chung và object storage — xem [docs/integration.md](docs/integration.md).
+
 - Kế hoạch & tiến độ: **[docs/PLAN.md](docs/PLAN.md)** ← đọc trước
 - Kiến trúc: [docs/architecture.md](docs/architecture.md)
+- Tách database & giao tiếp với Engine: [docs/integration.md](docs/integration.md)
 - Thêm module: [docs/how-to-add-a-module.md](docs/how-to-add-a-module.md)
 - Mock AI: [docs/ai-engine-mock.md](docs/ai-engine-mock.md)
 - Tra cứu spec: [docs/reference/](docs/reference/)
@@ -18,7 +22,7 @@ Yêu cầu: Node ≥ 22, pnpm ≥ 10, Docker.
 pnpm install
 cp .env.example .env
 pnpm docker:up          # postgres, redis, minio
-pnpm db:migrate         # baseline cho DB local trống
+pnpm db:migrate         # schema DB của backend (DB riêng, không dùng chung với Engine)
 pnpm db:seed            # 2 user dev
 pnpm dev                # http://localhost:3000/api/v1
 pnpm -s token:dev       # access token cho user dev

@@ -1,8 +1,10 @@
 import { Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
 
 /**
- * Schema conventions for every Record (so `migration:generate` produces the same
- * names Alembic/Postgres use on the shared database — §6, §6.3 S7):
+ * Schema conventions for every Record. The backend owns its OWN database (the Engine
+ * has another one — docs/integration.md); its schema still mirrors the legacy Alembic
+ * tables column for column and name for name, so the one-time data copy at cutover
+ * (ETL-01) is 1:1 and can be checked with `db:migrate:check` against an Alembic DB:
  *   - every name (PK, FK, index, unique, check) is the one in the Alembic dump
  *     docs/reference/python-schema.sql — Alembic is not uniform (`users_pkey`,
  *     `fk_projects_owner_id_users`, `feedback_pkey` on table feedbacks, ...)

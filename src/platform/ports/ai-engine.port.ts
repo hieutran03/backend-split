@@ -1,12 +1,10 @@
 import type {
   ContinueGenerationRequestV1,
-  DeleteThreadsRequestV1,
   EngineHealthV1,
   GenerateTaskPlanRequestV1,
   GenerateTaskPlanResponseV1,
   GenerateTitleRequestV1,
   GenerateTitleResponseV1,
-  IndexDocumentRequestV1,
   McpServerV1,
   McpToolV1,
   ResumeInterruptRequestV1,
@@ -25,7 +23,9 @@ export interface ActorScope {
 }
 
 /**
- * The single port for talking to the AI Engine (/internal/v1, E1–E21).
+ * The single port for CALLING the AI Engine synchronously (/internal/v1, E1–E4, E6–E21).
+ * Cross-domain side effects are not calls: they are integration events written to the
+ * outbox (E5/E8/E9 and callback B1 became events — docs/integration.md).
  *
  * Two adapters (selected by AI_ENGINE_MODE):
  *  - `MockAiEngineClient` (mock): in-process simulation, used for dev/test.
@@ -58,21 +58,6 @@ export interface AiEngineClient {
     request: ContinueGenerationRequestV1,
     signal?: AbortSignal,
   ): AsyncIterable<V3StreamEvent>;
-
-  // ---- side effects, called only from the outbox publisher ----
-  /** E5 */
-  deleteThreads(
-    request: DeleteThreadsRequestV1,
-    idempotencyKey: string,
-  ): Promise<void>;
-  /** E8 */
-  indexDocument(
-    documentId: string,
-    request: IndexDocumentRequestV1,
-    idempotencyKey: string,
-  ): Promise<void>;
-  /** E9 */
-  deindexDocument(documentId: string, idempotencyKey: string): Promise<void>;
 
   // ---- small LLM calls ----
   /** E6 */

@@ -24,8 +24,9 @@ const bigintAsNumber: ValueTransformer = {
  * `conversations` table (§6, metadata of 905e52f6). Naming conventions: see
  * identity/infrastructure/records.ts. Migrations are generated from this class.
  *
- * Constraint names, CHECK expressions and DB defaults match the Alembic schema
- * (docs/reference/python-schema.sql, head c4f1a7b9d2e6): FKs to projects and the
+ * Constraint names, CHECK expressions and DB defaults mirror the legacy Alembic schema
+ * (docs/reference/python-schema.sql, head c4f1a7b9d2e6) for a 1:1 copy at cutover —
+ * the backend's database is its own, not shared with the Engine: FKs to projects and the
  * fork lineage use Alembic's `fk_*` names; next_message_sequence DEFAULT 1 and
  * planning_mode_enabled DEFAULT false (the app still sets both).
  */

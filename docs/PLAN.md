@@ -6,7 +6,7 @@
 > Nguồn yêu cầu: artifact "Chatbot Backend Split" (tách phần quản lý/lưu trữ của chatbot
 > FastAPI sang NestJS). Bản trích để tra cứu nằm ở [docs/reference/](reference/).
 
-**Cập nhật lần cuối:** 2026-11-18 · **Giai đoạn hiện tại:** Phase 1 (W1) — **đủ task, chờ Hiếu review** (còn CONV-05 phụ thuộc bảng W2–W4)
+**Cập nhật lần cuối:** 2026-11-20 · **Giai đoạn hiện tại:** Phase 1 (W1) — **đủ task, chờ Hiếu review** (còn CONV-05 phụ thuộc bảng W2–W4) · **Tách database** (DS-01) chờ review — thiết kế ở [integration.md](integration.md)
 
 ## Cách đọc
 
@@ -32,7 +32,8 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 4. Migration cho bảng mới **sinh bằng `pnpm db:migrate:generate`** (không viết tay), đọc lại đối chiếu
    [database-schema.md](reference/database-schema.md); `pnpm db:migrate:check` phải báo không còn khác biệt;
    `db:migrate:revert` rồi `db:migrate` chạy được.
-5. Side effect chéo miền đi qua **outbox trong cùng transaction**, không gọi Engine trực tiếp.
+5. Side effect chéo miền đi qua **outbox trong cùng transaction** (relay đẩy lên Redis Streams), không gọi Engine trực tiếp.
+   Không Record/SQL nào chạm bảng Engine; cần dữ liệu Engine ⇒ E-API ([integration.md](integration.md)).
 6. `pnpm verify` xanh. Chưa chạy thì ghi là chưa chạy, không tick khống.
 7. **Nhật ký** `docs/journal/NNN-*.md`: phần dễ hiểu + kỹ thuật (code, request/response thật) +
    điểm tranh cãi `TC-n` + lịch sử phiên bản. Xem [journal/README.md](journal/README.md).
@@ -48,7 +49,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 
 1. Route/response có khớp [route-mapping.md](reference/route-mapping.md) không? Thử trên Swagger `/docs`.
 2. Logic nghiệp vụ nằm ở `domain/`/`application/`, controller mỏng?
-3. Có test user khác ⇒ 404 không? Side effect chéo miền đi qua outbox?
+3. Có test user khác ⇒ 404 không? Side effect chéo miền đi qua outbox, payload đúng `src/contracts/events`?
 4. Tên cột/bảng khớp [database-schema.md](reference/database-schema.md)?
 
 ---
@@ -85,7 +86,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | USR-01 | `GET /users/me` — [nhật ký 008](journal/008-users-me.md) | A5 | 🤖 | [x] |
 | CONV-01 | Conversations CRUD (tạo, xem, sửa, danh sách phân trang / lọc project / tìm tiêu đề); migration sinh bằng script — [nhật ký 010](journal/010-hoi-thoai-crud.md). Xoá ⇒ CONV-02 | A7–A9, A11, A21–A24 | 🤖 | [r] |
 | CONV-02 | Xoá hội thoại: xoá mềm + outbox `conversation.deleted` (threadIds), khoá dòng chống xoá trùng; lượt active **không** chặn (TC-33) — [nhật ký 011](journal/011-xoa-hoi-thoai.md) | A12, A25 | 🤖 | [r] |
-| CONV-03 | Fork: REPEATABLE READ (retry 40001) dưới khoá lượt nguồn (advisory lock dùng chung với Python), fingerprint sha256, replay 200/409/410, 413, outbox `conversation.forked` — [nhật ký 017](journal/017-fork-hoi-thoai.md) | A12a | 🤖 | [r] |
+| CONV-03 | Fork: REPEATABLE READ (retry 40001) dưới khoá lượt nguồn (advisory lock trong DB backend), fingerprint sha256, replay 200/409/410, 413, outbox `conversation.forked` — [nhật ký 017](journal/017-fork-hoi-thoai.md) | A12a | 🤖 | [r] |
 | MSG-01 | Messages đọc: `GET /messages/{id}`, list theo hội thoại (S2, mặc định `-sequence` — TC-39), list của tôi, `sender` số ⇒ chuỗi; bảng `messages` sinh bằng script — [nhật ký 012](journal/012-doc-tin-nhan.md) | A10, A19, A20 | 🤖 | [r] |
 | CONV-04 | Danh sách hội thoại: `include=messages` + `latestMessages` (0..20), `messageCount`, `include=feedback` ⇒ 400, tìm cả nội dung tin nhắn (TC-31, TC-36) — [nhật ký 013](journal/013-danh-sach-hoi-thoai-kem-tin-nhan.md) | A9 | 🤖 | [r] |
 | MSG-02 | Projection UIMessage cho AI SDK (`?format=ui-message`) — port `ai_sdk_projection.py` + parser marker/sanitizer, 65 test vàng sinh từ Python; metadata làm sạch như `MessageRead` — [nhật ký 020](journal/020-ui-message-projection.md) | A26 | 🤖 | [r] |
@@ -115,19 +116,19 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | ID | Task | Route | Owner | Trạng thái |
 |---|---|---|---|---|
 | STO-01 | Port `ObjectStorage` + adapter S3/MinIO (put stream, get, delete, presign) | — | 🤖 | [ ] |
-| DOC-01 | Upload multipart (≤ 50 MB, đuôi hợp lệ, trùng tên theo `filename_key`) → S3 → row `documents` + outbox `document.uploaded` | D1, D2 | 🤖 | [ ] |
-| DOC-02 | Callback **B1** `/internal/v1/documents/{id}/status`: ServiceTokenGuard, fence `attemptId`, idempotent, sai thứ tự | B1 | 🤖 | [ ] |
-| DOC-03 | Get/list/patch/delete document (ownership qua conversation), processing-status; xoá qua outbox `document.deleted` | D3–D7 | 🤖 | [ ] |
+| DOC-01 | Upload multipart (≤ 50 MB, đuôi hợp lệ, trùng tên theo `filename_key`) → S3 → row `documents` + event `document.uploaded` (cần BUS-01) | D1, D2 | 🤖 | [ ] |
+| DOC-02 | Nhận event `document.processing_status_changed` (thay callback B1, cần BUS-02): fence `attemptId`, không lùi trạng thái, idempotent | ~~B1~~ | 🤖 | [ ] |
+| DOC-03 | Get/list/patch/delete document (ownership qua conversation), processing-status; xoá ⇒ event `document.deleted` + xoá object S3 ngay sau commit (TC-70) | D3–D7 | 🤖 | [ ] |
 | MED-01 | Chat image từ S3; web image proxy chống SSRF; tool result forward E10 | A47–A49 | 🤖 | [ ] |
 
 ## Phase 4 — W4: Lượt chat & HITL (13 route) — phần khó nhất
 
 | ID | Task | Route | Owner | Trạng thái |
 |---|---|---|---|---|
-| GEN-01 | `TurnLock`: advisory xact lock đúng công thức key Python, connection riêng, poll 50 ms ≤ 30 s ⇒ 409 `conversation_turn_conflict` | — | 🤖 | [ ] |
+| GEN-01 | `TurnLock`: advisory xact lock trong DB backend (port `ConversationTurnLock` đã có từ CONV-03), connection riêng, poll 50 ms ≤ 30 s ⇒ 409 `conversation_turn_conflict` | — | 🤖 | [ ] |
 | GEN-02 | Domain `Generation` state machine + version fence + bảng `generations`, `generation_commands` | — | 🤖 | [ ] |
-| GEN-03 | Gom body E1 (persona, documents, project instructions, custom agents, hitl policy, model config) qua port của từng module | — | 🤖 | [ ] |
-| GEN-04 | `TurnOrchestrator`: lock → user message + generation (lease 30 s) → E1 → gia hạn lease 10 s → persist terminal (assistant msg, chat_images, web_image_refs, task_plans) → unlock. Client ngắt không huỷ lượt | A13, A14 | 🤖 | [ ] |
+| GEN-03 | Gom body E1 (persona, `documents[]` = phạm vi RAG, project instructions, custom agents, hitl policy, **`modelRuntime` key đã giải mã**, `history.throughSequence`) qua port của từng module | — | 🤖 | [ ] |
+| GEN-04 | `TurnOrchestrator`: lock → user message + generation (lease 30 s) → E1 → gia hạn lease 10 s → persist terminal (assistant msg, chat_images, web_image_refs, task_plans) + event `conversation.turn_persisted` → unlock. Client ngắt không huỷ lượt | A13, A14 | 🤖 | [ ] |
 | GEN-05 | Projector **SSE nội bộ** (heartbeat 1 s) — byte-compatible với Python | A14 | 🤖 | [ ] |
 | GEN-06 | Projector **AI SDK v6** (UI Message Stream v1, `: keepalive` 15 s, `[DONE]`, `finishReason:"error"`) | A27 | 🤖 | [ ] |
 | GEN-07 | Stop: CAS version ⇒ `stop_requested`, `generation_commands`, E2; replay idempotent | A15 | 🤖 | [ ] |
@@ -141,7 +142,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 
 | ID | Task | Route | Owner | Trạng thái |
 |---|---|---|---|---|
-| RDS-01 | Redis module + key schema `client-runtime:*`, `widget:*`, `interrupt:*` (không đổi tên key) | — | 🤖 | [ ] |
+| RDS-01 | Redis module + key schema `client-runtime:*`, `widget:*`, `interrupt:*` (không đổi tên key) viết thành hợp đồng `src/contracts/redis/` ([integration.md §7](integration.md)) | — | 🤖 | [ ] |
 | DEV-01 | Client devices register/heartbeat/list/tool-catalog/skill-catalog/connected | C1–C6, R2 | 🤖 | [ ] |
 | DEV-02 | WS gateway `/ws/device-runtime/{deviceId}` (ws adapter, BLPOP connection riêng) | R1 | 🤖 | [ ] |
 | HS-01 | Tool approval settings theo device | A43–A45 | 🤖 | [ ] |
@@ -151,11 +152,25 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 
 | ID | Task | Route | Owner | Trạng thái |
 |---|---|---|---|---|
-| OBX-02 | Outbox publisher (poll 2 s, `FOR UPDATE SKIP LOCKED`, backoff 5 s × 2ⁿ ≤ 12 lần) → E2/E5/E8/E9 | — | 🤖 | [ ] |
-| OBX-03 | Admin outbox: list + retry | mới | 🤖 | [ ] |
-| SCH-01 | Scheduler: lease reaper, interrupt expiry (mỗi phút), sweep document kẹt > 1 h | — | 🤖 | [ ] |
-| USG-01 | Usage capabilities/dashboard/conversation (E11, E12) | A50–A52 | 🤖 | [ ] |
+| OBX-02 | ~~Outbox publisher → E2/E5/E8/E9~~ — thay bằng **BUS-01** (relay → Redis Streams) | — | 🤖 | gộp vào BUS-01 |
+| OBX-03 | Admin outbox: list + retry + phát lại theo khoảng thời gian (đối soát khi nghi mất event) | mới | 🤖 | [ ] |
+| SCH-01 | Scheduler: lease reaper ⇒ event `generation.lease_expired`, interrupt expiry (mỗi phút) ⇒ `interrupt.expired`, sweep document kẹt > 1 h (chuyển từ Celery của Python về backend) | — | 🤖 | [ ] |
+| USG-01 | Usage capabilities/dashboard/conversation (E11, E12); Engine chỉ trả id hội thoại ⇒ backend ghép tiêu đề, bỏ hội thoại đã xoá | A50–A52 | 🤖 | [ ] |
 | OPS-01 | Health dependencies đủ (Redis, S3, Engine deep), `/metrics` Prometheus (gồm streaming H15) | H9–H13, H15 | 🤖 | [ ] |
+
+## Tách database & kênh giao tiếp (từ 2026-11-20)
+
+Backend và Engine dùng **database riêng**; thiết kế ở [integration.md](integration.md). Thứ tự đề xuất: BUS-01 trước W3
+(DOC-01 cần), BUS-02 trước DOC-02, INT-01 trước khi ghép W4 với Engine thật, ETL-01 trước cutover.
+
+| ID | Task | Owner | Trạng thái |
+|---|---|---|---|
+| DS-01 | Thiết kế tách DB + kênh giao tiếp; hợp đồng sự kiện (`src/contracts/events`) và B-API (`src/contracts/backend`); outbox có kiểu theo hợp đồng; gỡ E5/E8/E9/B1 khỏi port Engine; E1/E3/E4 mang `modelRuntime`, `history`; máy canh `app.entities.spec.ts`; sửa toàn bộ tài liệu — [nhật ký 021](journal/021-tach-database.md) | 🤖 | [r] |
+| BUS-01 | Event bus phía phát: port publisher + adapter Redis Streams (`XADD` + `WAITAOF`, `MINID` 7 ngày), relay outbox (poll 2 s, `FOR UPDATE SKIP LOCKED`, backoff 5 s × 2ⁿ ≤ 12 lần) — thay OBX-02; mock Engine tiêu thụ event (giả lập index tài liệu) | 🤖 | [ ] |
+| BUS-02 | Event bus phía nhận: consumer group `backend` trên `bus:engine:events`, bảng `inbox_events`, `XAUTOCLAIM` 60 s, DLQ sau 10 lần, metric lag | 🤖 | [ ] |
+| INT-01 | B-API B2–B4 + `ServiceTokenGuard` (token Engine → backend riêng), chặn `/internal/*` ở gateway; B4 `no-store`, không log | 🤖 | [ ] |
+| ETL-01 | Script chép 22 bảng backend từ DB cũ sang DB backend (đếm dòng + checksum từng bảng), diễn tập trên bản sao | 🤖 | [ ] |
+| ENG-04 | Bàn giao + theo dõi checklist phía Engine ([integration.md §11](integration.md)) — không sửa repo chatbot trong repo này | 🤖 + người làm Engine | [ ] |
 
 ## Song song suốt dự án
 
@@ -179,14 +194,18 @@ phương án đang chạy và **hỏi lại đúng lúc bắt đầu mốc** ghi
 
 | # | Cần quyết | Đang chạy tạm | Vì sao phải là Hiếu | Hạn chót |
 |---|---|---|---|---|
-| Q1 | Thời hạn refresh token (TC-19) | 30 ngày (Python: 7 ngày; access 15 phút, Python 600 phút) | Chính sách bảo mật / trải nghiệm đăng nhập | Trước cutover W1 |
-| Q2 | Refresh xoay vòng nghiêm ngặt ⇒ FE/sidecar phải gọi refresh **tuần tự** (TC-21) | Nghiêm ngặt: dùng lại vé cũ ⇒ huỷ cả chuỗi | Ràng buộc mới với FE, Python không có | Trước cutover W1 — cần FE đồng ý |
-| Q3 | Logout "mọi thiết bị" có vô hiệu luôn access token đang sống (tăng `token_version`) không (TC-22) | Không | Chính sách bảo mật | Trước cutover W1 |
+| Q1 | Thời hạn refresh token (TC-19) | 30 ngày (Python: 7 ngày; access 15 phút, Python 600 phút) | Chính sách bảo mật / trải nghiệm đăng nhập | Trước cutover (xem Q10) |
+| Q2 | Refresh xoay vòng nghiêm ngặt ⇒ FE/sidecar phải gọi refresh **tuần tự** (TC-21) | Nghiêm ngặt: dùng lại vé cũ ⇒ huỷ cả chuỗi | Ràng buộc mới với FE, Python không có | Trước cutover (xem Q10) — cần FE đồng ý |
+| Q3 | Logout "mọi thiết bị" có vô hiệu luôn access token đang sống (tăng `token_version`) không (TC-22) | Không | Chính sách bảo mật | Trước cutover (xem Q10) |
 | Q4 | Client ngắt kết nối có huỷ lượt chat không (TC-9, D5) | Spec D5: không huỷ; Python hiện **huỷ** | Mâu thuẫn spec ↔ hành vi hiện tại, FE thấy được | Trước GEN-04 (W4) |
 | Q5 | Xoá hội thoại đang có lượt chạy: cho xoá (như Python, A12) hay 409 (spec D24) (TC-33) | Cho xoá | Mâu thuẫn trong chính spec | Trước GEN-04 (W4) |
-| Q6 | Cho phép **một** migration viết tay `AlembicOnlyDifferences` (TC-36) | Đã dùng | Trái quy tắc anh đặt ở F-17 | Khi review SYNC-01 |
+| Q6 | Cho phép **một** migration viết tay `AlembicOnlyDifferences` (TC-36). Sau khi tách DB, phần bắt buộc chỉ còn index FTS; tên PK/CHECK chỉ để giống Alembic | Đã dùng | Trái quy tắc anh đặt ở F-17 | Khi review SYNC-01 |
 | Q7 | GET planning-status được ghi DB (bật planning mode như Python) (TC-60) | Giữ như Python | GET có tác dụng phụ — quy ước API | Khi review TP-02 |
 | Q8 | Kiến trúc clean (đang dùng) hay layered theo chuẩn team (TC-1) | Clean | Chuẩn team; đổi muộn rất tốn | Càng sớm càng tốt |
+| Q9 | Bus sự kiện: **Redis Streams** hay RabbitMQ (TC-65) | Redis Streams — hai bên đã có Redis, bật AOF; relay dùng `WAITAOF` | Hạ tầng/vận hành, chuẩn team | Trước BUS-01 |
+| Q10 | Cutover: **một lần** sau khi đủ W1–W6 (ETL-01) hay từng đợt + đồng bộ tạm DB backend → DB cũ (TC-68) | Một lần | Đổi lịch ra production; quyết định hạn của Q1–Q3 | Càng sớm càng tốt |
+| Q11 | Gửi key provider **đã giải mã** sang Engine (E1, B4) hay Engine giữ khoá Fernet (TC-67) | Đã giải mã, mạng nội bộ có TLS, không log | Chính sách bảo mật bí mật của user | Trước GEN-03 / PRV-01 |
+| Q12 | Ai làm checklist phía Engine (integration.md §11), khi nào | — | Phân công người/đội ngoài repo này | Trước khi ghép W4 với Engine thật |
 
 ## Câu hỏi / quyết định đang mở
 
@@ -249,6 +268,14 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-62 | `include=feedback` cùng `format=ui-message` ⇒ 400 | tạm chọn | [020](journal/020-ui-message-projection.md) |
 | TC-63 | Nhận cờ rich dạng snake_case + bool kiểu FastAPI | tạm chọn | [020](journal/020-ui-message-projection.md) |
 | TC-64 | Làm sạch metadata ở mọi MessageView (như Python) | tạm chọn — sửa lỗi lộ `original_image_url` | [020](journal/020-ui-message-projection.md) |
+| TC-65 | Bus sự kiện Redis Streams hay RabbitMQ | tạm chọn Redis Streams — **chờ Hiếu (Q9)** | [021](journal/021-tach-database.md) |
+| TC-66 | Lịch sử chat: Engine kéo qua B2 hay backend đẩy trong E1, hay Engine giữ bản sao | tạm chọn kéo qua B2 | [021](journal/021-tach-database.md) |
+| TC-67 | Key provider đã giải mã đi trong E1/B4 | tạm chọn — **chờ Hiếu (Q11)** | [021](journal/021-tach-database.md) |
+| TC-68 | Cutover dữ liệu một lần (ETL) thay vì từng đợt | tạm chọn — **chờ Hiếu (Q10)** | [021](journal/021-tach-database.md) |
+| TC-69 | DB riêng nhưng giữ tên cột/ràng buộc như Alembic (chép 1:1), dọn sau cutover | tạm chọn | [021](journal/021-tach-database.md) |
+| TC-70 | Xoá tài liệu: backend xoá object ngay sau commit, không chờ Engine gỡ index | tạm chọn | [021](journal/021-tach-database.md) |
+| TC-71 | Engine tự dừng run khi nhận `conversation.deleted` (thay backend gọi E2 rồi E5) | tạm chọn | [021](journal/021-tach-database.md) |
+| TC-72 | Gỡ E5/E8/E9/B1 khỏi port Engine ngay, giả lập index tài liệu trong mock hoãn tới BUS-01 | tạm chọn | [021](journal/021-tach-database.md) |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
 ## Ghi chú review
@@ -281,3 +308,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-18 | 🤖 | TP-02 + SYNC-02: đọc code Python trả lời TC-17…58; port quy tắc `plan_lifecycle`, `task_order` từ 0; fork theo Python (fingerprint, "(fork)", giữ `sequence`, `conversation_turn_conflict`); preview cũ → mới; tìm kiếm theo độ liên quan; chuẩn hoá email cả login (bắt được lỗi login chưa chuẩn hoá). Tách CONV-05. 141 test; chạy thật 23 kịch bản trên Postgres. |
 | 2026-11-18 | 🤖 | MSG-02: port projection UIMessage (marker parser, sanitizer, source figure, ảnh, nguồn web) sang domain thuần; script sinh 65 trường hợp vàng bằng code Python thật, test TS khớp 100 %; `format=ui-message` + 3 cờ rich trên A10; làm sạch metadata ở MessageView như `MessageRead`. 212 test; chạy thật 9 kịch bản. Phase 1 đủ task. |
 | 2026-11-18 | 🤖 | SYNC-03: artifact spec lên version 9 (mục ◆ đối chiếu 18/11, sửa 4 dòng §11 sai, ghi chú 7 route); route-mapping sinh bằng script từ artifact; hợp đồng E1/E3/E4 thêm cờ rich; lập danh sách Q1–Q8 Hiếu bắt buộc quyết (có hạn chót). |
+| 2026-11-20 | 🤖 | DS-01: tách database backend ↔ Engine theo yêu cầu Hiếu — thiết kế [integration.md](integration.md) (API E/B, sự kiện Redis Streams + outbox/inbox, key Redis dùng chung, ETL cutover); hợp đồng `src/contracts/events`, `src/contracts/backend`; outbox có kiểu theo hợp đồng; bỏ E5/E8/E9/B1; máy canh bảng Engine; kiểm kê 20 FK chéo từ dump Alembic; thêm Q9–Q12, TC-65…72. 216 test xanh. |

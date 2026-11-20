@@ -164,21 +164,14 @@ export class UpdateConversationUseCase {
   }
 }
 
-/** Payload of the `conversation.deleted` outbox event (consumed by OBX-02). */
-export interface ConversationDeletedPayload {
-  readonly conversationId: string;
-  readonly ownerId: string;
-  /** Checkpoint threads to delete through E5 (may be empty). */
-  readonly threadIds: string[];
-}
-
 /**
  * A12 (+ A25 folded in) — soft delete + `conversation.deleted` outbox in ONE
  * transaction (D9). The row is locked first so two concurrent deletes cannot both
  * enqueue an event: the second one waits, then sees the row deleted ⇒ 404.
  *
- * An active turn does NOT block the delete (spec A12, TC-33): the publisher stops it
- * through E2 before calling E5. Fork children are kept.
+ * An active turn does NOT block the delete (spec A12, TC-33): the Engine, consuming
+ * the event, stops any run of the conversation and deletes its checkpoint threads
+ * (docs/integration.md). Fork children are kept.
  */
 export class DeleteConversationUseCase {
   public constructor(
@@ -199,16 +192,15 @@ export class DeleteConversationUseCase {
       conversation.softDelete(this.clock.now());
       await this.conversations.save(conversation);
 
-      const payload: ConversationDeletedPayload = {
-        conversationId: conversation.id,
-        ownerId: actor.userId,
-        threadIds: await this.threads.threadIdsOf(conversation.id),
-      };
       await this.outbox.enqueue({
         eventType: 'conversation.deleted',
         aggregateType: 'conversation',
         aggregateId: conversation.id,
-        payload: { ...payload },
+        payload: {
+          conversationId: conversation.id,
+          ownerId: actor.userId,
+          threadIds: await this.threads.threadIdsOf(conversation.id),
+        },
       });
     });
   }
