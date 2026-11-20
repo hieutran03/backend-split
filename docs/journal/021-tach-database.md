@@ -123,9 +123,9 @@ pnpm test:unit src/app.entities.spec.ts   # đỏ; xoá file ⇒ xanh
 - Hợp đồng sự kiện và B-API là **DRAFT** tới khi phía Engine làm theo (ENG-04). `ModelRuntimeV1` là đề xuất của backend,
   cần khớp với `ModelConfigService` của Python ở ENG-01.
 - E7 (sinh task plan) có cần `modelRuntime` không: chưa rõ Python dùng key nào cho việc này — ghi vào ENG-01.
-- Artifact spec (version 10, cùng link): thêm mục ◇ "Tách database 20/11" (chọn kênh, danh mục sự kiện, việc phía
-  Engine, Q9–Q12); gắn nhãn "Đổi 20/11" ở các chỗ bị thay: thẻ "Dùng chung", kết luận 1, §3, §6, §8 (E5/E8/E9/B1), §10.
-  Nội dung cũ giữ nguyên. `route-mapping.md` sinh lại: dữ liệu route không đổi, thêm ghi chú ở phần đầu (qua script sinh).
+- Artifact spec: ~~version 10 chỉ thêm mục ◇ và gắn nhãn ở 4 chỗ, nội dung cũ giữ nguyên~~ — Hiếu chỉ ra trang vẫn
+  còn nhiều chỗ nói DB dùng chung. **Version 11** sửa thẳng nội dung toàn trang (xem v1.1 bên dưới). `route-mapping.md`
+  sinh lại từ version 11.
 
 ## Điểm tranh cãi & quyết định
 
@@ -198,6 +198,7 @@ pnpm test:unit src/app.entities.spec.ts   # đỏ; xoá file ⇒ xanh
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-20 | Thiết kế tách DB + kênh giao tiếp; hợp đồng sự kiện, B-API; outbox có kiểu; bỏ E5/E8/E9/B1; máy canh; sửa tài liệu và ghi chú vào nhật ký 001, 002, 003, 009, 011, 012, 016, 017, 018 | Hiếu yêu cầu tách database |
+| v1.1 | 2026-11-20 | Artifact version 11: sửa thẳng mọi chỗ còn nói DB dùng chung (khoảng 120 chỗ thay ở §0–§13, bảng route, module, bảng DB, sơ đồ §7b; 42 nhãn "Cập nhật 20/11", 4 nhãn "Bỏ 20/11"); ba mục nhật ký ☆ ★ ◆ giữ nguyên vì là lịch sử. Làn DB trong sơ đồ tách thành "DB backend" / "DB Engine" / "DB hiện tại". Bảng route sinh lại (B1 ⇒ B2–B4, cột Internal theo sự kiện). Sửa nhầm mã route xoá tài liệu D5 ⇒ D7 trong integration.md và hợp đồng | Hiếu: "tài liệu vẫn còn chỗ dùng chung database" |
 
 ## Gợi ý review
 

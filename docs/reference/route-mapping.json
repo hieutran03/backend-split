@@ -127,7 +127,7 @@
    "file": "app/api/conversations.py",
    "current": "DELETE /conversations/{conversation_id}",
    "new": "DELETE /api/v1/conversations/{conversationId}",
-   "internal": "E2 (active turn), E5 threads/delete via outbox conversation.deleted",
+   "internal": "event conversation.deleted (Redis Streams): the Engine stops the run and deletes the threads",
    "handledBy": "Backend→Engine",
    "notes": "Soft delete + outbox; checkpoint cleanup is now guaranteed (retried) instead of best-effort in-process. An active turn does not block the delete: it is stopped through E2 and the delete proceeds. Hiện tại (S8.3): chỉ xoá thread id kiểu cũ, thread `routing-v2:*` do retention sweep dọn; hội thoại con của fork giữ nguyên.",
    "wave": "W1"
@@ -282,7 +282,7 @@
    "file": "app/api/ai_sdk.py",
    "current": "DELETE /ai/conversations/{conversation_id}",
    "new": "DELETE /api/v1/conversations/{conversationId}",
-   "internal": "E5 via outbox",
+   "internal": "event conversation.deleted",
    "handledBy": "Backend→Engine",
    "notes": "Folded into A12.",
    "wave": "W1"
@@ -526,7 +526,7 @@
    "new": "GET /api/v1/hitl-interrupts/{interruptId}",
    "internal": "—",
    "handledBy": "Backend",
-   "notes": "The read no longer mutates: expiry is done by the backend scheduler sweep, which also writes outbox `interrupt.expired` → E5 `threads/delete` (D17). The response still reports `expired` when past `expiresAt`. Not-owned → 404 (D15).",
+   "notes": "The read no longer mutates: expiry is done by the backend scheduler sweep, which also writes outbox `interrupt.expired` → Redis Streams event; the Engine deletes the thread (D17). The response still reports `expired` when past `expiresAt`. Not-owned → 404 (D15).",
    "wave": "W4"
   },
   {
@@ -777,7 +777,7 @@
    "file": "app/api/documents.py",
    "current": "POST /documents/upload (form file, conversation_id)",
    "new": "POST /api/v1/conversations/{conversationId}/documents (multipart files, one or more)",
-   "internal": "E8 POST /internal/v1/documents/{documentId}/index via outbox document.uploaded; progress via B1",
+   "internal": "event document.uploaded; progress via event document.processing_status_changed",
    "handledBy": "Backend→Engine",
    "notes": "Single-file wrapper folded into the batch route. File stored in object storage (`uploads`), not local temp disk. Batch status policy (201/207/400/409) kept.",
    "wave": "W3"
@@ -788,7 +788,7 @@
    "file": "app/api/documents.py",
    "current": "POST /documents/uploads",
    "new": "POST /api/v1/conversations/{conversationId}/documents",
-   "internal": "E8 via outbox, B1",
+   "internal": "event document.uploaded; status event from the Engine",
    "handledBy": "Backend→Engine",
    "notes": "`conversationId` moves from a form field to the path. Per-file results camelCase; `status` as string.",
    "wave": "W3"
@@ -799,7 +799,7 @@
    "file": "app/api/documents.py",
    "current": "GET /documents/task/{task_id}",
    "new": "GET /api/v1/documents/{documentId}/processing-status",
-   "internal": "— (fed by B1)",
+   "internal": "— (fed by event document.processing_status_changed)",
    "handledBy": "Backend",
    "notes": "**Security fix**: addressed by document (ownership always checked); Celery task ids are no longer exposed. Response `{ status, stage, progress, failureCode, processedAt, stats }`; no more `PENDING` during parse (chain-tail id bug).",
    "wave": "W3"
@@ -843,7 +843,7 @@
    "file": "app/api/documents.py",
    "current": "DELETE /documents/{document_id}",
    "new": "DELETE /api/v1/documents/{documentId}",
-   "internal": "E9 DELETE /internal/v1/documents/{documentId}/index via outbox document.deleted",
+   "internal": "event document.deleted",
    "handledBy": "Backend→Engine",
    "notes": "Engine cleanup is retried and now also removes image files and parse artifacts. Response `data: null` (today `{ deleted_document_id }`).",
    "wave": "W3"
@@ -1485,10 +1485,22 @@
    "wave": "W6"
   },
   {
-   "new": "POST /internal/v1/documents/{documentId}/status (B1, internal listener)",
+   "new": "GET /internal/v1/conversations/{conversationId}/messages (B2)",
    "handledBy": "Backend",
-   "notes": "Engine callback.",
-   "wave": "W3"
+   "notes": "Called by the Engine (read-only): prompt history, summary jobs, fork memory.",
+   "wave": "W4"
+  },
+  {
+   "new": "GET /internal/v1/users/{userId}/message-search (B3)",
+   "handledBy": "Backend",
+   "notes": "Called by the Engine (read-only): conversation-search tools.",
+   "wave": "W4"
+  },
+  {
+   "new": "POST /internal/v1/model-runtime/resolve (B4)",
+   "handledBy": "Backend",
+   "notes": "Called by the Engine: models + decrypted keys for work outside a turn; no-store, never logged.",
+   "wave": "W4"
   }
  ]
 }

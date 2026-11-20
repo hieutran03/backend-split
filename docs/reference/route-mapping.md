@@ -3,9 +3,8 @@
 > Sinh từ artifact "Chatbot Backend Split" (commit chatbot 80d9bc9b). Không sửa tay —
 > nếu spec đổi, sinh lại. Cột **Task** khớp với docs/PLAN.md.
 >
-> **Tách database (2026-11-20):** cột Internal còn ghi E5/E8/E9 và callback B1 theo spec cũ; nay chúng là sự kiện
-> Redis Streams (`document.uploaded`, `document.deleted`, `conversation.deleted`, `document.processing_status_changed`…).
-> Xem [integration.md](../integration.md) §5–§6.
+> **Tách database (2026-11-20):** backend và Engine dùng DB riêng; cột Internal ghi sự kiện Redis Streams thay cho
+> E5/E8/E9 và callback B1, endpoint mới có B-API B2–B4 (Engine gọi backend). Xem [integration.md](../integration.md).
 
 ## Auth & users
 
@@ -27,7 +26,7 @@
 | A9 | W1 | Backend | `GET /conversations/` | `GET /api/v1/conversations` | — | S2. `include=messages` + `latestMessages` (now bounded 0..20) kept; `include=feedback` (ignored today) rejected with 400. `search` kept (≤200). |
 | A10 | W1 | Backend | `GET /conversations/{conversation_id}/messages` | `GET /api/v1/conversations/{conversationId}/messages` | — | S2, S4. `include=feedback` kept. New optional `format=ui-message` returns the AI SDK UIMessage projection (replaces A26). Default sort `-sequence` (stable order by `messages.sequence`). |
 | A11 | W1 | Backend | `PATCH /conversations/{conversation_id}` | `PATCH /api/v1/conversations/{conversationId}` | — | Explicit `null` clears `personaPrompt`; `title: null` rejected. |
-| A12 | W1 | Backend→Engine | `DELETE /conversations/{conversation_id}` | `DELETE /api/v1/conversations/{conversationId}` | E2 (active turn), E5 threads/delete via outbox conversation.deleted | Soft delete + outbox; checkpoint cleanup is now guaranteed (retried) instead of best-effort in-process. An active turn does not block the delete: it is stopped through E2 and the delete proceeds. Hiện tại (S8.3): chỉ xoá thread id kiểu cũ, thread `routing-v2:*` do retention sweep dọn; hội thoại con của fork giữ nguyên. |
+| A12 | W1 | Backend→Engine | `DELETE /conversations/{conversation_id}` | `DELETE /api/v1/conversations/{conversationId}` | event conversation.deleted (Redis Streams): the Engine stops the run and deletes the threads | Soft delete + outbox; checkpoint cleanup is now guaranteed (retried) instead of best-effort in-process. An active turn does not block the delete: it is stopped through E2 and the delete proceeds. Hiện tại (S8.3): chỉ xoá thread id kiểu cũ, thread `routing-v2:*` do retention sweep dọn; hội thoại con của fork giữ nguyên. |
 | A12a | W1 | Backend | `POST /conversations/{conversation_id}/fork` | `POST /api/v1/conversations/{conversationId}/forks` | outbox conversation.forked → Engine tạo job tóm tắt cho hội thoại con | Mới ở `d5a7c7ff` (09/10). Body `{ messageId, requestId, title? }`. `201` khi tạo mới, `200` khi replay cùng `requestId` + fingerprint. Từ chối: 404 message không thuộc nguồn, 409 không phải assistant hoàn tất / còn generation active / có tài liệu / `requestId` đã dùng cho fork khác, 410 con đã bị xoá, 413 prefix > 5.000 message hoặc 32 MB. Giữ khoá lượt của hội thoại nguồn và một transaction REPEATABLE READ (sơ đồ S8). Hiện ghi `conversation_summary_jobs` (bảng Engine) trong cùng transaction. |
 
 ## Messages & generations
@@ -51,7 +50,7 @@
 | A22 | W1 | Backend | `GET /ai/conversations` | `GET /api/v1/conversations` | — | Folded into A9 (full parameter set now available). |
 | A23 | W1 | Backend | `GET /ai/conversations/{conversation_id}` | `GET /api/v1/conversations/{conversationId}` | — | Folded into A8. |
 | A24 | W1 | Backend | `PATCH /ai/conversations/{conversation_id}` | `PATCH /api/v1/conversations/{conversationId}` | — | Folded into A11. |
-| A25 | W1 | Backend→Engine | `DELETE /ai/conversations/{conversation_id}` | `DELETE /api/v1/conversations/{conversationId}` | E5 via outbox | Folded into A12. |
+| A25 | W1 | Backend→Engine | `DELETE /ai/conversations/{conversation_id}` | `DELETE /api/v1/conversations/{conversationId}` | event conversation.deleted | Folded into A12. |
 | A26 | W1 | Backend | `GET /ai/conversations/{conversation_id}/messages` | `GET /api/v1/conversations/{conversationId}/messages?format=ui-message` | — | UIMessage projection (`id, role, content, parts, metadata, createdAt`) now inside the standard list envelope `{ items, meta }` (today `{ messages, meta }`). `inlineRichResponseV1` query kept. Cập nhật 2026-11-18 (theo code Python tới `80d9bc9b`): thêm `answerVisualsV1`, `sourceFiguresV1`; mỗi cờ nhận cả dạng snake_case (`inline_rich_response_v1`…) và giá trị bool kiểu FastAPI; công tắc server `inline_rich_response_enabled`; `include` cùng `format=ui-message` ⇒ 400; metadata làm sạch như `MessageRead`; `createdAt` dạng ISO `Z` (Python: `+00:00`). |
 | A27a | W4 | Backend→Engine | `POST /api/chat/{conversation_id}` | `POST /api/v1/conversations/{conversationId}/chat` | E1 | AI SDK UI Message Stream v1 (`x-vercel-ai-ui-message-stream: v1`, one `[DONE]`). `messageId` = reserved assistant id (unchanged). Body `userId` ignored (as today). S7 for pre-stream errors. Từ 15/10 (`3a8baab3`): frame phải qua parser `ai@6.0.0`; keepalive là comment `: keepalive` mỗi 15 s (không còn frame `heartbeat`); `statusCode`/`errorCode` chuyển sang `data-stream-error`, `render` sang `data-tool-render`; kết thúc lỗi/thiếu có `finishReason: "error"` (`stream_incomplete`, `stream_malformed`, `stream_event_too_large`); một frame tối đa 8 MiB; tuỳ chọn `streamWebAnswerV1` (bản nháp + `data-answer-reconcile`). Sơ đồ S1.7. Từ 26/10 (`de4a12b1`, `e48fa5cb`): body nhận thêm `answerVisualsV1`, `sourceFiguresV1`; cờ hiệu lực = cờ client ∧ `inlineRichResponseV1` ∧ `inline_rich_response_enabled`, gửi sang Engine (E1). |
 | A27b | W4 | Backend→Engine | `POST /ai/chat/{conversation_id} (hidden alias)` | `POST /api/v1/conversations/{conversationId}/chat` | E1 | Alias removed from `/api/v1`; compat layer only. |
@@ -88,7 +87,7 @@
 | A43 | W5 | Backend | `GET /hitl/settings?deviceId=` | `GET /api/v1/client-devices/{deviceId}/tool-approval-settings` | — | Device moves from query to path; malformed/foreign device → 404. `masterEnabled`/`globalTools` read from shared config (see internal API §3.7). |
 | A44 | W5 | Backend | `POST /hitl/settings?deviceId=` | `PUT /api/v1/client-devices/{deviceId}/tool-approval-settings` | — | Bulk upsert is a `PUT` of `{ items[] }`. Device-not-connected / target-not-in-catalog stay `409 conflict`. |
 | A45 | W5 | Backend | `DELETE /hitl/settings?deviceId&toolOrigin&scopeType&scopeValue` | `DELETE /api/v1/client-devices/{deviceId}/tool-approval-settings?toolOrigin&scopeType&scopeValue` | — | camelCase query only. |
-| A46 | W4 | Backend | `GET /hitl/interrupts/{interrupt_id}` | `GET /api/v1/hitl-interrupts/{interruptId}` | — | The read no longer mutates: expiry is done by the backend scheduler sweep, which also writes outbox `interrupt.expired` → E5 `threads/delete` (D17). The response still reports `expired` when past `expiresAt`. Not-owned → 404 (D15). |
+| A46 | W4 | Backend | `GET /hitl/interrupts/{interrupt_id}` | `GET /api/v1/hitl-interrupts/{interruptId}` | — | The read no longer mutates: expiry is done by the backend scheduler sweep, which also writes outbox `interrupt.expired` → Redis Streams event; the Engine deletes the thread (D17). The response still reports `expired` when past `expiresAt`. Not-owned → 404 (D15). |
 
 ## Media
 
@@ -131,13 +130,13 @@
 
 | # | Đợt | Bên xử lý | Hiện tại (FastAPI) | Mới (/api/v1) | Internal | Ghi chú |
 |---|---|---|---|---|---|---|
-| D1 | W3 | Backend→Engine | `POST /documents/upload (form file, conversation_id)` | `POST /api/v1/conversations/{conversationId}/documents (multipart files, one or more)` | E8 POST /internal/v1/documents/{documentId}/index via outbox document.uploaded; progress via B1 | Single-file wrapper folded into the batch route. File stored in object storage (`uploads`), not local temp disk. Batch status policy (201/207/400/409) kept. |
-| D2 | W3 | Backend→Engine | `POST /documents/uploads` | `POST /api/v1/conversations/{conversationId}/documents` | E8 via outbox, B1 | `conversationId` moves from a form field to the path. Per-file results camelCase; `status` as string. |
-| D3 | W3 | Backend | `GET /documents/task/{task_id}` | `GET /api/v1/documents/{documentId}/processing-status` | — (fed by B1) | **Security fix**: addressed by document (ownership always checked); Celery task ids are no longer exposed. Response `{ status, stage, progress, failureCode, processedAt, stats }`; no more `PENDING` during parse (chain-tail id bug). |
+| D1 | W3 | Backend→Engine | `POST /documents/upload (form file, conversation_id)` | `POST /api/v1/conversations/{conversationId}/documents (multipart files, one or more)` | event document.uploaded; progress via event document.processing_status_changed | Single-file wrapper folded into the batch route. File stored in object storage (`uploads`), not local temp disk. Batch status policy (201/207/400/409) kept. |
+| D2 | W3 | Backend→Engine | `POST /documents/uploads` | `POST /api/v1/conversations/{conversationId}/documents` | event document.uploaded; status event from the Engine | `conversationId` moves from a form field to the path. Per-file results camelCase; `status` as string. |
+| D3 | W3 | Backend | `GET /documents/task/{task_id}` | `GET /api/v1/documents/{documentId}/processing-status` | — (fed by event document.processing_status_changed) | **Security fix**: addressed by document (ownership always checked); Celery task ids are no longer exposed. Response `{ status, stage, progress, failureCode, processedAt, stats }`; no more `PENDING` during parse (chain-tail id bug). |
 | D4 | W3 | Backend | `GET /documents/{document_id}` | `GET /api/v1/documents/{documentId}` | — | S3, S4; adds `sizeBytes`, `failureCode`, `processedAt`. |
 | D5 | W3 | Backend | `GET /documents/conversation/{conversation_id}?page&page_size` | `GET /api/v1/conversations/{conversationId}/documents` | — | S2 (`page_size` → `limit`; `page_size=0` → 400, today 500). |
 | D6 | W3 | Backend | `PUT /documents/{document_id}` | `PATCH /api/v1/documents/{documentId}` | — | **Security fix**: only `filename` is editable; `status`/`fileType` not client-settable; `filename_key` recomputed and uniqueness enforced (`409 conflict`). |
-| D7 | W3 | Backend→Engine | `DELETE /documents/{document_id}` | `DELETE /api/v1/documents/{documentId}` | E9 DELETE /internal/v1/documents/{documentId}/index via outbox document.deleted | Engine cleanup is retried and now also removes image files and parse artifacts. Response `data: null` (today `{ deleted_document_id }`). |
+| D7 | W3 | Backend→Engine | `DELETE /documents/{document_id}` | `DELETE /api/v1/documents/{documentId}` | event document.deleted | Engine cleanup is retried and now also removes image files and parse artifacts. Response `data: null` (today `{ deleted_document_id }`). |
 
 ## Providers & model config
 
@@ -231,4 +230,6 @@
 | `GET /api/v1/metrics` | Backend | W6 | Prometheus text; requires `admin` or the internal network (D21), so Prometheus scrapes it from inside the cluster. |
 | `GET /api/v1/admin/outbox-events` | Backend | W6 | `admin` only. |
 | `POST /api/v1/admin/outbox-events/{eventId}/retry` | Backend | W6 | `admin` only. |
-| `POST /internal/v1/documents/{documentId}/status (B1, internal listener)` | Backend | W3 | Engine callback. |
+| `GET /internal/v1/conversations/{conversationId}/messages (B2)` | Backend | W4 | Called by the Engine (read-only): prompt history, summary jobs, fork memory. |
+| `GET /internal/v1/users/{userId}/message-search (B3)` | Backend | W4 | Called by the Engine (read-only): conversation-search tools. |
+| `POST /internal/v1/model-runtime/resolve (B4)` | Backend | W4 | Called by the Engine: models + decrypted keys for work outside a turn; no-store, never logged. |

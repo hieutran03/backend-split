@@ -39,9 +39,8 @@ const lines = [
   `> Sinh từ artifact "Chatbot Backend Split" (commit chatbot ${commit}). Không sửa tay —`,
   '> nếu spec đổi, sinh lại. Cột **Task** khớp với docs/PLAN.md.',
   '>',
-  '> **Tách database (2026-11-20):** cột Internal còn ghi E5/E8/E9 và callback B1 theo spec cũ; nay chúng là sự kiện',
-  '> Redis Streams (`document.uploaded`, `document.deleted`, `conversation.deleted`, `document.processing_status_changed`…).',
-  '> Xem [integration.md](../integration.md) §5–§6.',
+  '> **Tách database (2026-11-20):** backend và Engine dùng DB riêng; cột Internal ghi sự kiện Redis Streams thay cho',
+  '> E5/E8/E9 và callback B1, endpoint mới có B-API B2–B4 (Engine gọi backend). Xem [integration.md](../integration.md).',
 ];
 const groups = [...new Set(routes.map((r) => r.group))];
 for (const group of groups) {

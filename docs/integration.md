@@ -190,7 +190,7 @@ Mỗi entry trong stream có 2 field: `type` (để lọc/đếm) và `event` (J
 | `message.mutated` | sửa/xoá tin nhắn | summary từ `sequence` trở đi hết hạn, mở lại job | C19 |
 | `project.deleted` | xoá project PJ5 (PJ-05 ✅) | xoá mềm `user_memories` của project | C19 |
 | `document.uploaded` | upload D1/D2 (DOC-01) | parse + index từ `storageKey`, phát `document.processing_status_changed` | E8; filesystem chung |
-| `document.deleted` | xoá tài liệu D5 (DOC-03) | xoá chunk, ảnh, parse artifact, vector Qdrant | E9; cascade DB |
+| `document.deleted` | xoá tài liệu D7 (DOC-03) | xoá chunk, ảnh, parse artifact, vector Qdrant | E9; cascade DB |
 | `interrupt.expired` | quét interrupt hết hạn (SCH-01) | xoá thread checkpoint của interrupt | E5; Celery quét `hitl_interrupts` |
 | `generation.lease_expired` | lease reaper (SCH-01) | dừng run nếu còn chạy (như E2) | E2 từ outbox |
 

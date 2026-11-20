@@ -72,7 +72,7 @@ export interface DocumentUploadedV1 {
   readonly sizeBytes: number;
 }
 
-/** D5 — document deleted; the Engine drops chunks, images, parse artifacts, vectors (replaces E9). */
+/** D7 — document deleted; the Engine drops chunks, images, parse artifacts, vectors (replaces E9). */
 export interface DocumentDeletedV1 {
   readonly documentId: string;
   readonly ownerId: string;
