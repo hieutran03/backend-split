@@ -2,7 +2,7 @@
 
 > Task: F-17 · Ngày: 2026-11-10 · Trạng thái: chờ review
 >
-> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Migration không còn là "baseline cho DB local": backend có **DB riêng** và migration NestJS là schema thật của nó. Tên ràng buộc giống Alembic vẫn giữ để chép dữ liệu 1:1 lúc cutover (TC-69).
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Migration không còn là "baseline cho DB local": backend có **DB riêng** và migration NestJS là schema thật của nó. Tên ràng buộc giống Alembic vẫn giữ để chép dữ liệu 1:1 lúc cutover (TC-69). Rà lại 2026-11-25: các đoạn trong bài còn theo kế hoạch DB dùng chung đã được gạch và sửa ngay tại chỗ.
 
 ## Tóm tắt dễ hiểu
 
@@ -18,8 +18,9 @@ kiểm tra "code và database đã khớp chưa" — nếu lệch, nó báo lỗ
 
 - Hiếu yêu cầu: "tạo migration bằng script và check lại cho đúng chứ đừng tự tạo".
 - Tên constraint phải giống kiểu Postgres/Alembic (`users_pkey`, `projects_owner_id_fkey`, `ix_users_email`),
-  không phải tên băm mặc định của TypeORM (`PK_3f2a…`, `FK_9b1c…`) — để sau này so với DB thật (dùng chung với
-  Python) không bị lệch tên vô nghĩa.
+  không phải tên băm mặc định của TypeORM (`PK_3f2a…`, `FK_9b1c…`) — ~~để sau này so với DB thật (dùng chung với
+  Python) không bị lệch tên vô nghĩa~~ để DB backend giữ schema giống hệt DB Alembic: ETL lúc cutover chép 1:1 và
+  `db:migrate:check` trên DB dựng bằng Alembic không lệch tên vô nghĩa (TC-69, tách DB).
 - Module `projects` cần khoá ngoại tới `users` nhưng **không được import ruột** module `identity` (luật kiến trúc).
 
 ## Đã giải quyết thế nào
@@ -118,9 +119,11 @@ pnpm db:migrate && pnpm db:seed
 
 ## Giới hạn & việc còn lại
 
-- Migration này vẫn **chỉ dành cho DB local/dev**. DB thật dùng chung với Python do Alembic sở hữu tới P3 (§6.3 S7).
-  Lợi ích lớn: khi có bản dump schema DB thật, chạy `pnpm db:migrate:check` trỏ vào đó sẽ cho biết **chính xác**
-  entity lệch DB thật ở đâu — thay cho đối chiếu bằng mắt.
+- ~~Migration này vẫn **chỉ dành cho DB local/dev**. DB thật dùng chung với Python do Alembic sở hữu tới P3 (§6.3 S7).~~
+  **Sửa 25/11 (tách DB):** migration này là **schema thật của DB backend** (DB riêng; Alembic chỉ còn quản DB Engine —
+  [integration.md §3](../integration.md)). Lợi ích lớn: chạy `pnpm db:migrate:check` trỏ vào DB dựng bằng Alembic
+  (nguồn của ETL lúc cutover) sẽ cho biết **chính xác** entity lệch schema Python ở đâu — thay cho đối chiếu bằng
+  mắt; phải khớp thì ETL mới chép 1:1 (TC-69).
 - Tên FK kiểu `<table>_<column>_fkey` là mặc định của Postgres; nếu Alembic dùng `naming_convention` riêng thì
   tên thật có thể khác — sẽ lộ ra ngay khi chạy `check` trên DB thật.
 - Chưa đưa `db:migrate:check` vào CI (cần Postgres trong CI — task F-14).
@@ -150,6 +153,7 @@ pnpm db:migrate && pnpm db:seed
 | v1 | 2026-11-10 | Bỏ baseline viết tay; Record khai đủ schema; `db:migrate:generate`, `db:migrate:check`; migration `InitialSchema` sinh bằng script | Hiếu yêu cầu |
 | v1.1 | 2026-11-18 | Đã chạy `db:migrate:check` trên DB dựng bằng Alembic (hẹn ở mục "Giới hạn"): lệch tên FK (`fk_*`, `feedback_*`), default DB, CHECK, index FTS — sửa ở [018](018-dong-bo-schema-alembic.md). Quy ước `<table>_<column>_fkey` không còn đúng cho mọi bảng: tên lấy theo dump (TC-59) | Có repo Python |
 | v1.2 | 2026-11-20 | Migration là schema thật của DB backend (DB riêng); giữ tên giống Alembic cho ETL | [021](021-tach-database.md) |
+| v1.3 | 2026-11-25 | Gạch và sửa tại chỗ hai đoạn "DB thật dùng chung / migration chỉ cho DB local" | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 
 ## Gợi ý review
 

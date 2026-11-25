@@ -23,7 +23,7 @@ export interface ActorScope {
 }
 
 /**
- * The single port for CALLING the AI Engine synchronously (/internal/v1, E1–E4, E6–E21).
+ * The single port for CALLING the AI Engine synchronously (/internal/v1, E1–E4, E6, E7, E10–E21).
  * Cross-domain side effects are not calls: they are integration events written to the
  * outbox (E5/E8/E9 and callback B1 became events — docs/integration.md).
  *

@@ -2,12 +2,14 @@
 
 > Task: F-07, F-08, F-09, F-11 · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
 >
-> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** E5/E8/E9 và callback B1 bỏ khỏi hợp đồng, port, mock, http client — đã thành **sự kiện** Redis Streams. E1/E3/E4 có `modelRuntime` bắt buộc; E1 có `history.throughSequence` (thay `historyHint`) và `planning.planLifecycle`. Bỏ env `AI_ENGINE_MOCK_INDEX_DELAY_MS`; giả lập index tài liệu chuyển sang BUS-01.
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** E5/E8/E9 và callback B1 bỏ khỏi hợp đồng, port, mock, http client — đã thành **sự kiện** Redis Streams. E1/E3/E4 có `modelRuntime` bắt buộc; E1 có `history.throughSequence` (thay `historyHint`) và `planning.planLifecycle`. Bỏ env `AI_ENGINE_MOCK_INDEX_DELAY_MS`; giả lập index tài liệu chuyển sang BUS-01. Rà lại 2026-11-25: các đoạn trong bài còn theo kế hoạch DB dùng chung đã được gạch và sửa ngay tại chỗ.
 
 ## Tóm tắt dễ hiểu
 
 Phần "trí tuệ" của chatbot (LLM, tìm tài liệu, gọi tool…) vẫn nằm ở hệ thống Python gọi là
-**AI Engine**. Backend mới chỉ nói chuyện với nó qua một "cổng" duy nhất.
+**AI Engine**. Backend mới ~~chỉ nói chuyện với nó qua một "cổng" duy nhất~~ gọi nó qua một "cổng" duy nhất (API
+nội bộ); việc chỉ cần báo cho Engine biết (xoá hội thoại, tài liệu mới…) thì gửi bằng **sự kiện** qua Redis, không
+qua cổng này (tách DB, [integration.md](../integration.md)).
 
 Vì chưa có AI Engine chạy riêng, tôi làm một **AI giả lập**: nó trả lời giống hệt về *hình thức*
 (chữ chạy ra từng phần, có lúc gọi tool, có lúc xin phép người dùng, có lúc báo lỗi…) nhưng *nội dung*
@@ -17,11 +19,12 @@ không phải chờ đội Python.
 Muốn thử tình huống nào thì gõ "mã" vào tin nhắn, ví dụ `[mock:interrupt]` để giả lập AI dừng lại
 xin phép chạy lệnh, `[mock:error]` để giả lập lỗi.
 
-Khi AI Engine thật sẵn sàng, chỉ đổi một dòng cấu hình `AI_ENGINE_MODE=http` — không sửa code.
+Khi AI Engine thật sẵn sàng, chỉ đổi một dòng cấu hình `AI_ENGINE_MODE=http` — không sửa code. (Tách DB: Engine
+thật còn cần hỏi ngược backend qua B-API — INT-01 — và nhận sự kiện — BUS-01; đó là task riêng, không thuộc mock.)
 
 ## Vấn đề cần giải quyết
 
-- Spec §8: backend gọi Engine qua `/internal/v1` (E1–E21) + Engine gọi ngược 1 callback (B1).
+- ~~Spec §8: backend gọi Engine qua `/internal/v1` (E1–E21) + Engine gọi ngược 1 callback (B1).~~ **Sửa 25/11 (tách DB):** spec §8 + [integration.md §5](../integration.md): backend gọi Engine qua `/internal/v1` (E-API: E1–E4, E6, E7, E10–E21); Engine chỉ đọc ngược backend qua B-API B2–B4; E5/E8/E9 và callback B1 đã thành sự kiện Redis Streams.
   Lượt chat là stream NDJSON sự kiện V3, **đúng một** sự kiện kết thúc.
 - Phần khó nhất của backend (W4: khoá lượt, lease, Stop, HITL, Continue, mất kết nối) chỉ test được
   nếu có thứ phát ra *đủ mọi nhánh* sự kiện một cách chủ động.
@@ -30,7 +33,7 @@ Khi AI Engine thật sẵn sàng, chỉ đổi một dòng cấu hình `AI_ENGIN
 ## Đã giải quyết thế nào
 
 - Định nghĩa **hợp đồng** (kiểu dữ liệu request/sự kiện) trong `src/contracts/engine/` — đánh dấu DRAFT.
-- Một **interface** `AiEngineClient` với 1 method cho mỗi endpoint E1–E21.
+- Một **interface** `AiEngineClient` với 1 method cho mỗi endpoint ~~E1–E21~~ E-API (E1–E4, E6, E7, E10–E21 — tách DB); không có method side effect: việc cần báo Engine đi qua outbox.
 - Hai bản cài đặt dùng chung interface:
   - `MockAiEngineClient` — giả lập trong tiến trình;
   - `HttpAiEngineClient` — gọi Engine thật, đọc NDJSON từng dòng không chờ hết body.
@@ -43,7 +46,7 @@ Khi AI Engine thật sẵn sàng, chỉ đổi một dòng cấu hình `AI_ENGIN
 | Việc | File |
 |---|---|
 | Kiểu sự kiện V3 | [src/contracts/engine/v3-events.ts](../../src/contracts/engine/v3-events.ts) |
-| Body E1–E21, B1 | [src/contracts/engine/internal-api.ts](../../src/contracts/engine/internal-api.ts) |
+| Body E-API (E1–E4, E6, E7, E10–E21); B-API ở `src/contracts/backend/internal-api.ts` | [src/contracts/engine/internal-api.ts](../../src/contracts/engine/internal-api.ts) |
 | Interface (port) | [src/platform/ports/ai-engine.port.ts](../../src/platform/ports/ai-engine.port.ts) |
 | Mock | [src/platform/ai-engine/mock/mock-ai-engine.client.ts](../../src/platform/ai-engine/mock/mock-ai-engine.client.ts) |
 | Marker kịch bản | [src/platform/ai-engine/mock/mock-scenario.ts](../../src/platform/ai-engine/mock/mock-scenario.ts) |
@@ -57,7 +60,7 @@ Chọn bản cài đặt theo cấu hình (production cấm `mock` ngay lúc kh�
 
 ```ts
 if (c.mode === 'http') return new HttpAiEngineClient({ baseUrl, serviceToken, timeoutMs });
-return new MockAiEngineClient({ delayMs, indexDelayMs, backendCallbackBaseUrl, serviceToken, log });
+return new MockAiEngineClient({ delayMs, log });
 ```
 
 Mỗi sự kiện có `seq` tăng dần; Stop làm lượt kết thúc bằng `complete{status:"stopped"}`:
@@ -137,6 +140,8 @@ curl -N -X POST localhost:3000/api/v1/dev/engine/turns \
 
 ## Giới hạn & việc còn lại
 
+- Mock không còn giả lập index tài liệu (bỏ cùng callback B1 và env `AI_ENGINE_MOCK_INDEX_DELAY_MS` khi tách DB);
+  làm lại bằng sự kiện ở BUS-01.
 - **Hợp đồng là DRAFT** suy ra từ spec — phải đối chiếu `events.py`, `workflow.py` của Python (ENG-01, đang chặn vì chưa có code).
 - `HttpAiEngineClient` chưa có retry, circuit breaker, timeout "im lặng" 5 s × 3 (ENG-03).
 - Chưa có mock dạng HTTP server riêng để test client thật (ENG-02).
@@ -181,6 +186,7 @@ curl -N -X POST localhost:3000/api/v1/dev/engine/turns \
 |---|---|---|---|
 | v1 | 2026-11-09 | Hợp đồng DRAFT, mock in-process 12 marker, http client cơ bản, playground | — |
 | v1.1 | 2026-11-20 | Bỏ E5/E8/E9/B1 (thành sự kiện); E1/E3/E4 thêm `modelRuntime`, E1 thêm `history`, `planning.planLifecycle` | [021](021-tach-database.md) |
+| v1.2 | 2026-11-25 | Gạch và sửa tại chỗ: cổng Engine chỉ còn E-API, B1 ⇒ sự kiện, B-API B2–B4; đoạn code chọn adapter theo `MockAiEngineOptions` hiện tại | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 
 ## Gợi ý review
 

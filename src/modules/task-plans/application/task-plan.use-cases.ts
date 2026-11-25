@@ -37,7 +37,7 @@ export function toTaskPlanView(t: TaskPlan): TaskPlanView {
 
 /*
  * TP-02: every task change writes conversations.plan_lifecycle back, exactly like
- * Python TaskPlanService (the Engine reads that column):
+ * Python TaskPlanService (the Engine gets it in E1 `planning.planLifecycle`):
  *  - add (A36)                  => planning mode on + 'draft'
  *  - update / complete / delete => deriveLifecycle(all tasks of the conversation)
  * Each runs in one transaction with the conversation row locked (FOR UPDATE), so

@@ -178,7 +178,7 @@ Swagger `/docs` → nhóm **auth** → `POST /auth/login` với `dev@example.loc
   trên Postgres thật — đưa vào integration test ở F-14.
 - Chưa có giới hạn số lần đăng nhập sai (rate limit / khoá tạm) — spec không yêu cầu, ghi nhận để bàn.
 - Refresh/logout (A3, A4) là AUTH-02; kiểm `ver` + user đã xoá trong guard là AUTH-03.
-- Cột `users.role` có trong DB local, nhưng DB thật chỉ có sau migration Alembic S1 (P1).
+- ~~Cột `users.role` có trong DB local, nhưng DB thật chỉ có sau migration Alembic S1 (P1).~~ **Sửa 25/11 (tách DB):** cột `users.role` chỉ có ở DB backend (migration NestJS); DB cũ của Python không có — ETL-01 điền `users.role = 'user'` khi chép dữ liệu lúc cutover ([integration.md §10](../integration.md)).
 
 ## Điểm tranh cãi & quyết định
 
@@ -220,6 +220,7 @@ Swagger `/docs` → nhóm **auth** → `POST /auth/login` với `dev@example.loc
 |---|---|---|---|
 | v1 | 2026-11-09 | A1 signup, A2 login, refresh token opaque (phát hành), seed có mật khẩu thật | AUTH-01 |
 | v1.1 | 2026-11-18 | Chuẩn hoá email như Python (domain chữ thường), dùng chung cho login; TC-17/18/19 đối chiếu Python | [019](019-doi-chieu-hanh-vi-python.md) |
+| v1.2 | 2026-11-25 | `users.role` có ở DB backend, ETL điền `'user'` (bỏ "migration Alembic S1 trên DB thật") | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 
 ## Gợi ý review
 

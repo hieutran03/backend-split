@@ -2,7 +2,7 @@
 
 > Task: F-01 … F-06, F-12 · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
 >
-> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Luật "schema DB thuộc Alembic" và "migration chỉ cho DB local" không còn đúng: backend có **DB riêng**, migration NestJS là schema thật của nó. Outbox sẽ được relay đẩy lên Redis Streams (BUS-01), không gọi HTTP Engine. Thêm luật 7 + máy canh `src/app.entities.spec.ts`.
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Luật "schema DB thuộc Alembic" và "migration chỉ cho DB local" không còn đúng: backend có **DB riêng**, migration NestJS là schema thật của nó. Outbox sẽ được relay đẩy lên Redis Streams (BUS-01), không gọi HTTP Engine. Thêm luật 7 + máy canh `src/app.entities.spec.ts`. Rà lại 2026-11-25: các đoạn trong bài còn theo kế hoạch DB dùng chung đã được gạch và sửa ngay tại chỗ.
 
 ## Tóm tắt dễ hiểu
 
@@ -25,7 +25,7 @@ tính năng sau đều dựa vào nó:
 - JWT phải tương thích Python: HS256, cùng `SECRET_KEY`, chấp nhận token cũ không có claim `type` (D19),
   từ chối `type=refresh|widget`.
 - Side effect sang Engine phải qua outbox trong cùng transaction (D9) — không được gọi Engine trước khi commit.
-- Schema DB hiện thuộc Alembic (Python) ⇒ không được để TypeORM tự sửa schema.
+- ~~Schema DB hiện thuộc Alembic (Python) ⇒ không được để TypeORM tự sửa schema.~~ **Sửa 25/11 (tách DB):** backend có DB riêng, schema do migration NestJS làm chủ nhưng phải giữ giống Alembic để ETL chép dữ liệu 1:1 lúc cutover ⇒ vẫn không để TypeORM tự sửa schema (`synchronize`), mọi thay đổi đi qua migration.
 - Hai người cùng làm (giờ là Claude làm, Hiếu review) ⇒ cần luật kiến trúc có **máy canh**, không chỉ là quy ước.
 
 ## Đã giải quyết thế nào
@@ -40,6 +40,8 @@ Chia code thành 4 tầng, giống chia một nhà hàng thành bếp – quầy
 
 Một công cụ tự động (`pnpm test:architecture`) đánh trượt build nếu "công thức" lén gọi database,
 hoặc module này thò tay vào ruột module khác. Đã thử cố tình vi phạm — công cụ bắt được cả hai.
+Từ 20/11 thêm một test (`src/app.entities.spec.ts`) chặn mọi Record/SQL chạm bảng của AI Engine — backend chỉ
+dùng DB của chính mình (luật 7 trong [architecture.md](../architecture.md)).
 
 ## Chi tiết kỹ thuật
 
@@ -55,7 +57,7 @@ hoặc module này thò tay vào ruột module khác. Đã thử cố tình vi p
 | Transaction qua AsyncLocalStorage | [src/platform/database/db-context.ts](../../src/platform/database/db-context.ts) |
 | Outbox | [src/platform/database/outbox/typeorm-outbox.ts](../../src/platform/database/outbox/typeorm-outbox.ts) |
 | Luật kiến trúc | [.dependency-cruiser.cjs](../../.dependency-cruiser.cjs), [eslint.config.mjs](../../eslint.config.mjs) |
-| Baseline DB local | [src/platform/database/migrations/1762646400000-dev-baseline.ts](../../src/platform/database/migrations/1762646400000-dev-baseline.ts) |
+| Migration — schema DB backend, sinh từ Record ([009](009-migration-sinh-bang-script.md); baseline viết tay cũ đã xoá) | [src/platform/database/migrations/](../../src/platform/database/migrations/) |
 
 ### Code then chốt
 
@@ -122,8 +124,8 @@ pnpm verify                 # typecheck + lint + 20 unit test + kiến trúc + b
 ## Giới hạn & việc còn lại
 
 - Chưa kiểm claim `ver` với `users.token_version` / user đã xoá (task AUTH-03).
-- Outbox mới ghi được, **chưa có bộ gửi** sang Engine (task OBX-02).
-- Migration trong repo chỉ dành cho DB local trống; DB thật vẫn do Alembic quản tới P3.
+- Outbox mới ghi được, ~~**chưa có bộ gửi** sang Engine (task OBX-02)~~ **chưa có relay** đẩy sự kiện lên Redis Streams cho Engine (BUS-01, thay OBX-02 — tách DB).
+- ~~Migration trong repo chỉ dành cho DB local trống; DB thật vẫn do Alembic quản tới P3.~~ **Sửa 25/11 (tách DB):** migration trong repo là schema thật của DB backend (DB riêng — [integration.md §3](../integration.md)), sinh bằng script từ Record ([009](009-migration-sinh-bang-script.md)); Alembic chỉ còn quản DB Engine.
 - Chưa có integration test với Postgres thật trong CI (F-14), log JSON + request id (F-15).
 
 ## Điểm tranh cãi & quyết định
@@ -154,14 +156,18 @@ pnpm verify                 # typecheck + lint + 20 unit test + kiến trúc + b
 - **Trạng thái:** tạm chọn.
 
 ### TC-4 — Có cho TypeORM quản lý schema không?
-- **Bối cảnh:** Python (Alembic) đang sở hữu schema tới P3 (§6.3 S7); hai công cụ cùng sửa một bảng là nguy hiểm.
-- **Đang chọn:** **không** — `synchronize: false`, bảng migration riêng `backend_migrations`; migration
-  trong repo chỉ là baseline cho DB local trống.
-- **Trạng thái:** đã chốt theo spec.
+- **Bối cảnh:** ~~Python (Alembic) đang sở hữu schema tới P3 (§6.3 S7); hai công cụ cùng sửa một bảng là nguy hiểm.~~
+  **Sửa 25/11 (tách DB):** backend có **DB riêng** ([integration.md §3](../integration.md)); Alembic chỉ còn quản DB Engine.
+  Schema DB backend vẫn phải giống hệt Alembic để ETL lúc cutover chép dữ liệu 1:1 (TC-69), nên không để
+  TypeORM tự đổi schema theo entity.
+- **Đang chọn:** **không** tự đồng bộ — `synchronize: false`, bảng migration riêng `backend_migrations`; ~~migration
+  trong repo chỉ là baseline cho DB local trống~~ migration trong repo là schema thật của DB backend, sinh bằng
+  script từ Record và kiểm bằng `db:migrate:check` ([009](009-migration-sinh-bang-script.md)).
+- **Trạng thái:** đã chốt theo spec; lý do đổi từ 20/11 như trên.
 
 ### TC-5 — Token cũ của Python (không có `type`) có được chấp nhận?
 - **Bối cảnh:** D19 — trong lúc chuyển, token cũ phải dùng được tới khi hết hạn (≤ 10 giờ).
-- **Đang chọn:** chấp nhận, có công tắc `JWT_ACCEPT_LEGACY_ACCESS` để tắt sau W1.
+- **Đang chọn:** chấp nhận, có công tắc `JWT_ACCEPT_LEGACY_ACCESS` để tắt ~~sau W1~~ sau cutover (tách DB: không còn đợt W1 lên production riêng; token cũ tự hết hạn ≤ 10 giờ).
 - **Trạng thái:** đã chốt theo spec.
 
 ## Lịch sử phiên bản
@@ -170,6 +176,7 @@ pnpm verify                 # typecheck + lint + 20 unit test + kiến trúc + b
 |---|---|---|---|
 | v1 | 2026-11-09 | Bản đầu: 4 tầng, guard JWT, envelope, transaction, outbox, baseline DB | — |
 | v1.1 | 2026-11-20 | Tách database backend ↔ Engine: DB riêng, outbox ⇒ Redis Streams, máy canh bảng Engine | [021](021-tach-database.md) |
+| v1.2 | 2026-11-25 | Gạch và sửa tại chỗ: luật schema/migration (TC-4), "chưa có bộ gửi" ⇒ relay BUS-01, công tắc token cũ tắt sau cutover; thêm câu về máy canh bảng Engine | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 
 ## Gợi ý review
 

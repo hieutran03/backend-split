@@ -30,8 +30,10 @@ export function createDataSource(
     entities,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     migrations: migrations as Function[],
-    migrationsTableName: 'backend_migrations', // §6.3 S7: do not touch alembic_version
-    synchronize: false, // NEVER enable: the schema belongs to Alembic until P3
+    migrationsTableName: 'backend_migrations', // own name, distinct from Alembic's alembic_version
+    // NEVER enable: the backend DB schema is owned by the generated migrations and must stay
+    // identical to the Alembic schema so the cutover ETL copies rows 1:1 (TC-69).
+    synchronize: false,
     logging: config.logQueries,
     extra: { max: config.poolMax },
   });

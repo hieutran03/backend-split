@@ -2,15 +2,15 @@
 
 > Task: SYNC-01 · Ngày: 2026-11-18 · Trạng thái: chờ review
 >
-> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Backend và Engine **không dùng chung DB** nữa. Dump `python-schema.sql` giờ là nguồn cho ETL-01 và cho danh sách 20 FK chéo phía Engine phải bỏ; schema NestJS vẫn giữ giống để chép 1:1.
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Backend và Engine **không dùng chung DB** nữa. Dump `python-schema.sql` giờ là nguồn cho ETL-01 và cho danh sách 20 FK chéo phía Engine phải bỏ; schema NestJS vẫn giữ giống để chép 1:1. Rà lại 2026-11-25: các đoạn trong bài còn theo kế hoạch DB dùng chung đã được gạch và sửa ngay tại chỗ.
 
 ## Tóm tắt dễ hiểu
 
-Backend NestJS và chatbot Python **dùng chung một database**. Tới nay bảng của NestJS được mô tả theo
+~~Backend NestJS và chatbot Python **dùng chung một database**.~~ Backend NestJS có database riêng (tách DB 20/11), nhưng bảng backend phải giống hệt DB Alembic của chatbot Python để lúc cutover chép dữ liệu 1:1 (TC-69). Tới nay bảng của NestJS được mô tả theo
 tài liệu spec — mà spec chỉ chép lại *tên* vài ràng buộc, không chép *nội dung*, và thiếu giá trị mặc
 định phía DB. Giờ đã có repo Python, nên tôi dựng một DB bằng chính migration Alembic của Python, so
 từng cột, ràng buộc, chỉ mục với DB do NestJS tạo, rồi sửa NestJS cho khớp. Kết quả: với 6 bảng Phase 1
-dùng chung, hai bên giờ giống nhau; phần khác duy nhất là những thứ NestJS **cố ý thêm** (`refresh_tokens`,
+~~dùng chung~~ của backend, hai bên giờ giống nhau; phần khác duy nhất là những thứ NestJS **cố ý thêm** (`refresh_tokens`,
 `outbox_events`, cột `users.role`).
 
 ## Vấn đề cần giải quyết
@@ -92,8 +92,10 @@ Diff catalog `pyschema` ↔ `nestschema` (6 bảng) sau khi sửa:
 ```
 
 `DATABASE_URL=<pyschema> pnpm db:migrate:check` (entity NestJS so với DB Alembic) chỉ đề xuất đúng phần NestJS thêm:
-`CREATE TABLE outbox_events`, `CREATE TABLE refresh_tokens` (+ index, FK), `ALTER TABLE users ADD role`. Đây chính
-là nội dung migration "P-cutover" cho DB thật.
+`CREATE TABLE outbox_events`, `CREATE TABLE refresh_tokens` (+ index, FK), `ALTER TABLE users ADD role`. ~~Đây chính
+là nội dung migration "P-cutover" cho DB thật.~~ Tách DB: không chạy migration nào trên DB cũ nữa; DB backend mới
+đã có sẵn các phần này (migration NestJS), lúc cutover ETL-01 chép dữ liệu từ DB cũ, điền `users.role = 'user'`, để
+trống `refresh_tokens`, `outbox_events` ([integration.md §10](../integration.md)).
 
 `pnpm verify`: 19 suite, 116 test xanh; dependency-cruiser không vi phạm.
 
@@ -124,7 +126,7 @@ DATABASE_URL=postgres://chatbot:chatbot@localhost:5432/pyschema pnpm db:migrate:
 
 - Mới so 6 bảng Phase 1. Bảng W2–W6 sẽ so khi làm task tương ứng — dump đã có sẵn.
 - Dump chụp ở head `c4f1a7b9d2e6`; repo Python có migration mới thì dump lại.
-- `users.role` vẫn là cột NestJS thêm (S1) — khi cutover cần chạy trên DB thật.
+- `users.role` vẫn là cột NestJS thêm (S1) — ~~khi cutover cần chạy trên DB thật~~ DB cũ không có; ETL-01 điền `'user'` khi chép sang DB backend (tách DB).
 
 ## Điểm tranh cãi & quyết định
 
@@ -136,7 +138,7 @@ DATABASE_URL=postgres://chatbot:chatbot@localhost:5432/pyschema pnpm db:migrate:
 - **Đang chọn:** record khai `synchronize: false`; một migration viết tay `AlembicOnlyDifferences` gom cả 3 thứ
   TypeORM không thấy (FTS, tên PK feedbacks, chữ của CHECK forked_through).
 - **Trạng thái:** **đóng phần biểu thức**; việc cho phép 1 migration viết tay — **chờ Hiếu duyệt**.
-- **Nếu đổi ý:** bỏ index khỏi NestJS (DB thật vẫn có do Alembic tạo), giữ `synchronize: false` để `check` không đòi xoá.
+- **Nếu đổi ý:** ~~bỏ index khỏi NestJS (DB thật vẫn có do Alembic tạo), giữ `synchronize: false` để `check` không đòi xoá.~~ **Sửa 25/11 (tách DB):** bỏ index khỏi NestJS thì DB backend **không có** index này (Alembic giờ chỉ quản DB Engine); tìm theo nội dung (CONV-04) và B3 tìm tin nhắn cho Engine ([integration.md §5.2](../integration.md)) phải chạy không index.
 
 ### TC-42 — CHECK rating
 - **Trạng thái:** **đóng** — Python `BETWEEN 1 AND 5`, Postgres lưu giống hệt bản NestJS.
@@ -144,7 +146,7 @@ DATABASE_URL=postgres://chatbot:chatbot@localhost:5432/pyschema pnpm db:migrate:
 ### TC-59 — Tên ràng buộc theo DB thật thay vì quy ước `<table>_<column>_fkey`
 - **Bối cảnh:** Quy ước ở `identity/infrastructure/records.ts` đoán tên theo mặc định Postgres; DB thật có các
   tên `fk_*` (Alembic naming) và `feedback_*` (tên trước khi đổi tên bảng).
-- **Đang chọn:** theo **tên thật trong dump**, kể cả tên "xấu" `feedback_pkey` — để cutover không phải đổi tên gì.
+- **Đang chọn:** theo **tên thật trong dump**, kể cả tên "xấu" `feedback_pkey` — ~~để cutover không phải đổi tên gì~~ giữ schema DB backend giống hệt DB Alembic để ETL chép 1:1 và `db:migrate:check` trên dump sạch (TC-69, tách DB); đổi tên di sản để sau cutover.
 - **Trạng thái:** tạm chọn.
 
 ## Lịch sử phiên bản
@@ -154,6 +156,7 @@ DATABASE_URL=postgres://chatbot:chatbot@localhost:5432/pyschema pnpm db:migrate:
 | v1 | 2026-11-18 | Dump schema Alembic; sửa 5 Record; migration `AlignWithAlembicSchema` (sinh) + `AlembicOnlyDifferences` (viết tay); cập nhật database-schema.md | Có repo Python để đối chiếu |
 | v1.1 | 2026-11-18 | Đồng bộ artifact (mục ◆, §11, 7 route) với code Python `80d9bc9b`; script sinh route-mapping; cờ rich trong hợp đồng E1/E3/E4 | Hiếu yêu cầu đồng bộ 3 nguồn |
 | v1.2 | 2026-11-20 | Vai trò mới của dump: nguồn ETL + danh sách 20 FK chéo | [021](021-tach-database.md) |
+| v1.3 | 2026-11-25 | Gạch và sửa tại chỗ: "dùng chung một database", migration "P-cutover" trên DB thật, lý do giữ tên ràng buộc (TC-59) và index FTS (TC-36) | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 
 ## Gợi ý review
 

@@ -2,7 +2,7 @@
 
 > Task: CONV-03 (route A12a) · Ngày: 2026-11-11 · Trạng thái: chờ review
 >
-> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Khoá lượt chỉ còn backend dùng, trên DB của mình (không chung với Python). `conversation.forked` là **sự kiện**: Engine dựng memory cho hội thoại con từ summary của nó + B2, thay việc ghi `conversation_summary_jobs` trong transaction fork.
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Khoá lượt chỉ còn backend dùng, trên DB của mình (không chung với Python). `conversation.forked` là **sự kiện**: Engine tạo job tóm tắt cho hội thoại con tới `forkedThroughSequence` (đọc tin qua B2, không dùng summary của nguồn), thay việc ghi `conversation_summary_jobs` trong transaction fork. Rà lại 2026-11-25: các đoạn trong bài còn theo kế hoạch DB dùng chung đã được gạch và sửa ngay tại chỗ.
 
 ## Tóm tắt dễ hiểu
 
@@ -38,17 +38,19 @@ Cách làm theo S8:
 - transaction **REPEATABLE READ**: khoá project `FOR SHARE` rồi hội thoại nguồn `FOR UPDATE`; gặp `40001`
   thì chạy lại.
 
-Python ghi `conversation_summary_jobs` (bảng Engine) trong transaction. Bản mới thay bằng outbox
-`conversation.forked`.
+Python ghi `conversation_summary_jobs` (bảng Engine) trong transaction. Bản mới thay bằng ~~outbox~~ sự kiện
+`conversation.forked` (outbox): Engine tự tạo job tóm tắt cho hội thoại con tới `forkedThroughSequence`, đọc tin
+qua B2, **không** dùng summary của nguồn — như Python (tách DB).
 
 ## Đã giải quyết thế nào
 
-- **Khoá lượt là hạ tầng dùng chung** (port `ConversationTurnLock` ở `platform/`). W4 dùng lại khi chạy lượt
+- **Khoá lượt là hạ tầng dùng chung trong backend** (port `ConversationTurnLock` ở `platform/`). W4 dùng lại khi chạy lượt
   chat.
   - Dùng `pg_try_advisory_xact_lock`, poll 50 ms, tối đa 30 s, trên **một connection riêng** giữ suốt thao
     tác (giống Python). Hết giờ ⇒ 409 `conversation_busy`.
-  - Key đúng công thức §11, nên khi chạy song song với Python vẫn loại trừ được nhau. Đã có test vector tính
-    bằng chính công thức Python, gồm cả số dương và số âm.
+  - Key đúng công thức §11~~, nên khi chạy song song với Python vẫn loại trừ được nhau~~. Tách DB: khoá nằm trong DB
+    backend và chỉ backend lấy (Engine không khoá), nên không còn loại trừ với tiến trình Python; giữ công thức để
+    khớp spec. Đã có test vector tính bằng chính công thức Python, gồm cả số dương và số âm.
 - **`TransactionManager`** có thêm tuỳ chọn `retriesOnSerializationFailure`: gặp `40001` thì chạy lại
   **toàn bộ** transaction. Fork dùng 2 lần thử lại.
 - **Copy tin nhắn do module messages làm** (`FORK_MESSAGE_SOURCE` xuất qua `public-api.ts`), nên
@@ -143,7 +145,7 @@ Thêm 8 unit test, tổng cộng 116:
   - "bỏ media owner không đọc được" (W3, `chat_images`).
 - "**Hoàn tất**" hiện chỉ kiểm `sender = assistant`. Khi có `generations` cần kiểm thêm câu trả lời không
   thuộc một lượt còn đang chạy (TC-56).
-- Bên Engine: nhận `conversation.forked` để tạo job tóm tắt ⇒ bộ phát outbox OBX-02 và hợp đồng phía Engine.
+- Bên Engine: nhận sự kiện `conversation.forked` để tạo job tóm tắt cho con ⇒ ~~bộ phát outbox OBX-02 và hợp đồng phía Engine~~ relay BUS-01 (thay OBX-02) và checklist phía Engine ENG-04 ([integration.md §11](../integration.md)).
 - `ck_conversations_fork_request_fields_together` vẫn chờ biểu thức thật (TC-29).
 
 ## Điểm tranh cãi & quyết định
@@ -190,3 +192,4 @@ Thêm 8 unit test, tổng cộng 116:
 | v1 | 2026-11-11 | A12a; port khoá lượt dùng chung; retry 40001; mã lỗi 413 | CONV-03 |
 | v1.1 | 2026-11-18 | Fingerprint theo Python, tiêu đề mặc định "(fork)", giữ `sequence` gốc, mã `conversation_turn_conflict`; CHECK fork request đã có | [019](019-doi-chieu-hanh-vi-python.md) |
 | v1.2 | 2026-11-20 | Ghi chú tách DB: khoá lượt chỉ backend; `conversation.forked` là sự kiện | [021](021-tach-database.md) |
+| v1.3 | 2026-11-25 | Khoá lượt không còn loại trừ với Python; fork: Engine tạo job cho con, không dùng summary nguồn; OBX-02 ⇒ BUS-01/ENG-04 | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |

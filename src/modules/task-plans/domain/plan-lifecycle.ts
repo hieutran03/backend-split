@@ -2,8 +2,9 @@ import type { TaskStatus } from './task-plan';
 
 /**
  * `conversations.plan_lifecycle` values (Python `PlanLifecycle`, VARCHAR(20)).
- * NULL means "no plan". The Engine reads this column, so the rules below are a
- * port of Python `TaskPlanService`, not a design of our own (TP-02).
+ * NULL means "no plan". The Engine receives it in E1 (`planning.planLifecycle`) and
+ * acts on it, so the rules below are a port of Python `TaskPlanService`, not a design
+ * of our own (TP-02).
  */
 export const PLAN_LIFECYCLES = [
   'draft',
@@ -21,7 +22,10 @@ export type PlanLifecycle = (typeof PLAN_LIFECYCLES)[number];
  *  - every task completed or skipped            ⇒ 'completed'
  *  - any task in_progress, completed or skipped ⇒ 'executing'
  *  - otherwise (all pending)                    ⇒ 'draft'
- * 'ready' and 'paused' are only set by the Engine's planning workflow.
+ * Task changes never produce 'ready' or 'paused'. In Python, MessageService infers
+ * 'paused' / 'completed' / 'executing' from the workflow result metadata after a turn
+ * (`_infer_plan_lifecycle`); that moves to the turn orchestrator (GEN-04). No Python
+ * code sets 'ready'.
  */
 export function deriveLifecycle(
   statuses: readonly TaskStatus[],

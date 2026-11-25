@@ -2,7 +2,7 @@
 
 > Task: MSG-01 (route A10, A19, A20) · Ngày: 2026-11-11 · Trạng thái: chờ review
 >
-> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** S4 ghi `sender` là số "khi còn dùng chung DB": DB đã tách nhưng vẫn giữ số để chép dữ liệu 1:1 (TC-69). TC-35 không bị ảnh hưởng — `messages` và `conversations` cùng nằm trong DB backend. Engine đọc tin nhắn qua B-API B2, không đọc bảng.
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** S4 ghi `sender` là số "khi còn dùng chung DB": DB đã tách nhưng vẫn giữ số để chép dữ liệu 1:1 (TC-69). TC-35 không bị ảnh hưởng — `messages` và `conversations` cùng nằm trong DB backend. Engine đọc tin nhắn qua B-API B2, không đọc bảng. Rà lại 2026-11-25: các đoạn trong bài còn theo kế hoạch DB dùng chung đã được gạch và sửa ngay tại chỗ.
 
 ## Tóm tắt dễ hiểu
 
@@ -24,7 +24,7 @@ Lượt này chỉ có phần **đọc**. Tin nhắn được **ghi** khi chat v
   định trong một hội thoại, Python mặc định theo `createdAt`.
 - **A19** `GET /messages/{id}`: không sở hữu ⇒ **404** (Python trả 403; D15).
 - **A20** `GET /messages`: phân trang S2, lọc tuỳ chọn theo `conversationId`.
-- **S4**: cột `sender` trong DB vẫn là số khi còn dùng chung DB với Python; API trả chuỗi.
+- **S4**: cột `sender` trong DB vẫn là số ~~khi còn dùng chung DB với Python~~, giữ giống schema Alembic để lúc cutover chép dữ liệu 1:1 (TC-69, tách DB); API trả chuỗi.
 - Tạo bảng `messages` theo §6, migration **sinh bằng script**. Thêm luôn FK
   `conversations.forked_from_message_id → messages` đã hoãn từ CONV-01.
 
@@ -214,6 +214,7 @@ Thêm 7 unit test, tổng cộng 88:
 | v1.1 | 2026-11-18 | Record khai index FTS (`synchronize: false`) + default `message_metadata '{}'::jsonb` theo DB thật; TC-36 đóng phần biểu thức, TC-37 bổ sung nguồn `suggestedQuestions` | Đối chiếu repo Python ([018](018-dong-bo-schema-alembic.md)) |
 | v1.2 | 2026-11-18 | `messageMetadata` được làm sạch như Python `MessageRead` (bỏ `original_image_url`…) ở A10/A19/A20 và tin xem trước; `format=ui-message` (MSG-02) | [020](020-ui-message-projection.md) |
 | v1.3 | 2026-11-20 | Ghi chú tách DB: `sender` số giữ cho ETL; Engine đọc tin nhắn qua B2 | [021](021-tach-database.md) |
+| v1.4 | 2026-11-25 | Lý do giữ `sender` số: ETL 1:1 (TC-69), không phải DB dùng chung | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 
 ## Gợi ý review
 

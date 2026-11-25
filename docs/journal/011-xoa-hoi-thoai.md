@@ -2,7 +2,7 @@
 
 > Task: CONV-02 (route A12; gộp A25) · Ngày: 2026-11-11 · Trạng thái: chờ review
 >
-> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** `conversation.deleted` là **sự kiện** Redis Streams; Engine tự dừng run của hội thoại rồi xoá thread (TC-71), thay "bộ phát gọi E2 rồi E5". Payload có kiểu `ConversationDeletedV1`; bỏ interface `ConversationDeletedPayload` trong module.
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** `conversation.deleted` là **sự kiện** Redis Streams; Engine tự dừng run của hội thoại rồi xoá thread (TC-71), thay "bộ phát gọi E2 rồi E5". Payload có kiểu `ConversationDeletedV1`; bỏ interface `ConversationDeletedPayload` trong module. Rà lại 2026-11-25: các đoạn trong bài còn theo kế hoạch DB dùng chung đã được gạch và sửa ngay tại chỗ.
 
 ## Tóm tắt dễ hiểu
 
@@ -11,7 +11,9 @@ Người dùng giờ có thể **xoá một cuộc trò chuyện**. Sau khi xoá
 - nó biến khỏi danh sách và không mở lại được (báo "không tìm thấy");
 - dữ liệu chưa bị xoá hẳn khỏi DB, chỉ được đánh dấu "đã xoá" (xoá mềm);
 - phần dữ liệu AI Engine giữ cho cuộc trò chuyện đó (checkpoint của các lượt chat) sẽ được dọn **chắc chắn**.
-  Backend ghi một "việc cần làm" vào hàng đợi (outbox), và bộ phát sẽ gọi Engine, có thử lại khi lỗi.
+  Backend ghi một ~~"việc cần làm" vào hàng đợi (outbox), và bộ phát sẽ gọi Engine, có thử lại khi lỗi~~ sự kiện
+  "đã xoá" vào hàng đợi (outbox) cùng lúc với lệnh xoá; bộ phát đẩy nó sang Engine qua Redis (có thử lại khi lỗi),
+  Engine nhận rồi tự dừng lượt đang chạy và dọn dữ liệu của mình (tách DB).
   Python hiện chỉ dọn "cố gắng hết sức" trong cùng request, lỗi là bỏ qua.
 
 Các cuộc trò chuyện được **fork** từ cuộc này vẫn giữ nguyên.
@@ -53,7 +55,7 @@ Các cuộc trò chuyện được **fork** từ cuộc này vẫn giữ nguyên
 src/modules/conversations/
   domain/conversation.ts                        softDelete(now)
   application/ports.ts                          findOwnedForUpdate, ConversationThreadSource
-  application/conversation.use-cases.ts         DeleteConversationUseCase, ConversationDeletedPayload
+  application/conversation.use-cases.ts         DeleteConversationUseCase; payload ConversationDeletedV1 (src/contracts/events)
   infrastructure/typeorm-conversation.repository.ts   lock: pessimistic_write
   infrastructure/no-thread-source.ts            tạm trả [] tới khi có generations/hitl_interrupts
   presentation/conversations.controller.ts      DELETE /conversations/:conversationId
@@ -115,10 +117,14 @@ Phần chống ghi hai event khi xoá đồng thời phụ thuộc khoá của P
 
 ## Giới hạn & việc còn lại
 
-- **Bộ phát outbox (OBX-02)** chưa có. Event đang nằm ở `pending`. Khi làm OBX-02, với
-  `conversation.deleted` bộ phát sẽ:
-  1. gọi E2 dừng lượt đang chạy, nếu có;
-  2. gọi E5 với `threadIds`.
+- ~~**Bộ phát outbox (OBX-02)** chưa có. Event đang nằm ở `pending`. Khi làm OBX-02, với
+  `conversation.deleted` bộ phát sẽ: (1) gọi E2 dừng lượt đang chạy, nếu có; (2) gọi E5 với `threadIds`.~~
+  **Sửa 25/11 (tách DB):** **relay outbox (BUS-01, thay OBX-02)** chưa có; event đang nằm ở `pending`. Khi có BUS-01, relay chỉ
+  đẩy `conversation.deleted` lên `bus:backend:events`; consumer group `engine` (phía Engine, ENG-04) tự:
+  1. dừng lượt đang chạy của hội thoại, nếu có;
+  2. xoá các thread checkpoint trong `threadIds`, bỏ summary/job/cache của hội thoại.
+
+  Backend không gọi E2/E5 nữa (E5 đã bỏ; E2 chỉ còn cho nút Stop — TC-71).
 - `threadIds` thật: thay `NoThreadSourceYet` bằng truy vấn khi có bảng `generations` (GEN-02) và
   `hitl_interrupts`.
 - Khi đã có lượt chat (W4), xoá có cần lấy **khoá lượt** (advisory lock) của hội thoại không? Xem lại cùng
@@ -132,26 +138,33 @@ Phần chống ghi hai event khi xoá đồng thời phụ thuộc khoá của P
 - **Bối cảnh:** spec mâu thuẫn.
   - [engine-contract.md](../reference/engine-contract.md) mục D24 ghi: "Xoá hội thoại đang có lượt active
     ⇒ 409". PLAN ban đầu cũng chép theo D24.
-  - Ghi chú route A12 trong [route-mapping.md](../reference/route-mapping.md) ghi ngược lại: "An active
-    turn does not block the delete: it is stopped through E2 and the delete proceeds".
-  - Bảng outbox ghi `conversation.deleted` ⇒ "E2 (nếu còn lượt active) rồi E5".
+  - Ghi chú route A12 trong [route-mapping.md](../reference/route-mapping.md) ghi ngược lại: ~~"An active
+    turn does not block the delete: it is stopped through E2 and the delete proceeds"~~ (bản sau tách DB:)
+    "An active turn does not block the delete (…): the Engine stops the run when it consumes
+    `conversation.deleted` (TC-71)".
+  - ~~Bảng outbox ghi `conversation.deleted` ⇒ "E2 (nếu còn lượt active) rồi E5".~~ Danh mục sự kiện
+    ([integration.md §6.4](../integration.md)) ghi `conversation.deleted` ⇒ Engine "dừng lượt đang chạy của hội
+    thoại, xoá thread checkpoint `threadIds`".
 - **Phương án:**
-  - (a) Không chặn: xoá luôn, bộ phát dừng lượt qua E2.
+  - (a) Không chặn: xoá luôn, ~~bộ phát dừng lượt qua E2~~ Engine tự dừng lượt khi nhận sự kiện `conversation.deleted` (TC-71).
   - (b) Trả 409 như D24, người dùng phải bấm Stop trước.
-- **Đang chọn:** (a). Hai nguồn cụ thể hơn (ghi chú route và bảng outbox) khớp nhau. Theo AGENTS luật 5,
+- **Đang chọn:** (a). Hai nguồn cụ thể hơn (ghi chú route và ~~bảng outbox~~ danh mục sự kiện) khớp nhau. Theo AGENTS luật 5,
   route-mapping là nguồn sự thật cho route.
 - **Ảnh hưởng hiện tại:** không có. Bảng `generations` chưa tồn tại nên chưa thể có lượt active.
 - **Trạng thái:** tạm chọn, **chờ Hiếu xác nhận** trước W4.
 - **Đối chiếu Python (2026-11-18):** **khớp Python** — Python không chặn và cũng không dừng lượt đang chạy khi xoá ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-34 — `threadIds` lấy lúc xoá hay lúc phát?
-- **Bối cảnh:** có thể chụp danh sách thread ngay trong transaction xoá, hoặc để bộ phát tự truy vấn khi
-  gọi E5.
+- **Bối cảnh:** có thể chụp danh sách thread ngay trong transaction xoá, hoặc để bộ phát tự truy vấn ~~khi
+  gọi E5~~ lúc đẩy sự kiện. Engine không tự tra được vì `generations`/`hitl_interrupts` nằm trong DB backend
+  (tách DB).
 - **Đang chọn:** chụp lúc xoá, ghi luôn vào payload. Payload tự đủ thông tin: bộ phát (ở `platform`) không
   phải đọc bảng của module, và kết quả không phụ thuộc thời điểm phát.
 - **Rủi ro:** nếu sau khi xoá vẫn sinh thêm thread thì thread đó bị sót. Lượt đang chạy có thể ghi tiếp
-  checkpoint trước khi E2 kịp dừng nó. Khi tới W4 cần cân nhắc: hoặc bộ phát gọi E2 trước rồi truy vấn bổ
-  sung, hoặc trông vào retention sweep của Engine.
+  checkpoint ~~trước khi E2 kịp dừng nó. Khi tới W4 cần cân nhắc: hoặc bộ phát gọi E2 trước rồi truy vấn bổ
+  sung, hoặc trông vào retention sweep của Engine~~ trong vài giây trước khi Engine xử lý `conversation.deleted`
+  và dừng nó (TC-71). Khi tới W4 cần cân nhắc: Engine dọn thêm thread của run vừa dừng, hoặc trông vào retention
+  sweep của Engine (chưa chốt với phía Engine — ENG-04).
 - **Trạng thái:** tạm chọn.
 - **Đối chiếu Python (2026-11-18):** Python chỉ dọn một thread = id hội thoại (best-effort, nền); payload NestJS là tập lớn hơn — giữ ([019](019-doi-chieu-hanh-vi-python.md)).
 
@@ -162,6 +175,7 @@ Phần chống ghi hai event khi xoá đồng thời phụ thuộc khoá của P
 | v1 | 2026-11-11 | A12/A25: xoá mềm + outbox `conversation.deleted`, khoá dòng chống xoá trùng | CONV-02 |
 | v1.1 | 2026-11-18 | TC-33/34 đối chiếu Python — không đổi code | [019](019-doi-chieu-hanh-vi-python.md) |
 | v1.2 | 2026-11-20 | Event `conversation.deleted` theo hợp đồng; Engine tự dừng run + xoá thread (TC-71) | [021](021-tach-database.md) |
+| v1.3 | 2026-11-25 | Gạch và sửa tại chỗ: bộ phát gọi E2/E5 ⇒ relay + Engine tự dừng run và xoá thread (TC-71); bối cảnh TC-33/TC-34 theo danh mục sự kiện | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 
 ## Gợi ý review
 

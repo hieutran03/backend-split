@@ -6,12 +6,13 @@
 
 Nhiều chỗ ở Phase 1 trước đây phải **đoán** cách Python làm (ghi thành `TC-n`, "tạm chọn"). Giờ đã đọc được
 code Python, tôi đi lại từng điểm: chỗ nào đoán đúng thì đóng; chỗ nào đoán sai mà **ảnh hưởng tới dữ liệu
-dùng chung hoặc FE** thì sửa code cho giống Python; chỗ nào NestJS cố ý khác (do spec quyết) thì giữ và ghi rõ.
+~~dùng chung~~ hoặc FE** thì sửa code cho giống Python (tách DB: dữ liệu cũ sẽ được chép 1:1 sang DB backend, Engine nhận lại qua E1/B2); chỗ nào NestJS cố ý khác (do spec quyết) thì giữ và ghi rõ.
 
 Thay đổi người dùng/FE thấy được:
 
-- **Kế hoạch công việc** giờ cập nhật trạng thái kế hoạch của hội thoại (`plan_lifecycle`) như Python — Engine
-  đọc cột này để biết kế hoạch đang nháp, đang chạy hay đã xong (TP-02). Việc đầu tiên đánh số **0** (trước: 1).
+- **Kế hoạch công việc** giờ cập nhật trạng thái kế hoạch của hội thoại (`plan_lifecycle`) như Python — ~~Engine
+  đọc cột này~~ backend gửi giá trị này cho Engine mỗi lượt chat (E1, tách DB) để Engine biết kế hoạch đang nháp,
+  đang chạy hay đã xong (TP-02). Việc đầu tiên đánh số **0** (trước: 1).
 - **Fork**: tiêu đề mặc định là `"<tiêu đề gốc> (fork)"`; tin nhắn copy giữ nguyên số thứ tự gốc; mã băm
   chống gửi trùng tính **đúng công thức Python**, nên gửi lại một yêu cầu fork mà Python đã tạo vẫn nhận ra.
 - **Danh sách hội thoại**: tin xem trước (`include=messages`) trả **cũ → mới**; khi tìm kiếm, kết quả xếp theo
@@ -67,7 +68,12 @@ Quy tắc port từ `TaskPlanService` (đọc tận mắt `services/task_plan_se
 | Sửa / hoàn thành / xoá task (A39–A41) | tính lại từ **mọi** task: không còn task ⇒ NULL; tất cả completed/skipped ⇒ `completed`; có task in_progress/completed/skipped ⇒ `executing`; còn lại ⇒ `draft` |
 | Xem planning-status (A42) | có task mà cờ planning đang tắt ⇒ bật lại (TC-60) |
 
-`ready` và `paused` chỉ do workflow của Engine đặt — NestJS không bao giờ tự đặt.
+~~`ready` và `paused` chỉ do workflow của Engine đặt — NestJS không bao giờ tự đặt.~~ Sửa 25/11 (đọc lại Python):
+module task-plans không bao giờ đặt `ready`/`paused`. Ở Python, `MessageService._infer_plan_lifecycle`
+(`services/message_service.py:1624`) suy `paused` / `completed` / `executing` từ metadata kết quả workflow
+(`interrupt`, `pause_reason`, `planning_budget_reached`, `all_tasks_completed`, `todos`) rồi ghi qua
+`TaskPlanService`; không thấy code nào đặt `ready`. Engine không ghi bảng backend (tách DB), nên phần suy này về
+backend cùng `MessageService` ở GEN-04, từ metadata sự kiện cuối của stream.
 
 Khác Python một chỗ có chủ đích: Python ghi lifecycle **sau** khi commit thay đổi task, ngoài transaction, nuốt
 lỗi. NestJS làm trong **cùng transaction**, khoá dòng hội thoại trước (`FOR UPDATE`), nên hai thay đổi đồng thời
@@ -166,7 +172,7 @@ Lần chạy đầu bắt được một lỗi thật: **login không chuẩn ho
 ### TC-60 — GET planning-status có ghi DB (bật planning mode)
 - **Bối cảnh:** Python `get_planning_status` bật `planning_mode_enabled` nếu hội thoại có task mà cờ đang tắt.
 - **Phương án:** A) giữ như Python (GET có tác dụng phụ); B) bỏ — GET thuần đọc.
-- **Đang chọn:** A — Engine đọc cờ này; khác Python thì hành vi lượt chat sau đó sẽ khác.
+- **Đang chọn:** A — ~~Engine đọc cờ này~~ cờ này đi trong E1 (`planning.planningModeEnabled`) sang Engine (tách DB); khác Python thì hành vi lượt chat sau đó sẽ khác.
 - **Trạng thái:** tạm chọn — **Hiếu xem**.
 
 ### TC-61 — Ghi lifecycle trong cùng transaction thay vì sau commit như Python
@@ -178,6 +184,7 @@ Lần chạy đầu bắt được một lỗi thật: **login không chuẩn ho
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-18 | TP-02; sửa fingerprint/tiêu đề/sequence fork, mã `conversation_turn_conflict`, thứ tự preview, tìm kiếm theo độ liên quan, chuẩn hoá email (cả login); đóng/ghi nhận TC-17…58 | Có repo Python |
+| v1.1 | 2026-11-25 | Engine nhận `plan_lifecycle`/`planningModeEnabled` qua E1; sửa sai: `paused` do `MessageService` suy từ metadata workflow (không phải Engine tự đặt), không có code đặt `ready` | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 
 ## Gợi ý review
 

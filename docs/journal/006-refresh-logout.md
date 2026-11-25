@@ -16,7 +16,7 @@ thật đều bị đá ra; chủ thật đăng nhập lại là xong, còn kẻ
 huỷ một vé (thiết bị hiện tại) hoặc huỷ tất cả (đăng xuất mọi thiết bị).
 
 **Chuyển tiếp từ hệ thống cũ** — Người đang đăng nhập trên hệ thống Python giữ một refresh token kiểu
-cũ (JWT). Trong 7 ngày sau ngày chuyển (W1), vé cũ được **đổi một lần** lấy vé mới, nên người dùng
+cũ (JWT). Trong 7 ngày sau ngày chuyển (~~W1~~ cutover — tách DB), vé cũ được **đổi một lần** lấy vé mới, nên người dùng
 không bị đá ra đột ngột. Đổi lần thứ hai bị coi là sao chép.
 
 ## Vấn đề cần giải quyết
@@ -219,6 +219,7 @@ Thử đổi JWT cũ: đặt `JWT_LEGACY_REFRESH_UNTIL` (vd. `2030-01-01T00:00:0
 |---|---|---|---|
 | v1 | 2026-11-09 | A3 refresh xoay vòng + phát hiện dùng lại, A4 logout thu hồi thật, D19 đổi refresh JWT cũ một lần | AUTH-02 |
 | v1.1 | 2026-11-18 | Ghi nhận hành vi Python (refresh không xoay vòng, logout no-op) ở TC-21/22 — không đổi code | [019](019-doi-chieu-hanh-vi-python.md) |
+| v1.2 | 2026-11-25 | Hạn đổi refresh cũ tính từ cutover, không phải W1 | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 
 ## Gợi ý review
 

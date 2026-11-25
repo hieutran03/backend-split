@@ -19,7 +19,7 @@ Python. Nghĩa là: xoá tài khoản thì tối đa 30 giây sau mọi token c�
 
 - §11 "Token version": claim `ver` trong access/refresh, thiếu = 0. Guard đọc `users.token_version` +
   `deleted_at` qua cache ≤ 30 s; xoá mềm user tăng version. NestJS phải kiểm **giống hệt**.
-- Spec ⚠️: "nếu không, user đã xoá vẫn dùng được token cũ sau W1".
+- Spec ⚠️: "nếu không, user đã xoá vẫn dùng được token cũ sau W1" (tách DB: nay là sau cutover, không còn đợt W1 lên production riêng).
 - Ràng buộc kiến trúc: guard nằm ở `platform/`, còn bảng `users` thuộc module `identity` — `platform`
   không được import module nghiệp vụ.
 
@@ -126,7 +126,7 @@ Muốn thấy hiệu lực tức thì khi dev: `AUTH_USER_STATE_CACHE_SECONDS=0`
 - Refresh token opaque **chưa** gắn với `token_version`: tăng version (không xoá user) thì refresh vẫn cấp
   được access token mới (mang version mới). Nếu muốn "tăng version = đá ra hoàn toàn" thì phải thu hồi luôn
   refresh token — gắn với quyết định TC-22.
-- Python cache 30 s có độ lệch như nhau ở hai bên trong giai đoạn chạy song song W1.
+- ~~Python cache 30 s có độ lệch như nhau ở hai bên trong giai đoạn chạy song song W1.~~ **Sửa 25/11 (tách DB):** nếu cutover một lần (Q10, chờ Hiếu chốt) thì không có giai đoạn NestJS và Python cùng phục vụ đăng nhập trên một DB, nên không có chuyện cache hai hệ lệch nhau.
 
 ## Điểm tranh cãi & quyết định
 
@@ -154,6 +154,7 @@ Muốn thấy hiệu lực tức thì khi dev: `AUTH_USER_STATE_CACHE_SECONDS=0`
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-09 | Guard kiểm `deleted_at` + `token_version` qua port, cache ≤ 30 s có giới hạn | AUTH-03 |
+| v1.1 | 2026-11-25 | Bỏ giả định "chạy song song W1 trên cùng DB"; hạn của spec tính theo cutover | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 
 ## Gợi ý review
 

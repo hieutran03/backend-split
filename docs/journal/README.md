@@ -42,7 +42,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-1 | Layered hay clean architecture | tạm chọn, chờ Hiếu | 001 |
 | TC-2 | Module mỗi context hay 1 composition root | tạm chọn | 001 |
 | TC-3 | zod hay class-validator | tạm chọn | 001 |
-| TC-4 | TypeORM có quản schema không | chốt: không | 001 |
+| TC-4 | TypeORM có quản schema không | chốt: không `synchronize`; từ 20/11 migration là schema DB backend | 001 |
 | TC-5 | Chấp nhận token cũ không `type` | chốt (D19) | 001 |
 | TC-6 | Mock in-process hay HTTP server | tạm chọn in-process | 002 |
 | TC-7 | Hợp đồng V3 DRAFT | **mở** | 002 |

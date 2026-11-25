@@ -2,7 +2,7 @@
 
 > Task: TP-01 (route A36–A42) · Ngày: 2026-11-11 · Trạng thái: chờ review · TP-02 (tính `plan_lifecycle`) làm ở v2 — xem [019](019-doi-chieu-hanh-vi-python.md)
 >
-> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Engine không đọc `conversations.plan_lifecycle`/`task_plans` nữa (ENGINE_READ cũ): backend gửi trong E1 `planning` (`planningModeEnabled`, `planLifecycle`, `tasks`).
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Engine không đọc `conversations.plan_lifecycle`/`task_plans` nữa (ENGINE_READ cũ): backend gửi trong E1 `planning` (`planningModeEnabled`, `planLifecycle`, `tasks`). Rà lại 2026-11-25: các đoạn trong bài còn theo kế hoạch DB dùng chung đã được gạch và sửa ngay tại chỗ.
 
 ## Tóm tắt dễ hiểu
 
@@ -15,7 +15,7 @@ Mỗi cuộc trò chuyện có thể có một **danh sách việc cần làm** 
   nên làm tiếp theo.
 
 **Chưa làm:** Python tự cập nhật "trạng thái kế hoạch" của cuộc trò chuyện (nháp / sẵn sàng / đang chạy /
-tạm dừng / xong) sau mỗi thay đổi. Spec không có quy tắc này, mà AI Engine lại đọc trạng thái đó. Ghi sai
+tạm dừng / xong) sau mỗi thay đổi. Spec không có quy tắc này, mà ~~AI Engine lại đọc trạng thái đó~~ trạng thái đó lại được gửi sang AI Engine trong mỗi lượt chat (E1, tách DB). Ghi sai
 sẽ ảnh hưởng tới AI, nên tôi **không tự đoán**. Việc này tách thành TP-02, chờ code Python.
 
 ## Vấn đề cần giải quyết
@@ -140,7 +140,8 @@ Thêm 6 unit test, tổng cộng 108:
 
 ### TC-48 — Không ghi `plan_lifecycle` tới khi có quy tắc Python
 - **Bối cảnh:** spec ghi "mọi thay đổi task tính lại `conversations.plan_lifecycle`" nhưng không có quy tắc.
-  Engine đọc cột này (ENGINE_READ: "conversations: persona, plan_lifecycle…"), và luồng Continue của
+  ~~Engine đọc cột này (ENGINE_READ: "conversations: persona, plan_lifecycle…")~~ backend gửi giá trị cột này cho
+  Engine trong E1 (`planning.planLifecycle`, tách DB), và luồng Continue của
   generations cũng đặt `paused`.
 - **Đang chọn:** chưa ghi. Planning-status trả về giá trị đang lưu.
 - **Trạng thái:** **mở — cần code Python** (TP-02).
@@ -174,3 +175,4 @@ Thêm 6 unit test, tổng cộng 108:
 | v1 | 2026-11-11 | Module task-plans A36–A42, bảng `task_plans` sinh bằng script; chưa tính `plan_lifecycle` | TP-01 |
 | v2 | 2026-11-18 | TP-02: ghi `plan_lifecycle` (thêm ⇒ draft + bật planning; sửa/hoàn thành/xoá ⇒ tính lại) trong cùng transaction có khoá hội thoại; `task_order` từ 0; `task_metadata {}`; GET planning-status bật planning mode; tên FK/default theo DB thật | [019](019-doi-chieu-hanh-vi-python.md), [018](018-dong-bo-schema-alembic.md) |
 | v2.1 | 2026-11-20 | Ghi chú tách DB: trạng thái planning đi trong E1 | [021](021-tach-database.md) |
+| v2.2 | 2026-11-25 | "Engine đọc cột plan_lifecycle" ⇒ backend gửi trong E1 | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |

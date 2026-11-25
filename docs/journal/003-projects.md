@@ -2,7 +2,7 @@
 
 > Task: F-10 (route PJ1–PJ5) · Ngày: 2026-11-09 · Trạng thái: đã review (2026-11-10)
 >
-> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** `project.deleted` là **sự kiện** có kiểu theo hợp đồng (`ProjectDeletedV1`); relay đưa lên Redis Streams, Engine xoá mềm `user_memories` khi nhận. Code module không đổi.
+> **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** `project.deleted` là **sự kiện** có kiểu theo hợp đồng (`ProjectDeletedV1`); relay đưa lên Redis Streams, Engine xoá mềm `user_memories` khi nhận. Code module không đổi. Rà lại 2026-11-25: các đoạn trong bài còn theo kế hoạch DB dùng chung đã được gạch và sửa ngay tại chỗ.
 
 ## Tóm tắt dễ hiểu
 
@@ -138,7 +138,7 @@ lấy token thứ hai bằng `pnpm -s token:dev` kèm `OTHER_USER_ID` trong [scr
 
 - PJ-05: thứ tự khoá project → hội thoại như Python, và xử lý hội thoại đang gắn khi xoá project.
 - PJ6–PJ9: gắn/gỡ hội thoại, custom agents của project.
-- Event `project.deleted` mới nằm trong outbox, chưa được gửi tới Engine (OBX-02).
+- Event `project.deleted` (payload `ProjectDeletedV1`) mới nằm trong outbox, chưa được ~~gửi tới Engine (OBX-02)~~ relay đẩy lên Redis Streams cho Engine (BUS-01, tách DB).
 
 ## Điểm tranh cãi & quyết định
 
@@ -181,6 +181,7 @@ lấy token thứ hai bằng `pnpm -s token:dev` kèm `OTHER_USER_ID` trong [scr
 | v1 | 2026-11-09 | PJ1–PJ5: CRUD, phân trang, xoá mềm + outbox | — |
 | v1.1 | 2026-11-09 | Thêm tài liệu Swagger cho 5 route, `projectViewSchema` | F-16 |
 | v1.2 | 2026-11-20 | Payload `project.deleted` có kiểu theo `src/contracts/events`; đi qua Redis Streams | [021](021-tach-database.md) |
+| v1.3 | 2026-11-25 | "Gửi tới Engine (OBX-02)" ⇒ relay Redis Streams (BUS-01) | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 
 ## Gợi ý review
 
