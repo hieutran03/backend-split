@@ -37,7 +37,7 @@ const lines = [
   '# Route mapping (nguồn: tài liệu Backend Split §4.2)',
   '',
   `> Sinh từ artifact "Chatbot Backend Split" (commit chatbot ${commit}). Không sửa tay —`,
-  '> nếu spec đổi, sinh lại. Cột **Task** khớp với docs/PLAN.md.',
+  '> nếu spec đổi, sinh lại. Cột **Đợt** khớp với các phase W1–W6 trong docs/PLAN.md.',
   '>',
   '> **Tách database (2026-11-20):** backend và Engine dùng DB riêng; cột Internal ghi sự kiện Redis Streams thay cho',
   '> E5/E8/E9 và callback B1, endpoint mới có B-API B2–B4 (Engine gọi backend). Xem [integration.md](../integration.md).',

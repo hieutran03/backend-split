@@ -76,7 +76,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | F-14 | Integration test với Postgres thật (testcontainers hoặc docker compose) + CI (GitHub Actions/GitLab) | 🤖 | [ ] |
 | F-15 | Request id middleware + log JSON (pino) + truyền `X-Request-Id` sang Engine | 🤖 | [ ] |
 
-## Phase 1 — W1: Identity & đọc (31 route)
+## Phase 1 — W1: Identity & đọc (39 route)
 
 | ID | Task | Route | Owner | Trạng thái |
 |---|---|---|---|---|
@@ -98,7 +98,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | PJ-05 | Hoàn thiện xoá project: khoá project → hội thoại; gỡ mọi hội thoại (`project_id = NULL`) trong cùng transaction — [nhật ký 015](journal/015-project-va-hoi-thoai.md) | PJ5 | 🤖 | [r] |
 | PJ-06 | Gắn/gỡ hội thoại vào project (kiểm 2 phía, khoá project `FOR SHARE`); copy custom agent ⇒ PJ-08 — [nhật ký 015](journal/015-project-va-hoi-thoai.md) | PJ6, PJ7 | 🤖 | [r] |
 
-## Phase 2 — W2: Cấu hình (36 route)
+## Phase 2 — W2: Cấu hình (38 route)
 
 | ID | Task | Route | Owner | Trạng thái |
 |---|---|---|---|---|
@@ -116,7 +116,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | ID | Task | Route | Owner | Trạng thái |
 |---|---|---|---|---|
 | STO-01 | Port `ObjectStorage` + adapter S3/MinIO (put stream, get, delete, presign) | — | 🤖 | [ ] |
-| DOC-01 | Upload multipart (≤ 50 MB, đuôi hợp lệ, trùng tên theo `filename_key`) → S3 → row `documents` + event `document.uploaded` (cần BUS-01) | D1, D2 | 🤖 | [ ] |
+| DOC-01 | Upload multipart (≤ 50 MB, đuôi hợp lệ, trùng tên theo `filename_key`) → S3 → row `documents` + event `document.uploaded` (cần BUS-01); thêm cột attempt hiện hành để rào event trạng thái (R21) | D1, D2 | 🤖 | [ ] |
 | DOC-02 | Nhận event `document.processing_status_changed` (thay callback B1, cần BUS-02): fence `attemptId`, không lùi trạng thái, idempotent | ~~B1~~ | 🤖 | [ ] |
 | DOC-03 | Get/list/patch/delete document (ownership qua conversation), processing-status; xoá ⇒ event `document.deleted` + xoá object S3 ngay sau commit (TC-70) | D3–D7 | 🤖 | [ ] |
 | MED-01 | Chat image từ S3; web image proxy chống SSRF; tool result forward E10 | A47–A49 | 🤖 | [ ] |
@@ -148,14 +148,14 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 | HS-01 | Tool approval settings theo device | A43–A45 | 🤖 | [ ] |
 | WGT-01 | Widgets connection/action + WS `/ws/widgets` (JWT widget secret riêng, đóng 1008 khi sai token) | W1r–W3r | 🤖 | [ ] |
 
-## Phase 6 — W6: Vận hành (16 route)
+## Phase 6 — W6: Vận hành (18 route)
 
 | ID | Task | Route | Owner | Trạng thái |
 |---|---|---|---|---|
 | OBX-02 | ~~Outbox publisher → E2/E5/E8/E9~~ — thay bằng **BUS-01** (relay → Redis Streams) | — | 🤖 | gộp vào BUS-01 |
 | OBX-03 | Admin outbox: list + retry + phát lại theo khoảng thời gian (đối soát khi nghi mất event) | mới | 🤖 | [ ] |
 | SCH-01 | Scheduler: lease reaper ⇒ event `generation.lease_expired`, interrupt expiry (mỗi phút) ⇒ `interrupt.expired`, sweep document kẹt > 1 h (chuyển từ Celery của Python về backend) | — | 🤖 | [ ] |
-| USG-01 | Usage capabilities/dashboard/conversation (E11, E12); Engine chỉ trả id hội thoại ⇒ backend ghép tiêu đề, bỏ hội thoại đã xoá | A50–A52 | 🤖 | [ ] |
+| USG-01 | Usage capabilities/dashboard/conversation (E11, E12); Engine chỉ trả id hội thoại ⇒ backend ghép tiêu đề, bỏ hội thoại đã xoá; `UsageDashboardV1` mới có một phần, port đủ theo `app/schemas/model_usage.py` | A50–A52 | 🤖 | [ ] |
 | OPS-01 | Health dependencies đủ (Redis, S3, Engine deep), `/metrics` Prometheus (gồm streaming H15) | H9–H13, H15 | 🤖 | [ ] |
 
 ## Tách database & kênh giao tiếp (từ 2026-11-20)
@@ -166,9 +166,9 @@ Backend và Engine dùng **database riêng**; thiết kế ở [integration.md](
 | ID | Task | Owner | Trạng thái |
 |---|---|---|---|
 | DS-01 | Thiết kế tách DB + kênh giao tiếp; hợp đồng sự kiện (`src/contracts/events`) và B-API (`src/contracts/backend`); outbox có kiểu theo hợp đồng; gỡ E5/E8/E9/B1 khỏi port Engine; E1/E3/E4 mang `modelRuntime`, `history`; máy canh `app.entities.spec.ts`; sửa toàn bộ tài liệu — [nhật ký 021](journal/021-tach-database.md) | 🤖 | [r] |
-| BUS-01 | Event bus phía phát: port publisher + adapter Redis Streams (`XADD` + `WAITAOF`, `MINID` 7 ngày), relay outbox (poll 2 s, `FOR UPDATE SKIP LOCKED`, backoff 5 s × 2ⁿ ≤ 12 lần) — thay OBX-02; mock Engine tiêu thụ event (giả lập index tài liệu) | 🤖 | [ ] |
+| BUS-01 | Event bus phía phát: port publisher + adapter Redis Streams (`XADD` + `WAITAOF`, `MINID` 7 ngày), relay outbox (poll 2 s, `FOR UPDATE SKIP LOCKED`, backoff 5 s × 2ⁿ, giãn cách ≤ 10 phút, ≤ 12 lần) — thay OBX-02; mock Engine tiêu thụ event (giả lập index tài liệu) | 🤖 | [ ] |
 | BUS-02 | Event bus phía nhận: consumer group `backend` trên `bus:engine:events`, bảng `inbox_events`, `XAUTOCLAIM` 60 s, DLQ sau 10 lần, metric lag | 🤖 | [ ] |
-| INT-01 | B-API B2–B4 + `ServiceTokenGuard` (token Engine → backend riêng), chặn `/internal/*` ở gateway; B4 `no-store`, không log | 🤖 | [ ] |
+| INT-01 | B-API B2–B4 + `ServiceTokenGuard` (token Engine → backend riêng), chặn `/internal/*` ở gateway; B4 `no-store`, không log; B2 thêm tra theo tiền tố id + tiêu đề + số tin cho tool `read_past_conversation` (C20) | 🤖 | [ ] |
 | ETL-01 | Script chép 22 bảng backend từ DB cũ sang DB backend (đếm dòng + checksum từng bảng), diễn tập trên bản sao | 🤖 | [ ] |
 | ENG-04 | Bàn giao + theo dõi checklist phía Engine ([integration.md §11](integration.md)) — không sửa repo chatbot trong repo này | 🤖 + người làm Engine | [ ] |
 
@@ -178,7 +178,7 @@ Backend và Engine dùng **database riêng**; thiết kế ở [integration.md](
 |---|---|---|---|
 | SYNC-01 | Đồng bộ schema 6 bảng Phase 1 với DB dựng bằng Alembic (dump `python-schema.sql`, tên FK/PK thật, default DB, CHECK, index FTS) — [nhật ký 018](journal/018-dong-bo-schema-alembic.md) | 🤖 | [r] |
 | SYNC-03 | Đồng bộ artifact ↔ repo ↔ Python `80d9bc9b`: mục ◆ trong artifact, script `sync-route-mapping.mjs`, cờ rich E1/E3/E4; danh sách "Việc Hiếu bắt buộc quyết" — [nhật ký 018 v1.1](journal/018-dong-bo-schema-alembic.md) | 🤖 | [r] |
-| ENG-01 | Đối chiếu & freeze hợp đồng V3/E1 với code Python (`events.py`, `workflow.py`, `ai_sdk_v6.py`, `internal_sse.py`) — đã có repo chatbot, làm trước W4 | 🤖 | [ ] |
+| ENG-01 | Đối chiếu & freeze hợp đồng V3/E1 với code Python (`events.py`, `workflow.py`, `ai_sdk_v6.py`, `internal_sse.py`) — đã có repo chatbot, làm trước W4; chốt `ModelRuntimeV1` với `ModelConfigService` và E7 (sinh task plan) có cần `modelRuntime` không | 🤖 | [ ] |
 | ENG-02 | Mock Engine **dạng HTTP server** riêng (`pnpm mock:engine`) để test `HttpAiEngineClient` + timeout im lặng | 🤖 | [ ] |
 | ENG-03 | Cứng hoá `HttpAiEngineClient`: retry call idempotent, circuit breaker, timeout im lặng 5 s × 3 | 🤖 | [ ] |
 | LEG-01 | Lớp tương thích route cũ (envelope cũ, snake_case, sender số, header Deprecation/Sunset, counter) | 🤖 | [ ] |
@@ -206,6 +206,7 @@ phương án đang chạy và **hỏi lại đúng lúc bắt đầu mốc** ghi
 | Q10 | Cutover: **một lần** sau khi đủ W1–W6 (ETL-01) hay từng đợt + đồng bộ tạm DB backend → DB cũ (TC-68) | Một lần | Đổi lịch ra production; quyết định hạn của Q1–Q3 | Càng sớm càng tốt |
 | Q11 | Gửi key provider **đã giải mã** sang Engine (E1, B4) hay Engine giữ khoá Fernet (TC-67) | Đã giải mã, mạng nội bộ có TLS, không log | Chính sách bảo mật bí mật của user | Trước GEN-03 / PRV-01 |
 | Q12 | Ai làm checklist phía Engine (integration.md §11), khi nào | — | Phân công người/đội ngoài repo này | Trước khi ghép W4 với Engine thật |
+| Q13 | Registry MCP server (file JSON + bộ đếm trong RAM, R28): bảng trong DB Engine hay bảng `mcp_servers` do backend sở hữu + gửi trong E1 | Chưa làm gì: MCP-01 chỉ forward E13–E20 | Spec tự mâu thuẫn (§1c.6/R28 vs §2/§5/R9); thêm bảng backend hay không | Trước MCP-01 (W2) |
 
 ## Câu hỏi / quyết định đang mở
 
@@ -310,3 +311,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-18 | 🤖 | SYNC-03: artifact spec lên version 9 (mục ◆ đối chiếu 18/11, sửa 4 dòng §11 sai, ghi chú 7 route); route-mapping sinh bằng script từ artifact; hợp đồng E1/E3/E4 thêm cờ rich; lập danh sách Q1–Q8 Hiếu bắt buộc quyết (có hạn chót). |
 | 2026-11-20 | 🤖 | DS-01: tách database backend ↔ Engine theo yêu cầu Hiếu — thiết kế [integration.md](integration.md) (API E/B, sự kiện Redis Streams + outbox/inbox, key Redis dùng chung, ETL cutover); hợp đồng `src/contracts/events`, `src/contracts/backend`; outbox có kiểu theo hợp đồng; bỏ E5/E8/E9/B1; máy canh bảng Engine; kiểm kê 20 FK chéo từ dump Alembic; thêm Q9–Q12, TC-65…72. 216 test xanh. |
 | 2026-11-20 | 🤖 | DS-01 v1.1: artifact spec lên version 11 — sửa thẳng nội dung toàn trang theo DB riêng (bản 10 mới chỉ thêm mục ◇); kiểm 40 sơ đồ tham chiếu đúng làn, 4 khối script qua `node --check`; route-mapping sinh lại (B2–B4 thay B1); sửa mã route D5 ⇒ D7. |
+| 2026-11-25 | 🤖 | DS-01 v1.2: rà lại artifact (3 lượt độc lập: code Python, repo, nội bộ trang) ⇒ version 12: ~85 chỗ sửa (E2 chỉ còn User Stop, fork không dùng summary nguồn, C20–C22 mới, kế hoạch §10 theo cutover một lần, khoá lượt hai DB không loại trừ nhau, số route theo đợt 39/38/10/13/14/18…); repo: thu hẹp `StopTurnRequestV1.reason`, sửa comment/Swagger còn nói E5 hay "bảng dùng chung", integration.md (C20–C22, owner summary, trần backoff), thêm Q13. |

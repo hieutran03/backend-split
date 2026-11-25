@@ -28,7 +28,7 @@ port [src/platform/ports/ai-engine.port.ts](../../src/platform/ports/ai-engine.p
 | # | Method | Path | Kiểu | Backend gọi khi | Method trên `AiEngineClient` |
 |---|---|---|---|---|---|
 | E1 | POST | /internal/v1/turns | NDJSON | Lượt chat mới | `startTurn` |
-| E2 | POST | /internal/v1/turns/{generationId}/stop | JSON | Stop / lease reaper / xoá hội thoại | `stopTurn` |
+| E2 | POST | /internal/v1/turns/{generationId}/stop | JSON | User Stop (lease reaper, xoá hội thoại ⇒ event `generation.lease_expired`, `conversation.deleted`; TC-71) | `stopTurn` |
 | E3 | POST | /internal/v1/interrupts/{interruptId}/resume | NDJSON | HITL resume | `resumeInterrupt` |
 | E4 | POST | /internal/v1/generations/{generationId}/continue | NDJSON | Continue sau hết budget | `continueGeneration` |
 | ~~E5~~ | — | ~~/internal/v1/threads/delete~~ | — | **bỏ** ⇒ event `conversation.deleted`, `interrupt.expired` | — |

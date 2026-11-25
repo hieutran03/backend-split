@@ -2,7 +2,7 @@
 
 > Quyết định ngày 2026-11-20 (task DS-01, [nhật ký 021](journal/021-tach-database.md)). File này **thay** mô hình
 > "một PostgreSQL dùng chung, mỗi bảng một bên ghi" của spec (§6, D9/D10, C1/C2 "Engine đọc bằng role read-only
-> tới P5"). Chỗ nào spec/artifact nói khác thì theo file này, trừ các điểm còn chờ Hiếu quyết (Q9–Q12, cuối file).
+> tới P5"). Chỗ nào spec/artifact nói khác thì theo file này, trừ các điểm còn chờ Hiếu quyết (Q9–Q13, cuối file).
 >
 > Hợp đồng ở dạng code: [src/contracts/events/](../src/contracts/events/) (sự kiện),
 > [src/contracts/backend/internal-api.ts](../src/contracts/backend/internal-api.ts) (B-API, Engine gọi backend),
@@ -123,6 +123,8 @@ Luật B-API:
 - Timeout 5 s; Engine retry với backoff; backend chưa sẵn sàng thì job Engine thử lại sau, không ảnh hưởng lượt chat
   (lượt chat chỉ chạy khi backend đang gọi E1, tức là backend đang sống).
 - B4 trả bí mật: `Cache-Control: no-store`, không log ở cả hai bên, Engine chỉ giữ trong RAM ≤ 5 phút.
+- Còn thiếu (bổ sung ở INT-01, rà 25/11): tool `read_past_conversation` (C20) nhận **tiền tố** id hội thoại trong phạm
+  vi user + project và trả tiêu đề, số tin nhắn; B2 hiện chỉ nhận id đầy đủ + `ownerId`.
 
 ## 6. Sự kiện qua Redis Streams
 
@@ -185,13 +187,13 @@ Mỗi entry trong stream có 2 field: `type` (để lọc/đếm) và `event` (J
 | type | Ghi khi (task) | Engine làm gì | Thay cho |
 |---|---|---|---|
 | `conversation.deleted` | xoá hội thoại A12/A25 (CONV-02 ✅) | dừng lượt đang chạy của hội thoại, xoá thread checkpoint `threadIds`, bỏ summary/job/cache | E2 + E5; cascade |
-| `conversation.forked` | fork A12a (CONV-03 ✅) | chuẩn bị memory cho con: chép summary của nguồn ≤ `forkedThroughSequence`, thiếu thì đọc B2 | C17, C18 (ghi `conversation_summary_jobs` trong transaction fork) |
+| `conversation.forked` | fork A12a (CONV-03 ✅) | chuẩn bị memory cho con: tạo job tóm tắt của con tới `forkedThroughSequence`, đọc tin qua B2; **không** dùng summary của nguồn (như Python: nó có thể bao cả phần sau điểm cắt). Lượt đầu vẫn chờ tối đa 15 s như hiện nay | C17, C18 (ghi `conversation_summary_jobs` trong transaction fork) |
 | `conversation.turn_persisted` | lưu xong tin nhắn của một lượt (GEN-04) | upsert job tóm tắt, làm tươi cache lịch sử | C6 (upsert job cùng transaction INSERT message) |
-| `message.mutated` | sửa/xoá tin nhắn | summary từ `sequence` trở đi hết hạn, mở lại job | C19 |
+| `message.mutated` | sửa/xoá tin nhắn (hiện chưa có route nào gọi `update_message`/`delete_message`; để dành) | summary từ `sequence` trở đi hết hạn, mở lại job | C19 |
 | `project.deleted` | xoá project PJ5 (PJ-05 ✅) | xoá mềm `user_memories` của project | C19 |
 | `document.uploaded` | upload D1/D2 (DOC-01) | parse + index từ `storageKey`, phát `document.processing_status_changed` | E8; filesystem chung |
 | `document.deleted` | xoá tài liệu D7 (DOC-03) | xoá chunk, ảnh, parse artifact, vector Qdrant | E9; cascade DB |
-| `interrupt.expired` | quét interrupt hết hạn (SCH-01) | xoá thread checkpoint của interrupt | E5; Celery quét `hitl_interrupts` |
+| `interrupt.expired` | quét interrupt hết hạn (SCH-01) và mọi đường khác chuyển interrupt sang `expired` (vd. Stop khi đang chờ duyệt), cùng transaction | xoá thread checkpoint của interrupt | E5; Celery quét `hitl_interrupts` |
 | `generation.lease_expired` | lease reaper (SCH-01) | dừng run nếu còn chạy (như E2) | E2 từ outbox |
 
 **Engine → backend** (`bus:engine:events`, kiểu: [engine-events.ts](../src/contracts/events/engine-events.ts)):
@@ -208,7 +210,7 @@ nào làm hộ.
 | Vấn đề | Cách xử lý |
 |---|---|
 | Mất event giữa DB và Redis | outbox trong cùng transaction; relay chỉ đánh dấu `published` sau `XADD` + `WAITAOF` |
-| Redis/Engine lỗi tạm thời | relay retry 5 s × 2ⁿ, tối đa 12 lần rồi `failed` + cảnh báo; admin retry ở OBX-03 |
+| Redis/Engine lỗi tạm thời | relay (poll 2 s) retry 5 s × 2ⁿ, giãn cách tối đa 10 phút, tối đa 12 lần rồi `failed` + cảnh báo; admin retry ở OBX-03 |
 | Giao trùng | bảng inbox (`event_id` khoá chính) ghi **cùng transaction** với xử lý; handler "đặt trạng thái" chứ không "cộng dồn" |
 | Consumer chết giữa chừng | entry chưa `XACK` > 60 s ⇒ consumer khác `XAUTOCLAIM` |
 | Event độc (lỗi mãi) | giao > 10 lần ⇒ chuyển sang `<stream>:dlq`, ACK bản gốc, cảnh báo |
@@ -243,17 +245,19 @@ spec §3.1.
 | C2 | Giải mã `model_providers` bằng Fernet; đọc `agent_model_configs`, `server_secrets` (còn **insert** khoá nếu thiếu) | `modelRuntime` trong E1/E3/E4; B4 cho worker. Engine bỏ Fernet và `server_secrets` |
 | C3 | RAG nối `documents` + `conversations` vào mọi truy vấn chunk/ảnh | lọc theo `documents[]` của E1; chunk tự lưu `documentId`/`ownerId` (lấy từ `document.uploaded`) |
 | C4 | Routing đọc danh sách `documents` | E1 `documents[]` |
-| C5 | Tool user memory đọc `conversations.project_id` | E1 `projectId` |
-| — | Tool tìm hội thoại: FTS trên `messages` của mọi hội thoại của user | B3 |
+| C5 | Tool user memory (bật mặc định) đọc `conversations.project_id` | E1 `projectId` |
+| C20 | Tool tìm hội thoại (`search_past_conversations`, `read_past_conversation`): đọc `messages`, `conversations` (tiêu đề, project) | B3 tìm, B2 đọc; B2 phải thêm tra theo tiền tố id, tiêu đề, số tin (INT-01) |
 | C6 | INSERT message ⇒ upsert `conversation_summary_jobs` cùng transaction | event `conversation.turn_persisted` |
 | — | Worker tóm tắt đọc `messages` + giải mã key; backfill quét `messages`/`conversations` | B2 + B4; backfill dựa trên job của chính Engine |
 | C9 | Ghi `chat_images`; đọc lại ảnh lịch sử | Engine chỉ upload object, backend ghi dòng từ sự kiện cuối (GEN-04); ảnh lịch sử lấy `storageKey` từ metadata B2 |
-| — | Web research ghi `web_image_references` | như C9 |
+| C21 | Web research ghi `web_image_references` | như C9 |
 | — | MessageService ghi `messages`, `generations`, `generation_commands`, `hitl_interrupts`, `tool_approvals`, `task_plans` | backend (W4) từ stream V3 (D1, D6) |
 | C11 | Celery quét `hitl_interrupts`, `conversations` đã xoá, `messages` để dọn checkpoint | event `conversation.deleted` (`threadIds`), `interrupt.expired`; backend tự quét hết hạn (SCH-01) |
-| C17, C18 | Fork ghi `conversation_summary_jobs`; chuẩn bị memory lượt đầu đọc `messages` + summary | event `conversation.forked`; Engine dùng summary của mình + B2 |
+| C17, C18 | Fork ghi `conversation_summary_jobs`; chuẩn bị memory lượt đầu đọc `messages` + summary | event `conversation.forked`; Engine tạo job cho con tới `forkedThroughSequence` + B2, không dùng summary của nguồn |
+| C22 | Request builder phía backend (`ProjectContextService`) đọc `user_memories` để chèn vào system prompt | E1 chỉ mang project instructions + `projectId`; Engine tự chèn memory |
+| — | Truy vấn summary/job join `conversations` để kiểm owner (bảng summary không có cột owner) | Engine lưu `ownerId` lấy từ sự kiện (mọi payload đều có) |
 | C19 | Xoá project ghi `user_memories`; sửa/xoá message làm mất hiệu lực summary | event `project.deleted`, `message.mutated` |
-| — | Worker tài liệu ghi `documents.status`; quét tài liệu kẹt | event `document.processing_status_changed`; quét kẹt chuyển về backend (SCH-01) |
+| — | Worker tài liệu ghi `documents.status`; quét tài liệu kẹt | event `document.processing_status_changed`; quét kẹt chuyển về backend (SCH-01). `documents` cần cột attempt hiện hành (DOC-01); quét kẹt đánh `failed` thì attempt đó thành cũ, event muộn bị bỏ qua |
 | — | Kích hoạt index khoá `documents FOR UPDATE` | Engine rào bằng `attemptId` trong DB của mình; backend rào lại khi nhận event |
 | — | Xoá tài liệu: cascade xoá chunk/ảnh/artifact, `model_usage_events.document_id` = NULL | event `document.deleted`; backend xoá object ngay sau commit, không chờ Engine |
 | C10 | `model_usage_*` có FK tới `users`, `conversations`, `messages`, `documents` (lỗi `ModelUsageReferenceError`) | cột UUID thường; không còn kiểm tham chiếu |
@@ -302,8 +306,10 @@ Checklist bàn giao (ENG-04):
 4. ModelConfigService: dùng `modelRuntime`/B4; bỏ Fernet và `server_secrets`.
 5. Consumer group `engine` trên `bus:backend:events` + bảng inbox; handler cho 9 event ở §6.4.
 6. Outbox + relay ⇒ `bus:engine:events` (`document.processing_status_changed`).
-7. Thôi ghi `messages`, `generations`, `hitl_interrupts`, `tool_approvals`, `chat_images`, `web_image_references`,
-   `task_plans`, `documents.status`, `client_devices`: trả qua stream V3 hoặc event.
+7. Thôi ghi bảng backend: code AI/worker hiện ghi `chat_images`, `web_image_references`, `hitl_interrupts` (job dọn
+   interrupt), `documents.status`, và `server_secrets` lúc worker khởi động ⇒ trả qua stream V3 hoặc event.
+   (`messages`, `generations`, `tool_approvals`, `task_plans`, `client_devices` do code quản lý ghi, sang NestJS cùng code đó.)
+   Bỏ chèn user memory ở request builder (C22): Engine tự chèn.
 8. Upload và media qua object storage, bỏ thư mục dùng chung.
 9. Celery beat: bỏ các job quét bảng backend (dọn checkpoint, quét tài liệu kẹt, backfill tóm tắt theo `messages`).
 10. Không lấy advisory lock lượt.
@@ -316,6 +322,7 @@ Checklist bàn giao (ENG-04):
 | Q10 | Cutover: một lần sau khi đủ W1–W6 (ETL) hay từng đợt + đồng bộ tạm | một lần (§10) | càng sớm càng tốt — đổi thứ tự PLAN và hạn Q1–Q3 |
 | Q11 | Gửi key provider **đã giải mã** sang Engine (E1, B4) hay Engine giữ khoá Fernet | đã giải mã, qua mạng nội bộ có TLS | trước GEN-03 / PRV-01 |
 | Q12 | Ai làm checklist §11 phía Engine, và khi nào | — | trước khi ghép W4 với Engine thật |
+| Q13 | Registry MCP server (file JSON + bộ đếm trong RAM, R28): bảng trong DB Engine, hay bảng `mcp_servers` do backend sở hữu + gửi trong E1 | — (spec §1c.6/R28 đề xuất backend; §2/§5/R9 để ở Engine) | trước W2 MCP (MCP-01) |
 
 ## 13. Máy canh
 

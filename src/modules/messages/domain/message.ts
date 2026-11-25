@@ -3,8 +3,8 @@
  * written by the generations context (W4), which advances
  * conversations.next_message_sequence under a row lock (§11).
  *
- * S4: the DB keeps `sender` as an integer while the table is shared with Python
- * (1 = user, 2 = assistant); the API exposes the string.
+ * S4: the DB keeps `sender` as an integer like the Python schema (1 = user,
+ * 2 = assistant) so the cutover ETL copies rows 1:1 (TC-69); the API exposes the string.
  */
 export type MessageSender = 'user' | 'assistant';
 

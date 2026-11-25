@@ -1,7 +1,7 @@
 # Route mapping (nguồn: tài liệu Backend Split §4.2)
 
 > Sinh từ artifact "Chatbot Backend Split" (commit chatbot 80d9bc9b). Không sửa tay —
-> nếu spec đổi, sinh lại. Cột **Task** khớp với docs/PLAN.md.
+> nếu spec đổi, sinh lại. Cột **Đợt** khớp với các phase W1–W6 trong docs/PLAN.md.
 >
 > **Tách database (2026-11-20):** backend và Engine dùng DB riêng; cột Internal ghi sự kiện Redis Streams thay cho
 > E5/E8/E9 và callback B1, endpoint mới có B-API B2–B4 (Engine gọi backend). Xem [integration.md](../integration.md).
@@ -26,7 +26,7 @@
 | A9 | W1 | Backend | `GET /conversations/` | `GET /api/v1/conversations` | — | S2. `include=messages` + `latestMessages` (now bounded 0..20) kept; `include=feedback` (ignored today) rejected with 400. `search` kept (≤200). |
 | A10 | W1 | Backend | `GET /conversations/{conversation_id}/messages` | `GET /api/v1/conversations/{conversationId}/messages` | — | S2, S4. `include=feedback` kept. New optional `format=ui-message` returns the AI SDK UIMessage projection (replaces A26). Default sort `-sequence` (stable order by `messages.sequence`). |
 | A11 | W1 | Backend | `PATCH /conversations/{conversation_id}` | `PATCH /api/v1/conversations/{conversationId}` | — | Explicit `null` clears `personaPrompt`; `title: null` rejected. |
-| A12 | W1 | Backend→Engine | `DELETE /conversations/{conversation_id}` | `DELETE /api/v1/conversations/{conversationId}` | event conversation.deleted (Redis Streams): the Engine stops the run and deletes the threads | Soft delete + outbox; checkpoint cleanup is now guaranteed (retried) instead of best-effort in-process. An active turn does not block the delete: it is stopped through E2 and the delete proceeds. Hiện tại (S8.3): chỉ xoá thread id kiểu cũ, thread `routing-v2:*` do retention sweep dọn; hội thoại con của fork giữ nguyên. |
+| A12 | W1 | Backend→Engine | `DELETE /conversations/{conversation_id}` | `DELETE /api/v1/conversations/{conversationId}` | event conversation.deleted (Redis Streams): the Engine stops the run and deletes the threads | Soft delete + outbox; checkpoint cleanup is now guaranteed (retried) instead of best-effort in-process. An active turn does not block the delete (as Python; spec D24 wants 409, Q5 open): the Engine stops the run when it consumes `conversation.deleted` (TC-71). Hiện tại (S8.3): chỉ xoá thread id kiểu cũ, thread `routing-v2:*` do retention sweep dọn; hội thoại con của fork giữ nguyên. |
 | A12a | W1 | Backend | `POST /conversations/{conversation_id}/fork` | `POST /api/v1/conversations/{conversationId}/forks` | outbox conversation.forked → Engine tạo job tóm tắt cho hội thoại con | Mới ở `d5a7c7ff` (09/10). Body `{ messageId, requestId, title? }`. `201` khi tạo mới, `200` khi replay cùng `requestId` + fingerprint. Từ chối: 404 message không thuộc nguồn, 409 không phải assistant hoàn tất / còn generation active / có tài liệu / `requestId` đã dùng cho fork khác, 410 con đã bị xoá, 413 prefix > 5.000 message hoặc 32 MB. Giữ khoá lượt của hội thoại nguồn và một transaction REPEATABLE READ (sơ đồ S8). Hiện ghi `conversation_summary_jobs` (bảng Engine) trong cùng transaction. |
 
 ## Messages & generations
@@ -217,7 +217,7 @@
 | PJ2 | W1 | Backend | `POST /projects` | `POST /api/v1/projects` | — | Tạo project (`name`, `description`, `instructions`). `201 created`. |
 | PJ3 | W1 | Backend | `GET /projects/{project_id}` | `GET /api/v1/projects/{projectId}` | — | Không sở hữu / đã xoá → 404 (D15). |
 | PJ4 | W1 | Backend | `PATCH /projects/{project_id}` | `PATCH /api/v1/projects/{projectId}` | — | Đổi `instructions` ảnh hưởng mọi lượt chat sau đó của các hội thoại trong project; không cần gọi Engine. |
-| PJ5 | W1 | Backend | `DELETE /projects/{project_id}` | `DELETE /api/v1/projects/{projectId}` | — | Soft delete. Từ `cab22e26` xoá project còn gỡ mọi hội thoại (`project_id = NULL`) và xoá mềm `user_memories` của project trong cùng transaction: backend đang ghi bảng của Engine, sau khi tách phải qua outbox `project.deleted`. |
+| PJ5 | W1 | Backend | `DELETE /projects/{project_id}` | `DELETE /api/v1/projects/{projectId}` | event project.deleted (Redis Streams): the Engine soft-deletes the project's user_memories | Soft delete. Từ `cab22e26` xoá project còn gỡ mọi hội thoại (`project_id = NULL`) và xoá mềm `user_memories` của project trong cùng transaction: backend đang ghi bảng của Engine, sau khi tách phải qua outbox `project.deleted`. |
 | PJ6 | W1 | Backend | `PUT /projects/{project_id}/conversations/{conversation_id}` | `PUT /api/v1/projects/{projectId}/conversations/{conversationId}` | — | Gắn hội thoại vào project (ghi `conversations.project_id`). Kiểm ownership cả hai phía. |
 | PJ7 | W1 | Backend | `DELETE /projects/{project_id}/conversations/{conversation_id}` | `DELETE /api/v1/projects/{projectId}/conversations/{conversationId}` | — | Gỡ hội thoại khỏi project (set `project_id = NULL`). |
 | PJ8 | W2 | Backend | `GET /projects/{project_id}/custom-agents` | `GET /api/v1/projects/{projectId}/custom-agents` | — | Danh sách custom agent theo `agent_order` (`project_custom_agents`). |

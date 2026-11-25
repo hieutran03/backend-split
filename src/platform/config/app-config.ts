@@ -49,7 +49,7 @@ const schema = z
     BCRYPT_COST: z.coerce.number().int().min(4).max(15).default(12),
     /**
      * D19: until this instant, a legacy Python refresh JWT can be exchanged ONCE for a
-     * new opaque refresh token. Set it to W1 cutover + 7 days. Unset => legacy refresh disabled.
+     * new opaque refresh token. Set it to cutover + 7 days. Unset => legacy refresh disabled.
      */
     JWT_LEGACY_REFRESH_UNTIL: z.iso.datetime({ offset: true }).optional(),
     ADMIN_USER_IDS: list,

@@ -26,6 +26,7 @@ export interface TurnRequestV1 {
   readonly message: string;
   readonly persona: string | null;
   readonly attachments: ReadonlyArray<{
+    /** Reference only: the Engine cannot look up chat_images (backend DB); it reads bytes via storageKey. */
     readonly chatImageId?: string;
     readonly storageKey?: string;
     readonly dataBase64?: string;
@@ -107,10 +108,14 @@ export interface RichCapabilitiesV1 {
   readonly sourceFiguresV1: boolean;
 }
 
-/** E2 POST /internal/v1/turns/{generationId}/stop */
+/**
+ * E2 POST /internal/v1/turns/{generationId}/stop — user Stop only. The lease reaper and
+ * conversation deletion reach the Engine as events (`generation.lease_expired`,
+ * `conversation.deleted`, TC-71), not through E2.
+ */
 export interface StopTurnRequestV1 {
   readonly version: number;
-  readonly reason: 'user_stop' | 'lease_expired' | 'conversation_deleted';
+  readonly reason: 'user_stop';
 }
 export interface StopTurnResponseV1 {
   readonly status: 'stop_requested' | 'not_inflight';
@@ -187,6 +192,10 @@ export interface ToolResultV1 {
  * E11 / E12. Usage rows keep plain user/conversation ids (no FK to backend tables any
  * more): anything per conversation is returned by id only, and the backend adds the
  * titles and drops deleted conversations from its own data.
+ *
+ * Partial shape: USG-01 ports the rest from Python `app/schemas/model_usage.py`
+ * (`UsageDashboard`: outcomes, series, by_provider/operation/agent, coverage, range,
+ * generated_at; `ConversationUsage` for E12 adds latest_context_window).
  */
 export interface UsageDashboardV1 {
   readonly totals: {
@@ -196,6 +205,13 @@ export interface UsageDashboardV1 {
   };
   readonly byModel: ReadonlyArray<{
     model: string;
+    inputTokens: number;
+    outputTokens: number;
+    requests: number;
+  }>;
+  /** E11 only. Ids without titles: the backend joins `title` (A51 topConversations[].title). */
+  readonly topConversations?: ReadonlyArray<{
+    conversationId: string;
     inputTokens: number;
     outputTokens: number;
     requests: number;

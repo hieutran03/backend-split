@@ -4,7 +4,7 @@ import { turnLockKey } from './pg-turn-lock';
  * Vectors computed with the §11 formula in Python:
  *   int.from_bytes(hashlib.sha256(str(uuid).encode()).digest()[:8], 'big', signed=True)
  */
-describe('turnLockKey (§11, shared with Python)', () => {
+describe('turnLockKey (§11, same formula as Python)', () => {
   it.each([
     ['00000000-0000-4000-8000-000000000001', '1289600646178507792'],
     ['6f1c2b9e-3d4a-4f5b-8c7d-9e0f1a2b3c4d', '-5772693095708135263'],

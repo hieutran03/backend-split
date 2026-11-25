@@ -158,7 +158,7 @@ export class ConversationsController {
   @ApiOperation({
     summary: 'Soft-delete a conversation (A12)',
     description:
-      'Writes the `conversation.deleted` outbox in the same transaction; the Engine checkpoint threads are deleted (with retries) through E5. An active turn does not block the delete. Fork children are kept.',
+      'Writes the `conversation.deleted` outbox in the same transaction; the Engine consumes the event (at-least-once delivery), stops any running turn and deletes the checkpoint threads. An active turn does not block the delete. Fork children are kept.',
   })
   @ApiUuidParam('conversationId')
   @ApiEnvelope(null, { message: 'Deleted successfully' })

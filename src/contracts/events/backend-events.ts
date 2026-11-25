@@ -2,7 +2,7 @@
  * Events the BACKEND publishes on `bus:backend:events`; the Engine consumes them
  * to keep its own data (checkpoints, memory summaries, chunks, user memories,
  * caches) consistent with backend-owned data it can no longer read or cascade
- * from (docs/integration.md §5). They replace E5/E8/E9 and the cross-domain
+ * from (docs/integration.md §6.4). They replace E5/E8/E9 and the cross-domain
  * writes Python made inside one transaction (C6, C17, C19).
  *
  * ⚠️ DRAFT until the Engine side implements it (task ENG-04).
@@ -16,7 +16,11 @@ export interface ConversationDeletedV1 {
   readonly threadIds: readonly string[];
 }
 
-/** A12a — fork created (CONV-03). The Engine prepares the child's memory (C17, C18). */
+/**
+ * A12a — fork created (CONV-03). The Engine prepares the child's memory (C17, C18): a
+ * summary job for the child up to `forkedThroughSequence`, reading messages through B2.
+ * Like Python it never reuses the source's summary, which can cover rows past the cut.
+ */
 export interface ConversationForkedV1 {
   readonly childConversationId: string;
   readonly sourceConversationId: string;

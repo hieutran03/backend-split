@@ -25,7 +25,8 @@ const bigintAsNumber: ValueTransformer = {
  * generate/check) and created by the one hand-written migration
  * AddMessagesContentFts (TC-36).
  * message_metadata has DEFAULT '{}'::jsonb like the Alembic schema.
- * `sender` stays INTEGER (1 = user, 2 = assistant) while the table is shared (S4, §6.3 S9).
+ * `sender` stays INTEGER (1 = user, 2 = assistant) like the Python schema, so the cutover
+ * ETL copies rows 1:1 (S4, TC-69).
  */
 @Entity('messages')
 @Index('ix_messages_prompt_history', ['conversationId', 'sequence'], {

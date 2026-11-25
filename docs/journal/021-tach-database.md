@@ -126,6 +126,23 @@ pnpm test:unit src/app.entities.spec.ts   # đỏ; xoá file ⇒ xanh
 - Artifact spec: ~~version 10 chỉ thêm mục ◇ và gắn nhãn ở 4 chỗ, nội dung cũ giữ nguyên~~ — Hiếu chỉ ra trang vẫn
   còn nhiều chỗ nói DB dùng chung. **Version 11** sửa thẳng nội dung toàn trang (xem v1.1 bên dưới). `route-mapping.md`
   sinh lại từ version 11.
+- **Rà lại 2026-11-25 (v1.2).** Ba lượt đọc độc lập: (1) đối chiếu artifact với code Python `80d9bc9b` (repo chatbot
+  chưa có commit mới), (2) với hợp đồng/tài liệu trong repo này, (3) giữa các mục của chính artifact. Mỗi phát hiện
+  được kiểm lại trên code trước khi sửa. Sai đáng kể nhất:
+  - E2 còn ghi "lease reaper; xoá hội thoại" dù TC-71 đã chuyển sang sự kiện ⇒ hợp đồng `StopTurnRequestV1.reason`
+    chỉ còn `user_stop`.
+  - Sự kiện `conversation.forked` ghi "chép summary của nguồn": Python cố ý **không** dùng summary nguồn (nó có thể
+    bao cả phần sau điểm cắt, `conversation_fork_memory.py:3-4`) ⇒ sửa thành tạo job cho con tới
+    `forkedThroughSequence`.
+  - Thiếu 3 điểm phụ thuộc: C20 tool tìm hội thoại (đọc `messages`/`conversations`, bật mặc định; B2 chưa đủ cho
+    `read_past_conversation`), C21 web research ghi `web_image_references`, C22 request builder phía backend đọc
+    `user_memories` để chèn system prompt. C5 "tắt mặc định" sai (mặc định bật).
+  - Danh sách "Engine thôi ghi" lẫn bảng do code quản lý ghi: code AI/worker chỉ ghi `chat_images`,
+    `web_image_references`, `hitl_interrupts`, `documents.status` (+ `server_secrets` khi worker khởi động).
+  - Kế hoạch §10 còn canary từng đợt, "quay lại từng nhóm trong vài phút", W2 "chỉ một phía ghi", rollback W4 —
+    trái với cutover một lần; khoá lượt "hai bên vẫn loại trừ nhau" sai khi hai DB riêng.
+  - Còn khoảng trống chưa có chỗ chứa: cột attempt của `documents` (đưa vào DOC-01), `topConversations` của usage
+    (thêm field, phần còn lại ở USG-01), registry MCP mâu thuẫn trong spec (Q13).
 
 ## Điểm tranh cãi & quyết định
 
@@ -199,9 +216,10 @@ pnpm test:unit src/app.entities.spec.ts   # đỏ; xoá file ⇒ xanh
 |---|---|---|---|
 | v1 | 2026-11-20 | Thiết kế tách DB + kênh giao tiếp; hợp đồng sự kiện, B-API; outbox có kiểu; bỏ E5/E8/E9/B1; máy canh; sửa tài liệu và ghi chú vào nhật ký 001, 002, 003, 009, 011, 012, 016, 017, 018 | Hiếu yêu cầu tách database |
 | v1.1 | 2026-11-20 | Artifact version 11: sửa thẳng mọi chỗ còn nói DB dùng chung (khoảng 120 chỗ thay ở §0–§13, bảng route, module, bảng DB, sơ đồ §7b; 42 nhãn "Cập nhật 20/11", 4 nhãn "Bỏ 20/11"); ba mục nhật ký ☆ ★ ◆ giữ nguyên vì là lịch sử. Làn DB trong sơ đồ tách thành "DB backend" / "DB Engine" / "DB hiện tại". Bảng route sinh lại (B1 ⇒ B2–B4, cột Internal theo sự kiện). Sửa nhầm mã route xoá tài liệu D5 ⇒ D7 trong integration.md và hợp đồng | Hiếu: "tài liệu vẫn còn chỗ dùng chung database" |
+| v1.2 | 2026-11-25 | Rà lại artifact (3 lượt độc lập) ⇒ version 12, ~85 chỗ sửa có nhãn "Cập nhật 25/11"; repo: thu hẹp `StopTurnRequestV1.reason`, ghi chú `attachments.chatImageId`, thêm `topConversations`; sửa Swagger A12 (E5), comment "bảng dùng chung"; integration.md C20–C22, owner của summary, trần backoff; PLAN thêm Q13, ghi chú DOC-01/INT-01/USG-01/ENG-01, số route W1/W2/W6 | Hiếu yêu cầu duyệt lại xem còn chỗ chệch |
 
 ## Gợi ý review
 
-- Đọc [integration.md](../integration.md) §4 (chọn kênh) và §6.4 (danh mục sự kiện) trước, rồi tới §12 (Q9–Q12).
+- Đọc [integration.md](../integration.md) §4 (chọn kênh) và §6.4 (danh mục sự kiện) trước, rồi tới §12 (Q9–Q13).
 - So danh mục sự kiện với các chỗ Python ghi chéo miền (§8) xem còn sót không.
 - Xem `ModelRuntimeV1` có đủ cho cách Python chọn model theo agent không (ENG-01).
