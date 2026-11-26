@@ -214,6 +214,18 @@ Swagger `/docs` → nhóm **auth** → `POST /auth/login` với `dev@example.loc
 - **Đang chọn:** B.
 - **Trạng thái:** tạm chọn.
 
+### TC-73 — Email đăng ký có khoảng trắng đầu/cuối
+- **Bối cảnh:** script demo (DEMO-01) đăng ký với `" Alice.Demo@EXAMPLE.com "` và nhận **400** thay vì 409 trùng email.
+  Python dùng pydantic `EmailStr`: `validate_email` cắt khoảng trắng đầu/cuối rồi mới kiểm định dạng ⇒ đăng ký được.
+  NestJS kiểm `z.email()` trước khi domain kịp chuẩn hoá ⇒ lệch Python. Login không bị vì schema login đã `trim()`.
+- **Phương án:** A) cắt khoảng trắng rồi kiểm định dạng (như Python) · B) giữ 400.
+- **Đang chọn:** A — `signupSchema.email = z.string().trim().pipe(z.email().max(EMAIL_MAX))`; Swagger vẫn ghi
+  `format: email` (test `auth.schemas.spec.ts`).
+- **Chưa port:** pydantic còn nhận dạng "pretty" `Tên <a@b.com>` và lưu `a@b.com`; NestJS vẫn trả 400 cho dạng này
+  (FE không gửi kiểu đó).
+- **Trạng thái:** tạm chọn, chờ Hiếu xem.
+- **Nếu đổi ý:** bỏ `.trim().pipe(...)`, sửa test.
+
 ## Lịch sử phiên bản
 
 | Phiên bản | Ngày | Thay đổi | Lý do |
@@ -221,6 +233,7 @@ Swagger `/docs` → nhóm **auth** → `POST /auth/login` với `dev@example.loc
 | v1 | 2026-11-09 | A1 signup, A2 login, refresh token opaque (phát hành), seed có mật khẩu thật | AUTH-01 |
 | v1.1 | 2026-11-18 | Chuẩn hoá email như Python (domain chữ thường), dùng chung cho login; TC-17/18/19 đối chiếu Python | [019](019-doi-chieu-hanh-vi-python.md) |
 | v1.2 | 2026-11-25 | `users.role` có ở DB backend, ETL điền `'user'` (bỏ "migration Alembic S1 trên DB thật") | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
+| v1.3 | 2026-11-26 | Signup cắt khoảng trắng đầu/cuối email trước khi kiểm định dạng, như pydantic `EmailStr` (TC-73) | Demo DEMO-01 lộ lệch Python ([022](022-demo-script.md)) |
 
 ## Gợi ý review
 

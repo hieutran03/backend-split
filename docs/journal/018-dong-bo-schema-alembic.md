@@ -1,6 +1,6 @@
 # 018 — Đồng bộ schema với DB Alembic thật
 
-> Task: SYNC-01 · Ngày: 2026-11-18 · Trạng thái: chờ review
+> Task: SYNC-01, SYNC-03 (v1.1) · Ngày: 2026-11-18 · Trạng thái: chờ review
 >
 > **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Backend và Engine **không dùng chung DB** nữa. Dump `python-schema.sql` giờ là nguồn cho ETL-01 và cho danh sách 20 FK chéo phía Engine phải bỏ; schema NestJS vẫn giữ giống để chép 1:1. Rà lại 2026-11-25: các đoạn trong bài còn theo kế hoạch DB dùng chung đã được gạch và sửa ngay tại chỗ.
 

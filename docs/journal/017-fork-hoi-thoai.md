@@ -146,7 +146,7 @@ Thêm 8 unit test, tổng cộng 116:
 - "**Hoàn tất**" hiện chỉ kiểm `sender = assistant`. Khi có `generations` cần kiểm thêm câu trả lời không
   thuộc một lượt còn đang chạy (TC-56).
 - Bên Engine: nhận sự kiện `conversation.forked` để tạo job tóm tắt cho con ⇒ ~~bộ phát outbox OBX-02 và hợp đồng phía Engine~~ relay BUS-01 (thay OBX-02) và checklist phía Engine ENG-04 ([integration.md §11](../integration.md)).
-- `ck_conversations_fork_request_fields_together` vẫn chờ biểu thức thật (TC-29).
+- ~~`ck_conversations_fork_request_fields_together` vẫn chờ biểu thức thật (TC-29).~~ **Sửa 26/11:** đã có biểu thức thật từ dump Alembic (TC-29 đóng, `conversation.record.ts`).
 
 ## Điểm tranh cãi & quyết định
 
@@ -193,3 +193,4 @@ Thêm 8 unit test, tổng cộng 116:
 | v1.1 | 2026-11-18 | Fingerprint theo Python, tiêu đề mặc định "(fork)", giữ `sequence` gốc, mã `conversation_turn_conflict`; CHECK fork request đã có | [019](019-doi-chieu-hanh-vi-python.md) |
 | v1.2 | 2026-11-20 | Ghi chú tách DB: khoá lượt chỉ backend; `conversation.forked` là sự kiện | [021](021-tach-database.md) |
 | v1.3 | 2026-11-25 | Khoá lượt không còn loại trừ với Python; fork: Engine tạo job cho con, không dùng summary nguồn; OBX-02 ⇒ BUS-01/ENG-04 | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
+| v1.4 | 2026-11-26 | CHECK fork_request_fields_together đã có (TC-29) | Rà 26/11: đoạn còn ghi là chưa làm, dù task đã xong |

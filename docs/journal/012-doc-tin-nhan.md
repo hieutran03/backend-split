@@ -151,7 +151,7 @@ Thêm 7 unit test, tổng cộng 88:
   - `include=messages` + `latestMessages` (0..20);
   - `messageCount`;
   - tìm theo **nội dung tin nhắn** (TC-31).
-- `include=feedback` ⇒ đã có ở FB-01. `format=ui-message` (A26) ⇒ MSG-02, đang bị chặn vì cần code Python.
+- `include=feedback` ⇒ đã có ở FB-01. `format=ui-message` (A26) ⇒ MSG-02, ~~đang bị chặn vì cần code Python~~ **sửa 26/11:** đã làm ([020](020-ui-message-projection.md)).
 - `interrupt` trong MessageRead ⇒ W4 (HITL).
 - FK `messages.conversation_id` không có `ON DELETE`. Spec không ghi, nên giữ mặc định `NO ACTION`.
   Hội thoại chỉ bị xoá mềm nên không ảnh hưởng.
@@ -215,6 +215,7 @@ Thêm 7 unit test, tổng cộng 88:
 | v1.2 | 2026-11-18 | `messageMetadata` được làm sạch như Python `MessageRead` (bỏ `original_image_url`…) ở A10/A19/A20 và tin xem trước; `format=ui-message` (MSG-02) | [020](020-ui-message-projection.md) |
 | v1.3 | 2026-11-20 | Ghi chú tách DB: `sender` số giữ cho ETL; Engine đọc tin nhắn qua B2 | [021](021-tach-database.md) |
 | v1.4 | 2026-11-25 | Lý do giữ `sender` số: ETL 1:1 (TC-69), không phải DB dùng chung | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
+| v1.5 | 2026-11-26 | MSG-02 không còn bị chặn | Rà 26/11: đoạn còn ghi là chưa làm, dù task đã xong |
 
 ## Gợi ý review
 

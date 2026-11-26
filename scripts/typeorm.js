@@ -4,10 +4,10 @@
  *
  * The stock `typeorm-ts-node-commonjs` binary registers ts-node but not
  * `tsconfig-paths`, so it cannot resolve the `@platform/...` path aliases used by
- * `src/composition/data-source.ts`. Registering both here keeps the CLI working
+ * `src/data-source.ts`. Registering both here keeps the CLI working
  * with the same import style as the rest of the codebase.
  *
- * Usage (see package.json): node scripts/typeorm.js -d src/composition/data-source.ts migration:run
+ * Usage (see package.json): node scripts/typeorm.js migration:run -d src/data-source.ts
  */
 const { dirname, join } = require('node:path');
 

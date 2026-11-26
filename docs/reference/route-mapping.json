@@ -1274,7 +1274,7 @@
    "new": "—",
    "internal": "—",
    "handledBy": "Removed",
-   "notes": "Static banner dropped; docs at `/api/v1/docs`.",
+   "notes": "Static banner dropped; Swagger docs at `/docs` (outside the `/api/v1` prefix).",
    "wave": "W6"
   },
   {

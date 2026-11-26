@@ -62,8 +62,8 @@ import { ConversationsController } from './presentation/conversations.controller
 
 /**
  * Conversations context (CONV-*). Depends on the projects and messages contexts
- * only through their public queries (PROJECT_LOOKUP, CONVERSATION_MESSAGE_DIGEST),
- * adapted to this context's own ports (ProjectAccess, ConversationMessages).
+ * only through their public queries (PROJECT_LOOKUP, CONVERSATION_MESSAGE_DIGEST,
+ * FORK_MESSAGE_SOURCE), adapted to this context's own ports.
  */
 @Module({
   imports: [ProjectsModule, MessagesModule],

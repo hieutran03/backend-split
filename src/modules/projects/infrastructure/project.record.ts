@@ -2,7 +2,7 @@ import { Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
 
 /**
  * TypeORM record for the `projects` table — ONLY the table shape, no logic.
- * snake_case column names are kept so the Engine (SQLAlchemy) can share them (§5).
+ * snake_case column names match the Alembic schema so the cutover ETL copies rows 1:1 (TC-69).
  * created_at/updated_at carry DEFAULT now() like the Alembic schema (python-schema.sql);
  * the app still sets them explicitly.
  * Naming conventions: see identity/infrastructure/records.ts.

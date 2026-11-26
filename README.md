@@ -44,4 +44,5 @@ curl -s -X POST localhost:3000/api/v1/projects -H "authorization: Bearer $T" \
 | `pnpm verify` | typecheck + lint + unit + architecture + build — phải xanh trước khi đóng task |
 | `pnpm test:unit` | jest |
 | `pnpm test:architecture` | luật phụ thuộc (dependency-cruiser) |
+| `pnpm demo` | chạy thử mọi chức năng đã làm qua HTTP thật trên DB `chatbot_demo`, log đầy đủ ra màn hình + `logs/` ([docs/demo.md](docs/demo.md)) |
 | `pnpm db:migrate` / `db:migrate:revert` | migration (bảng `backend_migrations`) |

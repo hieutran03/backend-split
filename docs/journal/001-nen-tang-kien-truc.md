@@ -123,7 +123,7 @@ pnpm verify                 # typecheck + lint + 20 unit test + kiến trúc + b
 
 ## Giới hạn & việc còn lại
 
-- Chưa kiểm claim `ver` với `users.token_version` / user đã xoá (task AUTH-03).
+- ~~Chưa kiểm claim `ver` với `users.token_version` / user đã xoá (task AUTH-03).~~ **Sửa 26/11:** đã làm ở AUTH-03 ([007](007-guard-token-version.md)).
 - Outbox mới ghi được, ~~**chưa có bộ gửi** sang Engine (task OBX-02)~~ **chưa có relay** đẩy sự kiện lên Redis Streams cho Engine (BUS-01, thay OBX-02 — tách DB).
 - ~~Migration trong repo chỉ dành cho DB local trống; DB thật vẫn do Alembic quản tới P3.~~ **Sửa 25/11 (tách DB):** migration trong repo là schema thật của DB backend (DB riêng — [integration.md §3](../integration.md)), sinh bằng script từ Record ([009](009-migration-sinh-bang-script.md)); Alembic chỉ còn quản DB Engine.
 - Chưa có integration test với Postgres thật trong CI (F-14), log JSON + request id (F-15).
@@ -177,6 +177,7 @@ pnpm verify                 # typecheck + lint + 20 unit test + kiến trúc + b
 | v1 | 2026-11-09 | Bản đầu: 4 tầng, guard JWT, envelope, transaction, outbox, baseline DB | — |
 | v1.1 | 2026-11-20 | Tách database backend ↔ Engine: DB riêng, outbox ⇒ Redis Streams, máy canh bảng Engine | [021](021-tach-database.md) |
 | v1.2 | 2026-11-25 | Gạch và sửa tại chỗ: luật schema/migration (TC-4), "chưa có bộ gửi" ⇒ relay BUS-01, công tắc token cũ tắt sau cutover; thêm câu về máy canh bảng Engine | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
+| v1.3 | 2026-11-26 | AUTH-03 đã làm | Rà 26/11: đoạn còn ghi là chưa làm, dù task đã xong |
 
 ## Gợi ý review
 

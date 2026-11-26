@@ -13,7 +13,7 @@ import { Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
  *   (sole exception: AlembicOnlyDifferences, see journal 018).
  */
 
-/** `users` table (§6). `role` is a new column (§6.3 S1, expanded in P1). */
+/** `users` table (§6). `role` is a new column (§6.3 S1, backend DB, W1). */
 @Entity('users')
 @Index('ix_users_email', ['email'], { unique: true })
 @Index('ix_users_username', ['username'], { unique: true })

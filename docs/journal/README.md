@@ -30,10 +30,11 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 015 | [Gắn hội thoại vào project, xoá project](015-project-va-hoi-thoai.md) | PJ-06, PJ-05 (PJ5–PJ7) | 2026-11-11 | chờ review |
 | 016 | [Kế hoạch công việc](016-task-plans.md) | TP-01 (A36–A42) | 2026-11-11 | chờ review |
 | 017 | [Fork hội thoại](017-fork-hoi-thoai.md) | CONV-03 (A12a) | 2026-11-11 | chờ review |
-| 018 | [Đồng bộ schema với DB Alembic](018-dong-bo-schema-alembic.md) | SYNC-01 | 2026-11-18 | chờ review |
+| 018 | [Đồng bộ schema với DB Alembic](018-dong-bo-schema-alembic.md) | SYNC-01, SYNC-03 | 2026-11-18 | chờ review |
 | 019 | [Đối chiếu hành vi Phase 1 với Python](019-doi-chieu-hanh-vi-python.md) | SYNC-02, TP-02 | 2026-11-18 | chờ review |
 | 020 | [Tin nhắn dạng UIMessage cho AI SDK](020-ui-message-projection.md) | MSG-02 (A26) | 2026-11-18 | chờ review |
 | 021 | [Tách database backend ↔ Engine](021-tach-database.md) | DS-01 | 2026-11-20 | chờ review |
+| 022 | [Script demo chạy toàn bộ chức năng](022-demo-script.md) | DEMO-01 | 2026-11-26 | chờ review |
 
 ## Điểm tranh cãi
 
@@ -111,6 +112,8 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-70 | Xoá object tài liệu ngay, không chờ Engine | tạm chọn | 021 |
 | TC-71 | Engine tự dừng run khi hội thoại bị xoá | tạm chọn | 021 |
 | TC-72 | Gỡ E5/E8/E9/B1 trước khi có relay | tạm chọn | 021 |
+| TC-73 | Email đăng ký có khoảng trắng đầu/cuối ⇒ cắt như Python | tạm chọn | 005, 022 |
+| TC-74 | `sort` lạ bị bỏ qua thay vì 400 | mở | 022 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 

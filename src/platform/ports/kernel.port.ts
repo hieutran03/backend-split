@@ -1,6 +1,6 @@
 /**
  * Technical ports the application layer may use (pure interfaces + tokens).
- * Implementations live in src/platform/kernel/.
+ * Implementations are provided inline by CoreModule (src/platform/core.module.ts).
  */
 export interface Clock {
   now(): Date;

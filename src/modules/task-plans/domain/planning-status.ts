@@ -11,11 +11,10 @@ export interface PlanProgress {
 }
 
 /**
- * A42 counts. Counting per status is unambiguous; two rules are PROVISIONAL
- * because the Python implementation is not in the spec (TC-49):
+ * A42 counts, the same rules as Python `TaskPlanService` (TC-49, checked against the code):
  *  - progressPercentage = completed / total × 100, rounded to 2 decimals (0 when empty);
  *  - nextTask = the first in_progress task by task_order, else the first pending one.
- * Read-only: nothing here is persisted.
+ * Pure computation; the use case may still turn planning mode on (TC-60).
  */
 export function planProgress(tasks: readonly TaskPlan[]): PlanProgress {
   const ordered = [...tasks].sort(

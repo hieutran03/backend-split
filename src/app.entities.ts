@@ -8,7 +8,7 @@ import { OutboxEventRecord } from '@platform/database/outbox/outbox-event.record
 
 /**
  * Tables this backend reads/writes via TypeORM — listed explicitly (no glob)
- * so the table ownership boundary (§6, 24 backend tables) is visible in review.
+ * so the table ownership boundary (§6: 25 backend tables, `BACKEND_OWNED_TABLES` in app.entities.spec.ts) is visible in review.
  *
  * Adding a new module: add its Record here, then generate a migration from the entities:
  *   pnpm db:migrate:generate <Name>   (never hand-write migration SQL)

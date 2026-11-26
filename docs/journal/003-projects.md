@@ -136,8 +136,10 @@ lấy token thứ hai bằng `pnpm -s token:dev` kèm `OTHER_USER_ID` trong [scr
 
 ## Giới hạn & việc còn lại
 
-- PJ-05: thứ tự khoá project → hội thoại như Python, và xử lý hội thoại đang gắn khi xoá project.
-- PJ6–PJ9: gắn/gỡ hội thoại, custom agents của project.
+- ~~PJ-05: thứ tự khoá project → hội thoại như Python, và xử lý hội thoại đang gắn khi xoá project.~~
+- ~~PJ6–PJ9: gắn/gỡ hội thoại, custom agents của project.~~
+  **Sửa 26/11:** PJ-05 và gắn/gỡ hội thoại (PJ6, PJ7) đã làm ở [015](015-project-va-hoi-thoai.md); còn custom agents
+  của project (PJ8, PJ9 — task PJ-08, W2).
 - Event `project.deleted` (payload `ProjectDeletedV1`) mới nằm trong outbox, chưa được ~~gửi tới Engine (OBX-02)~~ relay đẩy lên Redis Streams cho Engine (BUS-01, tách DB).
 
 ## Điểm tranh cãi & quyết định
@@ -182,6 +184,7 @@ lấy token thứ hai bằng `pnpm -s token:dev` kèm `OTHER_USER_ID` trong [scr
 | v1.1 | 2026-11-09 | Thêm tài liệu Swagger cho 5 route, `projectViewSchema` | F-16 |
 | v1.2 | 2026-11-20 | Payload `project.deleted` có kiểu theo `src/contracts/events`; đi qua Redis Streams | [021](021-tach-database.md) |
 | v1.3 | 2026-11-25 | "Gửi tới Engine (OBX-02)" ⇒ relay Redis Streams (BUS-01) | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
+| v1.4 | 2026-11-26 | PJ-05, PJ6–PJ7 đã làm; còn PJ8–PJ9 | Rà 26/11: đoạn còn ghi là chưa làm, dù task đã xong |
 
 ## Gợi ý review
 

@@ -108,8 +108,10 @@ Thêm 3 unit test, tổng cộng 91:
 
 ## Giới hạn & việc còn lại
 
-- Tìm theo nội dung đang dùng `ILIKE` và chưa có index (TC-36), nên với user có rất nhiều tin sẽ chậm.
-  Khi có biểu thức FTS thật sẽ đổi sang truy vấn dùng index.
+- ~~Tìm theo nội dung đang dùng `ILIKE` và chưa có index (TC-36), nên với user có rất nhiều tin sẽ chậm.
+  Khi có biểu thức FTS thật sẽ đổi sang truy vấn dùng index.~~ **Sửa 26/11:** tìm theo nội dung dùng `lower(content) LIKE`
+  có escape, port nguyên Python (TC-31). Index FTS `idx_messages_content_simple_fts` đã có (migration `AlembicOnlyDifferences`)
+  nhưng endpoint này cố ý không dùng, vì Python cũng không dùng. User có rất nhiều tin vẫn có thể chậm.
 - A8 (xem một hội thoại) chưa có `messageCount`/`messages`. Spec không yêu cầu.
 
 ## Điểm tranh cãi & quyết định
@@ -136,3 +138,4 @@ Thêm 3 unit test, tổng cộng 91:
 |---|---|---|---|
 | v1 | 2026-11-11 | A9: `messageCount`, `include=messages` + `latestMessages`, tìm theo nội dung | CONV-04 |
 | v1.1 | 2026-11-18 | Tin xem trước trả cũ → mới (TC-41); tìm kiếm theo độ liên quan | [019](019-doi-chieu-hanh-vi-python.md) |
+| v1.2 | 2026-11-26 | Đoạn "ILIKE, chưa có index" ⇒ cách tìm hiện tại và index FTS | Rà 26/11: đoạn còn ghi là chưa làm, dù task đã xong |

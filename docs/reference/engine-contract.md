@@ -60,7 +60,7 @@ Bản spec cũ: bộ phát outbox gọi HTTP E2/E5/E8/E9. Bản mới: relay đ�
 | event_type | Ghi khi | Engine làm |
 |---|---|---|
 | conversation.deleted | xoá mềm hội thoại | dừng run của hội thoại, xoá thread `threadIds` (= generations.checkpoint_thread_id ∪ hitl_interrupts.thread_id), bỏ summary/job/cache |
-| conversation.forked | fork hội thoại | chuẩn bị memory cho hội thoại con (summary nguồn + B2) |
+| conversation.forked | fork hội thoại | chuẩn bị memory cho hội thoại con: job tóm tắt riêng tới `forkedThroughSequence`, đọc tin qua B2 — **không** dùng lại summary nguồn |
 | conversation.turn_persisted | lưu xong tin nhắn của lượt (GEN-04) | upsert job tóm tắt (thay C6) |
 | message.mutated | sửa/xoá message | invalidate summaries/jobs (C19) |
 | project.deleted | xoá project | xoá mềm user_memories của project (C19) |
@@ -85,7 +85,7 @@ Chiều ngược: Engine phát `document.processing_status_changed` lên `bus:en
 - **D15** Không sở hữu = 404, không phải 403.
 - **D19** Chấp nhận access token cũ (không `type`) tới hạn; refresh JWT cũ đổi được 1 lần trong 7 ngày.
 - **D23** `stream` trong body + `protocol=sse|ai-sdk` trong query.
-- **D24** Xoá hội thoại đang có lượt active ⇒ 409.
+- **D24** Xoá hội thoại đang có lượt active ⇒ 409. **Code hiện tại chưa chặn** (giống Python, TC-33): Engine dừng lượt khi nhận `conversation.deleted` (TC-71) — chờ Hiếu chốt Q5.
 
 ## Chi tiết dễ trượt khi port (§11)
 

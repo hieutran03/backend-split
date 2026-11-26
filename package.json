@@ -26,7 +26,8 @@
     "db:migrate:generate": "node scripts/migration-generate.js",
     "db:migrate:check": "node scripts/typeorm.js migration:generate --check -d src/data-source.ts src/platform/database/migrations/Check",
     "db:seed": "ts-node -r tsconfig-paths/register scripts/seed-dev.ts",
-    "token:dev": "ts-node -r tsconfig-paths/register scripts/dev-token.ts"
+    "token:dev": "ts-node -r tsconfig-paths/register scripts/dev-token.ts",
+    "demo": "ts-node --transpile-only -r tsconfig-paths/register scripts/demo/run-demo.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

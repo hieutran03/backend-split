@@ -11,8 +11,8 @@ composition root duy nhất).
 src/
   main.ts              bootstrap: prefix /api/v1, CORS, shutdown hooks
   app.module.ts        composition root: CoreModule + DatabaseModule + feature modules + guard/filter/interceptor
-  app.entities.ts      danh sách Record TypeORM + migration (tường minh, không glob)
-  data-source.ts       DataSource cho TypeORM CLI
+  app.entities.ts      danh sách Record TypeORM (tường minh, không glob)
+  data-source.ts       DataSource cho TypeORM CLI; migration nạp bằng glob thư mục migrations
 
   shared/              thuần TS, dùng chung: AppError, phân trang, Actor
   contracts/           hợp đồng với AI Engine — chỉ type/hằng số, không logic

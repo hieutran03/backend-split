@@ -22,8 +22,8 @@ const bigintAsNumber: ValueTransformer = {
  * idx_messages_content_simple_fts is a GIN expression index on
  * `to_tsvector('simple', content)` (Alembic de19068933b7). TypeORM cannot generate
  * expression indexes, so it is declared with `synchronize: false` (ignored by
- * generate/check) and created by the one hand-written migration
- * AddMessagesContentFts (TC-36).
+ * generate/check) and created by the hand-written migration
+ * AlembicOnlyDifferences (TC-36).
  * message_metadata has DEFAULT '{}'::jsonb like the Alembic schema.
  * `sender` stays INTEGER (1 = user, 2 = assistant) like the Python schema, so the cutover
  * ETL copies rows 1:1 (S4, TC-69).

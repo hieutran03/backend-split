@@ -6,7 +6,7 @@
 > Nguồn yêu cầu: artifact "Chatbot Backend Split" (tách phần quản lý/lưu trữ của chatbot
 > FastAPI sang NestJS). Bản trích để tra cứu nằm ở [docs/reference/](reference/).
 
-**Cập nhật lần cuối:** 2026-11-20 · **Giai đoạn hiện tại:** Phase 1 (W1) — **đủ task, chờ Hiếu review** (còn CONV-05 phụ thuộc bảng W2–W4) · **Tách database** (DS-01) chờ review — thiết kế ở [integration.md](integration.md)
+**Cập nhật lần cuối:** 2026-11-26 · **Giai đoạn hiện tại:** Phase 1 (W1) — **đủ task, chờ Hiếu review** (còn CONV-05 phụ thuộc bảng W2–W4) · **Tách database** (DS-01) chờ review — thiết kế ở [integration.md](integration.md)
 
 ## Cách đọc
 
@@ -54,7 +54,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 
 ---
 
-## Phase 0 — Nền tảng & template ✅
+## Phase 0 — Nền tảng & template (còn F-14, F-15)
 
 | ID | Task | Owner | Trạng thái |
 |---|---|---|---|
@@ -125,7 +125,7 @@ Hiếu muốn đổi thứ tự ưu tiên thì sửa thứ tự hoặc ghi vào 
 
 | ID | Task | Route | Owner | Trạng thái |
 |---|---|---|---|---|
-| GEN-01 | `TurnLock`: advisory xact lock trong DB backend (port `ConversationTurnLock` đã có từ CONV-03), connection riêng, poll 50 ms ≤ 30 s ⇒ 409 `conversation_turn_conflict` | — | 🤖 | [ ] |
+| GEN-01 | Dùng khoá lượt trong lượt chat (E1/E3/E4): `PgConversationTurnLock` đã có từ CONV-03 (advisory xact lock trong DB backend, connection riêng, poll 50 ms ≤ 30 s ⇒ 409 `conversation_turn_conflict`); còn phần gắn vào orchestrator lượt chat | — | 🤖 | [ ] |
 | GEN-02 | Domain `Generation` state machine + version fence + bảng `generations`, `generation_commands` | — | 🤖 | [ ] |
 | GEN-03 | Gom body E1 (persona, `documents[]` = phạm vi RAG, project instructions, custom agents, hitl policy, **`modelRuntime` key đã giải mã**, `history.throughSequence`) qua port của từng module | — | 🤖 | [ ] |
 | GEN-04 | `TurnOrchestrator`: lock → user message + generation (lease 30 s) → E1 → gia hạn lease 10 s → persist terminal (assistant msg, chat_images, web_image_refs, task_plans) + event `conversation.turn_persisted` → unlock; suy `plan_lifecycle` (paused/completed/executing) từ metadata sự kiện cuối như `MessageService._infer_plan_lifecycle` của Python. Client ngắt không huỷ lượt | A13, A14 | 🤖 | [ ] |
@@ -178,6 +178,7 @@ Backend và Engine dùng **database riêng**; thiết kế ở [integration.md](
 |---|---|---|---|
 | SYNC-01 | Đồng bộ schema 6 bảng Phase 1 với DB dựng bằng Alembic (dump `python-schema.sql`, tên FK/PK thật, default DB, CHECK, index FTS) — [nhật ký 018](journal/018-dong-bo-schema-alembic.md) | 🤖 | [r] |
 | SYNC-03 | Đồng bộ artifact ↔ repo ↔ Python `80d9bc9b`: mục ◆ trong artifact, script `sync-route-mapping.mjs`, cờ rich E1/E3/E4; danh sách "Việc Hiếu bắt buộc quyết" — [nhật ký 018 v1.1](journal/018-dong-bo-schema-alembic.md) | 🤖 | [r] |
+| DEMO-01 | Script demo `pnpm demo`: dựng DB `<db>_demo`, chạy app trong tiến trình với mock Engine, 14 kịch bản HTTP thật cho mọi task đã xong; log đủ request/response/SQL/check ra màn hình và `logs/`; exit 1 khi có check sai — [nhật ký 022](journal/022-demo-script.md), [demo.md](demo.md) | 🤖 | [r] |
 | ENG-01 | Đối chiếu & freeze hợp đồng V3/E1 với code Python (`events.py`, `workflow.py`, `ai_sdk_v6.py`, `internal_sse.py`) — đã có repo chatbot, làm trước W4; chốt `ModelRuntimeV1` với `ModelConfigService` và E7 (sinh task plan) có cần `modelRuntime` không | 🤖 | [ ] |
 | ENG-02 | Mock Engine **dạng HTTP server** riêng (`pnpm mock:engine`) để test `HttpAiEngineClient` + timeout im lặng | 🤖 | [ ] |
 | ENG-03 | Cứng hoá `HttpAiEngineClient`: retry call idempotent, circuit breaker, timeout im lặng 5 s × 3 | 🤖 | [ ] |
@@ -216,7 +217,7 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 |---|---|---|---|
 | TC-1 | Layered (chuẩn team) hay clean architecture? | tạm chọn clean — **chờ Hiếu** | [001](journal/001-nen-tang-kien-truc.md) |
 | TC-2 | Mỗi context một Nest module hay 1 composition root? | tạm chọn module | [001](journal/001-nen-tang-kien-truc.md) |
-| TC-7 | Hợp đồng V3/E1 là DRAFT — cần code Python để đối chiếu | **mở — cần Hiếu cung cấp** | [002](journal/002-mock-ai-engine.md) |
+| TC-7 | Hợp đồng V3/E1 là DRAFT — cần code Python để đối chiếu | **mở** — đã có repo Python, đối chiếu ở ENG-01 | [002](journal/002-mock-ai-engine.md) |
 | TC-9 | D5: client ngắt kết nối có huỷ lượt không? | **mở — chốt với FE trước W4** | [002](journal/002-mock-ai-engine.md) |
 | TC-10 | Xoá project đang có hội thoại: gỡ / chặn / xoá theo? | **đóng** — gỡ (spec PJ5) | [003](journal/003-projects.md), [015](journal/015-project-va-hoi-thoai.md) |
 | TC-11 | Giới hạn 20.000 ký tự cho instructions | tạm chọn | [003](journal/003-projects.md) |
@@ -277,6 +278,8 @@ Chi tiết bối cảnh + phương án của từng điểm nằm trong nhật k
 | TC-70 | Xoá tài liệu: backend xoá object ngay sau commit, không chờ Engine gỡ index | tạm chọn | [021](journal/021-tach-database.md) |
 | TC-71 | Engine tự dừng run khi nhận `conversation.deleted` (thay backend gọi E2 rồi E5) | tạm chọn | [021](journal/021-tach-database.md) |
 | TC-72 | Gỡ E5/E8/E9/B1 khỏi port Engine ngay, giả lập index tài liệu trong mock hoãn tới BUS-01 | tạm chọn | [021](journal/021-tach-database.md) |
+| TC-73 | Email đăng ký có khoảng trắng đầu/cuối: cắt rồi kiểm như pydantic `EmailStr` (trước trả 400); dạng `Tên <a@b.com>` Python nhận, NestJS chưa | tạm chọn | [005](journal/005-dang-ky-dang-nhap.md), [022](journal/022-demo-script.md) |
+| TC-74 | `sort` theo trường không có trong whitelist ⇒ lặng lẽ dùng thứ tự mặc định (không 400) | mở — **Hiếu xem** | [022](journal/022-demo-script.md) |
 | — | Nguồn khoá JWT/Fernet (R25): env cho mọi service, NestJS không tự sinh | theo spec | — |
 
 ## Ghi chú review
@@ -313,3 +316,4 @@ _(Hiếu ghi nhận xét ở đây hoặc comment trong code; Claude xử lý xo
 | 2026-11-20 | 🤖 | DS-01 v1.1: artifact spec lên version 11 — sửa thẳng nội dung toàn trang theo DB riêng (bản 10 mới chỉ thêm mục ◇); kiểm 40 sơ đồ tham chiếu đúng làn, 4 khối script qua `node --check`; route-mapping sinh lại (B2–B4 thay B1); sửa mã route D5 ⇒ D7. |
 | 2026-11-25 | 🤖 | DS-01 v1.2: rà lại artifact (3 lượt độc lập: code Python, repo, nội bộ trang) ⇒ version 12: ~85 chỗ sửa (E2 chỉ còn User Stop, fork không dùng summary nguồn, C20–C22 mới, kế hoạch §10 theo cutover một lần, khoá lượt hai DB không loại trừ nhau, số route theo đợt 39/38/10/13/14/18…); repo: thu hẹp `StopTurnRequestV1.reason`, sửa comment/Swagger còn nói E5 hay "bảng dùng chung", integration.md (C20–C22, owner summary, trần backoff), thêm Q13. |
 | 2026-11-25 | 🤖 | DS-01 v1.3: rà lại nhật ký 001–020 theo tách DB — gạch và sửa tại chỗ 47 đoạn ở 13 file (quy ước gạch của journal/README), cập nhật dòng TC-4; sửa comment code còn nói "schema thuộc Alembic", "Engine đọc cột"; `plan_lifecycle` paused do `MessageService` suy (ghi vào GEN-04, artifact version 13). |
+| 2026-11-26 | 🤖 | DEMO-01: `pnpm demo` — 14 kịch bản, 109 bước, 258 check chạy HTTP thật trên DB `chatbot_demo` (~9 s); demo tìm ra signup chưa cắt khoảng trắng email như Python ⇒ sửa (TC-73), và `sort` lạ bị bỏ qua (TC-74, mở). Rà lại repo (agent độc lập, đối chiếu từng điểm): sửa 11 comment code lệch (OBX-02, "Engine share", migration FTS sai tên, TC-41/49 đã đóng…), how-to-add-a-module (`[~]`→`[r]`, cây thư mục FB-01), engine-contract (fork không dùng summary nguồn, D24 chưa chặn), 8 đoạn nhật ký chưa gạch, docker-compose Redis bật AOF cho `WAITAOF`; artifact version 14 (19 module, H8 `/docs`). |

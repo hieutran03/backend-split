@@ -9,7 +9,8 @@ import { UnauthorizedError } from '@shared/errors/app-error';
  *  - New tokens: add `type: "access"`, TTL 15 minutes.
  *  - Always reject `type=refresh` and `type=widget` on the access path.
  *
- * TODO(AUTH-03): check `ver` against users.token_version + deleted_at (cache ≤ 30 s).
+ * Only the token itself is checked here; `ver` against users.token_version and
+ * deleted_at are checked by JwtAuthGuard (AUTH-03).
  */
 export interface AccessClaims {
   readonly userId: string;

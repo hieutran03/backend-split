@@ -43,7 +43,7 @@ export function toConversationView(c: Conversation): ConversationView {
 
 /**
  * A9 list item. `messageCount` is always set (non-deleted messages, TC-40);
- * `messages` only with include=messages (latest first, TC-41).
+ * `messages` only with include=messages (the latest N, returned oldest first, TC-41).
  */
 export interface ConversationListItemView extends ConversationView {
   readonly messageCount: number;

@@ -17,8 +17,12 @@ services:
       retries: 10
 
   redis:
-    image: redis:7-alpine
+    # 7.4 + AOF like the Python Redis: the outbox relay calls WAITAOF (Redis >= 7.2, needs
+    # appendonly) before marking an event published (docs/integration.md §6.1).
+    image: redis:7.4-alpine
+    command: ['redis-server', '--appendonly', 'yes', '--appendfsync', 'everysec']
     ports: ['6379:6379']
+    volumes: [redisdata:/data]
 
   minio:
     image: quay.io/minio/aistor/minio:latest
@@ -31,4 +35,5 @@ services:
 
 volumes:
   pgdata:
+  redisdata:
   miniodata:

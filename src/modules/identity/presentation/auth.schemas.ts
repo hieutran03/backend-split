@@ -18,7 +18,13 @@ export const signupSchema = z.object({
     .min(USERNAME_MIN)
     .max(USERNAME_MAX)
     .meta({ example: 'hieu' }),
-  email: z.email().max(EMAIL_MAX).meta({ example: 'hieu@example.com' }),
+  // Python EmailStr strips surrounding spaces before validating (pydantic validate_email),
+  // so " a@b.com " signs up there; trim first, then check the format.
+  email: z
+    .string()
+    .trim()
+    .pipe(z.email().max(EMAIL_MAX))
+    .meta({ format: 'email', example: 'hieu@example.com' }),
   password: z
     .string()
     .min(PASSWORD_MIN_CHARS)

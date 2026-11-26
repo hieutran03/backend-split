@@ -124,8 +124,9 @@ pnpm db:migrate && pnpm db:seed
   [integration.md §3](../integration.md)). Lợi ích lớn: chạy `pnpm db:migrate:check` trỏ vào DB dựng bằng Alembic
   (nguồn của ETL lúc cutover) sẽ cho biết **chính xác** entity lệch schema Python ở đâu — thay cho đối chiếu bằng
   mắt; phải khớp thì ETL mới chép 1:1 (TC-69).
-- Tên FK kiểu `<table>_<column>_fkey` là mặc định của Postgres; nếu Alembic dùng `naming_convention` riêng thì
-  tên thật có thể khác — sẽ lộ ra ngay khi chạy `check` trên DB thật.
+- ~~Tên FK kiểu `<table>_<column>_fkey` là mặc định của Postgres; nếu Alembic dùng `naming_convention` riêng thì
+  tên thật có thể khác — sẽ lộ ra ngay khi chạy `check` trên DB thật.~~ **Sửa 26/11:** đã chạy `check` trên DB dựng bằng
+  Alembic (v1.1): nhiều FK tên `fk_*`, đã sửa theo tên thật ở [018](018-dong-bo-schema-alembic.md).
 - Chưa đưa `db:migrate:check` vào CI (cần Postgres trong CI — task F-14).
 
 ## Điểm tranh cãi & quyết định
@@ -154,6 +155,7 @@ pnpm db:migrate && pnpm db:seed
 | v1.1 | 2026-11-18 | Đã chạy `db:migrate:check` trên DB dựng bằng Alembic (hẹn ở mục "Giới hạn"): lệch tên FK (`fk_*`, `feedback_*`), default DB, CHECK, index FTS — sửa ở [018](018-dong-bo-schema-alembic.md). Quy ước `<table>_<column>_fkey` không còn đúng cho mọi bảng: tên lấy theo dump (TC-59) | Có repo Python |
 | v1.2 | 2026-11-20 | Migration là schema thật của DB backend (DB riêng); giữ tên giống Alembic cho ETL | [021](021-tach-database.md) |
 | v1.3 | 2026-11-25 | Gạch và sửa tại chỗ hai đoạn "DB thật dùng chung / migration chỉ cho DB local" | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
+| v1.4 | 2026-11-26 | Gạch đoạn "tên FK sẽ lộ khi chạy check" (đã chạy ở v1.1) | Rà 26/11: đoạn còn ghi là chưa làm, dù task đã xong |
 
 ## Gợi ý review
 

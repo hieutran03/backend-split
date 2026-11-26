@@ -175,7 +175,7 @@ Thử đổi JWT cũ: đặt `JWT_LEGACY_REFRESH_UNTIL` (vd. `2030-01-01T00:00:0
 ## Giới hạn & việc còn lại
 
 - Access token đã phát vẫn sống tới khi hết hạn (≤ 15 phút) sau logout — xem TC-22.
-- Chưa kiểm claim `ver` / user đã xoá trong guard access (AUTH-03).
+- ~~Chưa kiểm claim `ver` / user đã xoá trong guard access (AUTH-03).~~ **Sửa 26/11:** đã làm ở AUTH-03 ([007](007-guard-token-version.md)).
 - Chưa có job dọn dòng `refresh_tokens` đã hết hạn / thu hồi lâu — bảng sẽ lớn dần (ghi vào SCH-01).
 - Payload thật của refresh JWT Python (tên claim, thời hạn) **chưa đối chiếu với code Python** — đang theo
   spec: HS256, `type=refresh`, `ver`. Cần một token thật để test (giống TC-7).
@@ -220,6 +220,7 @@ Thử đổi JWT cũ: đặt `JWT_LEGACY_REFRESH_UNTIL` (vd. `2030-01-01T00:00:0
 | v1 | 2026-11-09 | A3 refresh xoay vòng + phát hiện dùng lại, A4 logout thu hồi thật, D19 đổi refresh JWT cũ một lần | AUTH-02 |
 | v1.1 | 2026-11-18 | Ghi nhận hành vi Python (refresh không xoay vòng, logout no-op) ở TC-21/22 — không đổi code | [019](019-doi-chieu-hanh-vi-python.md) |
 | v1.2 | 2026-11-25 | Hạn đổi refresh cũ tính từ cutover, không phải W1 | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
+| v1.3 | 2026-11-26 | AUTH-03 đã làm | Rà 26/11: đoạn còn ghi là chưa làm, dù task đã xong |
 
 ## Gợi ý review
 

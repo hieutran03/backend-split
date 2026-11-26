@@ -8,7 +8,8 @@ import { OutboxEventRecord } from './outbox-event.record';
  * Writes the outbox within the current transaction. Calling it outside a transaction is a
  * programming error: cross-domain side effects must commit with the business change (D9, D6).
  *
- * The publisher (read + call Engine + retry backoff 5 s × 2ⁿ) is task OBX-02.
+ * The relay that reads pending rows and publishes them to the Redis stream
+ * `bus:backend:events` (retry backoff 5 s × 2ⁿ) is task BUS-01 (docs/integration.md §6).
  */
 export class TypeOrmOutbox implements Outbox {
   public constructor(private readonly db: DbContext) {}

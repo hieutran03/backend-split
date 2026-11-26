@@ -4,7 +4,7 @@ Ví dụ: module `feedback` (task FB-01).
 
 ## 1. Lấy task
 
-Sửa [PLAN.md](PLAN.md): `[ ]` → `[~] (Hiếu, 2026-11-10)`, commit.
+Sửa [PLAN.md](PLAN.md): `[ ]` → `[~] (<ngày bắt đầu>)` (WIP = 1, xem [AGENTS.md](../AGENTS.md)), commit.
 
 ## 2. Tra spec
 
@@ -17,12 +17,12 @@ Sửa [PLAN.md](PLAN.md): `[ ]` → `[~] (Hiếu, 2026-11-10)`, commit.
 ```text
 src/modules/feedback/
   domain/feedback.ts                     # aggregate + invariant (rating 1–5)
-  application/ports/feedback.repository.ts
-  application/feedback.use-cases.ts      # Create/Get/Update
-  application/feedback.view.ts
+  application/ports.ts                   # port outbound: FeedbackRepository, MessageAccess
+  application/feedback.use-cases.ts      # Create/Get/Update + FeedbackView
   application/feedback.use-cases.spec.ts # fake repo, test user khác ⇒ 404
   infrastructure/feedback.record.ts      # @Entity('feedbacks'), cột snake_case
   infrastructure/typeorm-feedback.repository.ts
+  infrastructure/message-access.adapter.ts # kiểm message thuộc user, qua public-api của messages
   presentation/feedback.schemas.ts       # zod
   presentation/feedback.controller.ts
   feedback.module.ts                     # useFactory wiring
@@ -50,7 +50,7 @@ Kiểm tra trên `/docs` sau khi `pnpm dev`.
 - `src/app.entities.ts`: thêm `FeedbackRecord` vào `ALL_ENTITIES`.
 - `src/app.module.ts`: thêm `FeedbackModule` vào `featureModules`.
 - Bảng mới / cột mới ⇒ **sinh** migration, không viết tay:
-  `pnpm db:migrate:generate AddFeedback` → đọc file sinh ra, đối chiếu spec →
+  `pnpm db:migrate:generate AddFeedbacks` → đọc file sinh ra, đối chiếu spec →
   `pnpm db:migrate && pnpm db:migrate:check` (phải báo không còn khác biệt) →
   `pnpm db:migrate:revert && pnpm db:migrate`. Xem [journal/009](journal/009-migration-sinh-bang-script.md).
 
@@ -81,4 +81,6 @@ pnpm verify           # typecheck + lint + unit + architecture + build
 pnpm dev              # chạy thử, token: pnpm -s token:dev
 ```
 
-Xong ⇒ đổi `[~]` → `[x]` trong PLAN, thêm 1 dòng Nhật ký.
+Xong ⇒ viết nhật ký `docs/journal/`, đổi `[~]` → `[r]` trong PLAN (chỉ Hiếu chuyển `[r]` → `[x]`), thêm 1 dòng Nhật ký.
+
+Muốn xem chạy thật từ đầu tới cuối: thêm một kịch bản vào `scripts/demo/scenarios/` rồi `pnpm demo --only <id>` ([demo.md](demo.md)).

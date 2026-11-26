@@ -14,9 +14,11 @@ Mỗi cuộc trò chuyện có thể có một **danh sách việc cần làm** 
 - xem **tiến độ**: bao nhiêu việc đang chờ / đang làm / đã xong / bỏ qua, phần trăm hoàn thành, và việc
   nên làm tiếp theo.
 
-**Chưa làm:** Python tự cập nhật "trạng thái kế hoạch" của cuộc trò chuyện (nháp / sẵn sàng / đang chạy /
-tạm dừng / xong) sau mỗi thay đổi. Spec không có quy tắc này, mà ~~AI Engine lại đọc trạng thái đó~~ trạng thái đó lại được gửi sang AI Engine trong mỗi lượt chat (E1, tách DB). Ghi sai
-sẽ ảnh hưởng tới AI, nên tôi **không tự đoán**. Việc này tách thành TP-02, chờ code Python.
+~~**Chưa làm:** Python tự cập nhật "trạng thái kế hoạch" của cuộc trò chuyện (nháp / sẵn sàng / đang chạy /
+tạm dừng / xong) sau mỗi thay đổi. Spec không có quy tắc này, mà trạng thái đó lại được gửi sang AI Engine trong mỗi lượt chat (E1, tách DB). Ghi sai
+sẽ ảnh hưởng tới AI, nên tôi **không tự đoán**. Việc này tách thành TP-02, chờ code Python.~~
+**Sửa 26/11:** đã làm ở TP-02 (18/11) theo code Python `TaskPlanService`: thêm task ⇒ nháp + bật planning;
+sửa/hoàn thành/xoá task ⇒ tính lại trạng thái kế hoạch trong cùng transaction ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ## Vấn đề cần giải quyết
 
@@ -49,8 +51,10 @@ Bảng `task_plans` (§6):
 
   Body PATCH có `completedAt` ⇒ 400 (`strict`).
 - **Planning status:** số đếm theo trạng thái là chắc chắn. Cách tính `progressPercentage` và chọn
-  `nextTask` là **tạm** (TC-49). Đây chỉ là phép tính khi đọc, không ghi gì vào DB.
-- **`plan_lifecycle`:** chỉ đọc và trả về giá trị đang có. **Không** ghi (TC-48, TP-02).
+  `nextTask` ~~là **tạm** (TC-49). Đây chỉ là phép tính khi đọc, không ghi gì vào DB.~~ **Sửa 26/11:** khớp
+  Python (TC-49 đóng). GET planning-status còn bật `planning_mode_enabled` khi đã có task, như Python (TC-60, Q7).
+- **`plan_lifecycle`:** ~~chỉ đọc và trả về giá trị đang có. **Không** ghi (TC-48, TP-02).~~ **Sửa 26/11:** mỗi
+  thay đổi task tính lại và ghi trong cùng transaction (TP-02).
 - **Migration `AddTaskPlans`** sinh bằng script: enum `task_status`, unique DEFERRABLE INITIALLY DEFERRED,
   FK sang `conversations`.
 
@@ -131,8 +135,8 @@ Thêm 6 unit test, tổng cộng 108:
 
 ## Giới hạn & việc còn lại
 
-- **TP-02 [!]:** tính lại `conversations.plan_lifecycle` sau mỗi thay đổi task. Cần code Python
-  `task_plan` service.
+- ~~**TP-02 [!]:** tính lại `conversations.plan_lifecycle` sau mỗi thay đổi task. Cần code Python
+  `task_plan` service.~~ **Sửa 26/11:** đã làm (TP-02 `[r]`).
 - A35 (sinh kế hoạch bằng AI qua E7) ⇒ W4.
 - Chưa có route đổi thứ tự task. Unique DEFERRABLE đã sẵn để làm khi cần.
 
@@ -176,3 +180,4 @@ Thêm 6 unit test, tổng cộng 108:
 | v2 | 2026-11-18 | TP-02: ghi `plan_lifecycle` (thêm ⇒ draft + bật planning; sửa/hoàn thành/xoá ⇒ tính lại) trong cùng transaction có khoá hội thoại; `task_order` từ 0; `task_metadata {}`; GET planning-status bật planning mode; tên FK/default theo DB thật | [019](019-doi-chieu-hanh-vi-python.md), [018](018-dong-bo-schema-alembic.md) |
 | v2.1 | 2026-11-20 | Ghi chú tách DB: trạng thái planning đi trong E1 | [021](021-tach-database.md) |
 | v2.2 | 2026-11-25 | "Engine đọc cột plan_lifecycle" ⇒ backend gửi trong E1 | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
+| v2.3 | 2026-11-26 | Gạch các đoạn "TP-02 chưa làm / TC-49 tạm / planning-status không ghi DB" | Rà 26/11: đoạn còn ghi là chưa làm, dù task đã xong |

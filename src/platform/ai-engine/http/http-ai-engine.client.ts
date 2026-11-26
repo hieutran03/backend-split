@@ -296,7 +296,7 @@ export class HttpAiEngineClient implements AiEngineClient {
 
   private async raise(response: Response, path: string): Promise<never> {
     const text = await response.text().catch(() => '');
-    // 404/409 from the Engine keep their semantics so the caller can decide (outbox §8).
+    // 404/409 from the Engine keep their semantics so the caller can decide (§8).
     if (response.status === 404)
       throw new AppError(
         'not_found',

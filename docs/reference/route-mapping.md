@@ -200,7 +200,7 @@
 | H5 | W6 | Engine only | `GET /metrics/rich-images` | `—` | engine /metrics | Web-image fetch counters (the `/web-images` fetch moved to the backend) are exported by the backend's `GET /api/v1/metrics`; generation-side counters stay in the engine. |
 | H6 | W6 | Engine only | `GET /metrics/rag` | `—` | engine /metrics | As H2. |
 | H7 | W6 | Engine only | `GET /metrics/routing` | `—` | engine /metrics | As H2. |
-| H8 | W6 | Removed | `GET /` | `—` | — | Static banner dropped; docs at `/api/v1/docs`. |
+| H8 | W6 | Removed | `GET /` | `—` | — | Static banner dropped; Swagger docs at `/docs` (outside the `/api/v1` prefix). |
 | H9 | W6 | Backend | `GET /health` | `GET /api/v1/health` | — | **Public** liveness (D21), no dependency detail. Engine liveness is `GET /livez` on its internal port. |
 | H10 | W6 | Backend→Engine | `GET /health/celery` | `GET /api/v1/health/dependencies` | E21 ?deep=true → checks.celery | Folded into one aggregate; requires `admin` or the internal network (D21; today public); non-blocking. |
 | H11 | W6 | Backend | `GET /health/redis` | `GET /api/v1/health/dependencies` | — | Backend pings its own Redis connection. |
