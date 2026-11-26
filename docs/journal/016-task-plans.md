@@ -52,7 +52,7 @@ Bảng `task_plans` (§6):
   Body PATCH có `completedAt` ⇒ 400 (`strict`).
 - **Planning status:** số đếm theo trạng thái là chắc chắn. Cách tính `progressPercentage` và chọn
   `nextTask` ~~là **tạm** (TC-49). Đây chỉ là phép tính khi đọc, không ghi gì vào DB.~~ **Sửa 26/11:** khớp
-  Python (TC-49 đóng). GET planning-status còn bật `planning_mode_enabled` khi đã có task, như Python (TC-60, Q7).
+  Python (TC-49 đóng). GET planning-status còn bật `planning_mode_enabled` khi đã có task, như Python (TC-60, chốt 26/11).
 - **`plan_lifecycle`:** ~~chỉ đọc và trả về giá trị đang có. **Không** ghi (TC-48, TP-02).~~ **Sửa 26/11:** mỗi
   thay đổi task tính lại và ghi trong cùng transaction (TP-02).
 - **Migration `AddTaskPlans`** sinh bằng script: enum `task_status`, unique DEFERRABLE INITIALLY DEFERRED,

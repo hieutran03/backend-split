@@ -85,7 +85,7 @@ Chiều ngược: Engine phát `document.processing_status_changed` lên `bus:en
 - **D15** Không sở hữu = 404, không phải 403.
 - **D19** Chấp nhận access token cũ (không `type`) tới hạn; refresh JWT cũ đổi được 1 lần trong 7 ngày.
 - **D23** `stream` trong body + `protocol=sse|ai-sdk` trong query.
-- **D24** Xoá hội thoại đang có lượt active ⇒ 409. **Code hiện tại chưa chặn** (giống Python, TC-33): Engine dừng lượt khi nhận `conversation.deleted` (TC-71) — chờ Hiếu chốt Q5.
+- **D24** ~~Xoá hội thoại đang có lượt active ⇒ 409.~~ **Chốt 26/11:** cho xoá khi lượt đang chạy, như Python; Engine dừng lượt khi nhận `conversation.deleted` (TC-33, TC-71).
 
 ## Chi tiết dễ trượt khi port (§11)
 
@@ -98,7 +98,7 @@ Chiều ngược: Engine phát `document.processing_status_changed` lên `bus:en
   terminal = stopped, completed, completed_partial, failed; continue từ continuable|stopped; mọi transition fence bằng `version`.
 - **FK assistant_message_id** để NULL tới transaction lưu assistant message (R19).
 - **Fernet**: `base64url(0x80 ‖ ts(8B BE) ‖ IV(16B) ‖ AES-128-CBC ‖ HMAC-SHA256(32B))`, key 32B = 16B sign + 16B enc.
-  Chỉ backend giải mã (dữ liệu chép 1:1 từ DB cũ vẫn mã hoá bằng khoá cũ); Engine nhận key đã giải mã (Q11).
+  Chỉ backend giải mã (dữ liệu chép 1:1 từ DB cũ vẫn mã hoá bằng khoá cũ); Engine nhận key đã giải mã (chờ Hiếu chốt, xem [PLAN](../PLAN.md#việc-cần-hiếu-quyết)).
 - **bcrypt**: Python cost 12, prefix `$2b$` — dùng lib `bcrypt` (native), không `bcryptjs`.
 - **SSE**: `X-Accel-Buffering: no`, `Cache-Control: no-cache`, `x-vercel-ai-ui-message-stream: v1`; heartbeat 1 s (sse) /
   `: keepalive` 15 s (ai-sdk); đúng một `[DONE]`; không gzip; frame ≤ 8 MiB; buffer tối đa 1 event.

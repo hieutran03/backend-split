@@ -31,7 +31,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | 016 | [Kế hoạch công việc](016-task-plans.md) | TP-01 (A36–A42) | 2026-11-11 | chờ review |
 | 017 | [Fork hội thoại](017-fork-hoi-thoai.md) | CONV-03 (A12a) | 2026-11-11 | chờ review |
 | 018 | [Đồng bộ schema với DB Alembic](018-dong-bo-schema-alembic.md) | SYNC-01, SYNC-03 | 2026-11-18 | chờ review |
-| 019 | [Đối chiếu hành vi Phase 1 với Python](019-doi-chieu-hanh-vi-python.md) | SYNC-02, TP-02 | 2026-11-18 | chờ review |
+| 019 | [Đối chiếu hành vi đợt W1 với Python](019-doi-chieu-hanh-vi-python.md) | SYNC-02, TP-02 | 2026-11-18 | chờ review |
 | 020 | [Tin nhắn dạng UIMessage cho AI SDK](020-ui-message-projection.md) | MSG-02 (A26) | 2026-11-18 | chờ review |
 | 021 | [Tách database backend ↔ Engine](021-tach-database.md) | DS-01 | 2026-11-20 | chờ review |
 | 022 | [Script demo chạy toàn bộ chức năng](022-demo-script.md) | DEMO-01 | 2026-11-26 | chờ review |
@@ -40,7 +40,7 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 
 | TC | Câu hỏi | Trạng thái | File |
 |---|---|---|---|
-| TC-1 | Layered hay clean architecture | tạm chọn, chờ Hiếu | 001 |
+| TC-1 | Layered hay clean architecture | **đóng 26/11** — clean vừa phải | 001 |
 | TC-2 | Module mỗi context hay 1 composition root | tạm chọn | 001 |
 | TC-3 | zod hay class-validator | tạm chọn | 001 |
 | TC-4 | TypeORM có quản schema không | chốt: không `synchronize`; từ 20/11 migration là schema DB backend | 001 |
@@ -72,10 +72,10 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-30 | Giữ nguyên file migration sinh ra | tạm chọn | 009 |
 | TC-31 | Tìm hội thoại: tiêu đề hoặc nội dung tin, độ liên quan | **đóng** | 010, 013, 019 |
 | TC-32 | `planningModeEnabled: null` ⇒ 400 | **đóng** | 010 |
-| TC-33 | Lượt active không chặn xoá hội thoại (A12 vs D24) | **chờ Hiếu** | 011 |
+| TC-33 | Lượt đang chạy không chặn xoá hội thoại | **đóng 26/11** — cho xoá, spec D24 sửa theo | 011 |
 | TC-34 | `threadIds` chụp lúc xoá | tạm chọn | 011 |
 | TC-35 | messages join thẳng bảng `conversations` | tạm chọn — **Hiếu xem** | 012 |
-| TC-36 | Index FTS tin nhắn: 1 migration viết tay | chờ Hiếu duyệt | 012, 018 |
+| TC-36 | Index FTS tin nhắn: 1 migration viết tay | **đóng 26/11** — ngoại lệ được phép | 012, 018 |
 | TC-37 | Trường MessageView so với Python | tạm chọn | 012 |
 | TC-38 | `include=feedback` ⇒ 400 tới FB-01 | **đóng** (FB-01) | 012, 014 |
 | TC-39 | Phân trang S2, không cursor | theo spec | 012 |
@@ -99,21 +99,21 @@ File đặt tên `NNN-ten-chuc-nang.md`, số tăng dần theo thứ tự làm. 
 | TC-57 | Chờ khoá > 30 s ⇒ 409 `conversation_turn_conflict` | **đóng** | 017, 019 |
 | TC-58 | Fork message "OK" | tạm chọn | 017 |
 | TC-59 | Tên ràng buộc theo dump Alembic | tạm chọn | 018 |
-| TC-60 | GET planning-status bật planning mode | tạm chọn — Hiếu xem | 019 |
+| TC-60 | GET planning-status bật planning mode | **đóng 26/11** — như Python | 019 |
 | TC-61 | Ghi lifecycle trong cùng transaction | tạm chọn | 019 |
 | TC-62 | `include` + `format=ui-message` ⇒ 400 | tạm chọn | 020 |
 | TC-63 | Cờ rich snake_case + bool FastAPI | tạm chọn | 020 |
 | TC-64 | Làm sạch metadata ở mọi MessageView | tạm chọn | 020 |
-| TC-65 | Bus sự kiện Redis Streams hay RabbitMQ | tạm chọn — chờ Hiếu (Q9) | 021 |
+| TC-65 | Bus sự kiện Redis Streams hay RabbitMQ | tạm chọn — chờ Hiếu | 021 |
 | TC-66 | Lịch sử chat: Engine kéo qua B2 | tạm chọn | 021 |
-| TC-67 | Key provider đã giải mã đi trong E1/B4 | tạm chọn — chờ Hiếu (Q11) | 021 |
-| TC-68 | Cutover dữ liệu một lần (ETL) | tạm chọn — chờ Hiếu (Q10) | 021 |
+| TC-67 | Key provider đã giải mã đi trong E1/B4 | tạm chọn — chờ Hiếu | 021 |
+| TC-68 | Cutover dữ liệu một lần (ETL) | tạm chọn — chờ Hiếu | 021 |
 | TC-69 | DB riêng, giữ schema giống Alembic | tạm chọn | 021 |
 | TC-70 | Xoá object tài liệu ngay, không chờ Engine | tạm chọn | 021 |
 | TC-71 | Engine tự dừng run khi hội thoại bị xoá | tạm chọn | 021 |
 | TC-72 | Gỡ E5/E8/E9/B1 trước khi có relay | tạm chọn | 021 |
-| TC-73 | Email đăng ký có khoảng trắng đầu/cuối ⇒ cắt như Python | tạm chọn | 005, 022 |
-| TC-74 | `sort` lạ bị bỏ qua thay vì 400 | mở | 022 |
+| TC-73 | Email đăng ký có khoảng trắng đầu/cuối ⇒ cắt như Python | **đóng 26/11** | 005, 022 |
+| TC-74 | `sort` lạ ⇒ thứ tự mặc định, không 400 | **đóng 26/11** (Hiếu) | 022 |
 
 Số `TC-n` đánh liên tục toàn dự án (không reset theo file) để trích dẫn ngắn gọn.
 
@@ -164,4 +164,4 @@ Quy ước:
 - Mỗi lần sửa chức năng sau review ⇒ thêm 1 dòng **Lịch sử phiên bản** (v1.1, v2…) và cập nhật
   trạng thái của **TC** liên quan, không xoá nội dung cũ (gạch đi nếu bị thay thế) — để đọc lại vẫn
   thấy vì sao từng đổi ý.
-- Điểm tranh cãi chưa chốt cũng được liệt kê ở mục "Câu hỏi / quyết định đang mở" của PLAN, trỏ về `TC-n`.
+- Điểm tranh cãi cần Hiếu quyết được liệt kê ở mục "Việc cần Hiếu quyết" của PLAN (gọi bằng tên, trỏ về `TC-n`); điểm khác chỉ nằm ở bảng trên.

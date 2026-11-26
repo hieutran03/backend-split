@@ -56,7 +56,7 @@ export const messagesScenario: Scenario = {
 
     ctx.step(
       'Sort by a field that is not sortable (A10)',
-      'Each module whitelists its sort fields; an unknown one is ignored and the default -sequence applies (not a 400).',
+      'Each list has a default order; a sort field it does not allow falls back to it (-sequence here), never a 400.',
     );
     res = await api.get(path, { as: alice, query: { sort: 'content' } });
     ctx.expect(res, 200);

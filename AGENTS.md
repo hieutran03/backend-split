@@ -17,7 +17,10 @@
    theo [integration.md](docs/integration.md).
 6. **Không tự push / tạo PR / deploy.** Commit message không thêm dòng `Co-Authored-By` hay attribution.
 7. **Package manager: pnpm.** Không ghi đường dẫn tuyệt đối vào file.
-8. **Không bịa** tên file, hàm, kết quả test, hành vi của code Python. Không chắc ⇒ ghi vào
-   "Câu hỏi đang mở" trong PLAN.
+8. **Không bịa** tên file, hàm, kết quả test, hành vi của code Python. Không chắc ⇒ ghi thành điểm tranh cãi
+   trong nhật ký; cần Hiếu quyết thì thêm vào mục "Việc cần Hiếu quyết" của PLAN.
 9. **Ngôn ngữ:** comment, chuỗi text trong code (message, Swagger summary, tên test), file cấu hình và
    commit message viết **tiếng Anh**. Tài liệu (`docs/`, README, AGENTS, CLAUDE, nhật ký) giữ **tiếng Việt**.
+10. **Thuật ngữ:** [docs/glossary.md](docs/glossary.md) là nơi duy nhất định nghĩa thuật ngữ và ký hiệu; artifact
+    chép lại, sửa một bên thì sửa cả hai. Viết bằng lời trước, mã để trong ngoặc; không đặt họ mã mới.
+    Artifact và tài liệu repo không được nói khác nhau: thấy lệch thì sửa cho khớp, ghi vào PLAN.

@@ -1,5 +1,8 @@
 # Kiến trúc
 
+> **Đã chốt 26/11:** đây là kiến trúc của dự án. Artifact mục 5 mô tả đúng như file này (trước đó artifact gợi ý
+> Layered theo chuẩn team). Thuật ngữ: [glossary.md](glossary.md).
+
 Clean architecture **vừa phải**, rút gọn từ repo tham chiếu `platform` (DDD + Hexagonal):
 giữ phần đáng giá nhất (business logic không biết framework, phụ thuộc hướng vào trong,
 module không chạm ruột nhau), bỏ phần nặng (CQRS tách read model, Kafka, saga, một
@@ -41,7 +44,7 @@ src/
 | 3 | Module không import ruột module khác — chỉ `public-api.ts` | `no-cross-module-internals` |
 | 4 | `shared/`, `contracts/` là lá; `platform/` không biết `modules/` | `shared-and-contracts-are-leaf`, `platform-does-not-know-modules` |
 | 5 | Không có vòng phụ thuộc; cấm `forwardRef()` | `no-circular` + ESLint |
-| 6 | Side effect chéo miền **chỉ** qua outbox trong transaction (D9); payload theo `src/contracts/events` | kiểu của `Outbox.enqueue` (sai payload ⇒ không compile); gọi Engine trước commit: review bằng mắt |
+| 6 | Side effect chéo miền **chỉ** qua outbox trong transaction (quyết định D9); payload theo `src/contracts/events` | kiểu của `Outbox.enqueue` (sai payload ⇒ không compile); gọi Engine trước commit: review bằng mắt |
 | 7 | Chỉ kết nối DB của backend: không Record/SQL nào chạm bảng Engine ([integration.md](integration.md)) | `src/app.entities.spec.ts` |
 
 ## Khác với `platform` ở đâu và vì sao
@@ -50,7 +53,7 @@ src/
 |---|---|---|
 | 1 composition root, không có module nghiệp vụ | mỗi context 1 Nest module, wiring bằng `useFactory` | 2 người code song song, mỗi người sở hữu file module của mình, ít conflict |
 | Command/Query handler tách, read model riêng | Use case class, repository dùng cho cả đọc | CRUD là chủ yếu; tách CQRS chỉ khi một module cần |
-| Kafka + inbox | Outbox → relay → **Redis Streams** + inbox (từ 2026-11-20) | DB tách riêng nên cần bus; Redis đã có sẵn ở cả hai bên (Q9: hoặc RabbitMQ) |
+| Kafka + inbox | Outbox → relay → **Redis Streams** + inbox (từ 2026-11-20) | DB tách riêng nên cần bus; Redis đã có sẵn ở cả hai bên (RabbitMQ vẫn là phương án, chờ Hiếu chốt) |
 | `contexts/` + `integration/` + `transport/` | `modules/<x>/presentation` | Ít thư mục, controller nằm cạnh module |
 
 ## Luồng một request
@@ -82,4 +85,5 @@ manager. Transaction lồng nhau dùng lại transaction ngoài.
 - Schema DB backend do **migration NestJS** làm chủ (sinh từ Record, `synchronize` luôn tắt). Tên cột snake_case và tên
   ràng buộc vẫn giữ như Alembic để chép dữ liệu 1:1 lúc cutover (ETL-01); app tự gán `id/created_at/updated_at`
   (không dùng `@CreateDateColumn`).
-- Engine cần dữ liệu backend ⇒ B-API hoặc kèm trong E1; backend cần dữ liệu Engine ⇒ E-API (E10–E12).
+- Engine cần dữ liệu backend ⇒ API backend cho Engine (B2–B4) hoặc kèm trong body lượt chat (E1); backend cần dữ liệu
+  Engine ⇒ API Engine (E10–E12).

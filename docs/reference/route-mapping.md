@@ -1,7 +1,7 @@
 # Route mapping (nguồn: tài liệu Backend Split §4.2)
 
 > Sinh từ artifact "Chatbot Backend Split" (commit chatbot 80d9bc9b). Không sửa tay —
-> nếu spec đổi, sinh lại. Cột **Đợt** khớp với các phase W1–W6 trong docs/PLAN.md.
+> nếu spec đổi, sinh lại. Cột **Đợt** là đợt W1–W6, như trong docs/PLAN.md (thuật ngữ: docs/glossary.md).
 >
 > **Tách database (2026-11-20):** backend và Engine dùng DB riêng; cột Internal ghi sự kiện Redis Streams thay cho
 > E5/E8/E9 và callback B1, endpoint mới có B-API B2–B4 (Engine gọi backend). Xem [integration.md](../integration.md).
@@ -26,7 +26,7 @@
 | A9 | W1 | Backend | `GET /conversations/` | `GET /api/v1/conversations` | — | S2. `include=messages` + `latestMessages` (now bounded 0..20) kept; `include=feedback` (ignored today) rejected with 400. `search` kept (≤200). |
 | A10 | W1 | Backend | `GET /conversations/{conversation_id}/messages` | `GET /api/v1/conversations/{conversationId}/messages` | — | S2, S4. `include=feedback` kept. New optional `format=ui-message` returns the AI SDK UIMessage projection (replaces A26). Default sort `-sequence` (stable order by `messages.sequence`). |
 | A11 | W1 | Backend | `PATCH /conversations/{conversation_id}` | `PATCH /api/v1/conversations/{conversationId}` | — | Explicit `null` clears `personaPrompt`; `title: null` rejected. |
-| A12 | W1 | Backend→Engine | `DELETE /conversations/{conversation_id}` | `DELETE /api/v1/conversations/{conversationId}` | event conversation.deleted (Redis Streams): the Engine stops the run and deletes the threads | Soft delete + outbox; checkpoint cleanup is now guaranteed (retried) instead of best-effort in-process. An active turn does not block the delete (as Python; spec D24 wants 409, Q5 open): the Engine stops the run when it consumes `conversation.deleted` (TC-71). Hiện tại (S8.3): chỉ xoá thread id kiểu cũ, thread `routing-v2:*` do retention sweep dọn; hội thoại con của fork giữ nguyên. |
+| A12 | W1 | Backend→Engine | `DELETE /conversations/{conversation_id}` | `DELETE /api/v1/conversations/{conversationId}` | event conversation.deleted (Redis Streams): the Engine stops the run and deletes the threads | Soft delete + outbox; checkpoint cleanup is now guaranteed (retried) instead of best-effort in-process. An active turn does not block the delete (as Python; decision D24, settled 26/11): the Engine stops the run when it consumes `conversation.deleted` (TC-71). Hiện tại (S8.3): chỉ xoá thread id kiểu cũ, thread `routing-v2:*` do retention sweep dọn; hội thoại con của fork giữ nguyên. |
 | A12a | W1 | Backend | `POST /conversations/{conversation_id}/fork` | `POST /api/v1/conversations/{conversationId}/forks` | outbox conversation.forked → Engine tạo job tóm tắt cho hội thoại con | Mới ở `d5a7c7ff` (09/10). Body `{ messageId, requestId, title? }`. `201` khi tạo mới, `200` khi replay cùng `requestId` + fingerprint. Từ chối: 404 message không thuộc nguồn, 409 không phải assistant hoàn tất / còn generation active / có tài liệu / `requestId` đã dùng cho fork khác, 410 con đã bị xoá, 413 prefix > 5.000 message hoặc 32 MB. Giữ khoá lượt của hội thoại nguồn và một transaction REPEATABLE READ (sơ đồ S8). Hiện ghi `conversation_summary_jobs` (bảng Engine) trong cùng transaction. |
 
 ## Messages & generations

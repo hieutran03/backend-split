@@ -1,6 +1,6 @@
 # 018 — Đồng bộ schema với DB Alembic thật
 
-> Task: SYNC-01, SYNC-03 (v1.1) · Ngày: 2026-11-18 · Trạng thái: chờ review
+> Task: SYNC-01, SYNC-03 (v1.1, v1.4) · Ngày: 2026-11-18 · Trạng thái: chờ review
 >
 > **Cập nhật 2026-11-20 — tách database ([021](021-tach-database.md)):** Backend và Engine **không dùng chung DB** nữa. Dump `python-schema.sql` giờ là nguồn cho ETL-01 và cho danh sách 20 FK chéo phía Engine phải bỏ; schema NestJS vẫn giữ giống để chép 1:1. Rà lại 2026-11-25: các đoạn trong bài còn theo kế hoạch DB dùng chung đã được gạch và sửa ngay tại chỗ.
 
@@ -9,7 +9,7 @@
 ~~Backend NestJS và chatbot Python **dùng chung một database**.~~ Backend NestJS có database riêng (tách DB 20/11), nhưng bảng backend phải giống hệt DB Alembic của chatbot Python để lúc cutover chép dữ liệu 1:1 (TC-69). Tới nay bảng của NestJS được mô tả theo
 tài liệu spec — mà spec chỉ chép lại *tên* vài ràng buộc, không chép *nội dung*, và thiếu giá trị mặc
 định phía DB. Giờ đã có repo Python, nên tôi dựng một DB bằng chính migration Alembic của Python, so
-từng cột, ràng buộc, chỉ mục với DB do NestJS tạo, rồi sửa NestJS cho khớp. Kết quả: với 6 bảng Phase 1
+từng cột, ràng buộc, chỉ mục với DB do NestJS tạo, rồi sửa NestJS cho khớp. Kết quả: với 6 bảng của W1
 ~~dùng chung~~ của backend, hai bên giờ giống nhau; phần khác duy nhất là những thứ NestJS **cố ý thêm** (`refresh_tokens`,
 `outbox_events`, cột `users.role`).
 
@@ -122,9 +122,39 @@ DATABASE_URL=postgres://chatbot:chatbot@localhost:5432/pyschema pnpm db:migrate:
 - **Hợp đồng Engine** (DRAFT): thêm `RichCapabilitiesV1` cho E3/E4 và 2 cờ mới cho E1 (`src/contracts/engine/internal-api.ts`,
   `docs/reference/engine-contract.md`). Bản DRAFT trước thiếu cả `inlineRichResponseV1` ở E3/E4.
 
+## Thống nhất thuật ngữ, kế hoạch, kiến trúc (v1.4, 2026-11-26)
+
+**Vì sao:** Hiếu thấy tài liệu có quá nhiều mã (TC, Q, D, R, S, phase…) và artifact với repo nói khác nhau ở vài chỗ:
+- artifact gợi ý kiến trúc Layered, còn code là clean;
+- artifact có "giai đoạn P0–P6" và "đợt M1–M6", còn PLAN có "Phase 0–6" với nghĩa khác;
+- vài quyết định trong spec tự mâu thuẫn (xoá hội thoại khi lượt đang chạy, nơi giữ registry MCP).
+
+Yêu cầu: thống nhất, sửa artifact hay tài liệu repo đều được, miễn không còn xung đột; `sort` lạ thì dùng mặc định.
+
+**Đã làm:**
+- [glossary.md](../glossary.md) là nơi duy nhất định nghĩa thuật ngữ và ký hiệu. Quy ước: viết bằng lời trước, mã để
+  trong ngoặc; không đặt họ mã mới; chữ cái trùng nghĩa thì ghi kèm loại ("route D3", "quyết định D19").
+  Artifact có mục "Thuật ngữ" chép lại.
+- PLAN:
+  - "Nền tảng" và "đợt W1–W6" thay cho "Phase 0–6";
+  - một bảng "Việc cần Hiếu quyết" gọi việc bằng tên, thay cho hai bảng mã Q và mã TC;
+  - bảng "Đã chốt ngày 26/11" ghi 10 điểm vừa chốt và nơi đã sửa.
+- Artifact version 15:
+  - mục 5 tả đúng kiến trúc của repo;
+  - bỏ "đợt M1–M6"; module `identity` gộp auth + users như code;
+  - thẻ module auth không còn đọc `server_secrets` (khoá lấy từ env, theo rủi ro R25);
+  - quyết định D24, mục 1c.6, rủi ro R28 sửa theo các điểm đã chốt;
+  - quy tắc phân trang S2 ghi rõ thứ tự mặc định;
+  - bỏ mã Q, thêm mục "Thuật ngữ".
+- Code: `sort` theo trường không được phép dùng thứ tự mặc định (đã vậy từ trước); Swagger ghi thứ tự mặc định và các
+  trường cho phép của từng danh sách; thêm test `parseSort`.
+
+**Cách chọn khi hai bên nói khác nhau:** theo code đang chạy nếu đã có; không thì theo Python; không thì theo phần lớn
+spec. Điểm nào thuộc chính sách bảo mật, FE, hạ tầng hay phân công người thì vẫn để Hiếu quyết (8 việc trong PLAN).
+
 ## Giới hạn & việc còn lại
 
-- Mới so 6 bảng Phase 1. Bảng W2–W6 sẽ so khi làm task tương ứng — dump đã có sẵn.
+- Mới so 6 bảng của W1. Bảng W2–W6 sẽ so khi làm task tương ứng — dump đã có sẵn.
 - Dump chụp ở head `c4f1a7b9d2e6`; repo Python có migration mới thì dump lại.
 - `users.role` vẫn là cột NestJS thêm (S1) — ~~khi cutover cần chạy trên DB thật~~ DB cũ không có; ETL-01 điền `'user'` khi chép sang DB backend (tách DB).
 
@@ -137,7 +167,9 @@ DATABASE_URL=postgres://chatbot:chatbot@localhost:5432/pyschema pnpm db:migrate:
 - **Bối cảnh:** Biểu thức thật `gin (to_tsvector('simple', content))`. TypeORM không sinh được index biểu thức.
 - **Đang chọn:** record khai `synchronize: false`; một migration viết tay `AlembicOnlyDifferences` gom cả 3 thứ
   TypeORM không thấy (FTS, tên PK feedbacks, chữ của CHECK forked_through).
-- **Trạng thái:** **đóng phần biểu thức**; việc cho phép 1 migration viết tay — **chờ Hiếu duyệt**.
+- **Trạng thái:** **đóng phần biểu thức**; ~~việc cho phép 1 migration viết tay — chờ Hiếu duyệt.~~ **Chốt 26/11:**
+  cho phép đúng một loại ngoại lệ: thứ TypeORM không sinh được, viết tay trong migration riêng có comment lý do
+  (định nghĩa xong trong PLAN).
 - **Nếu đổi ý:** ~~bỏ index khỏi NestJS (DB thật vẫn có do Alembic tạo), giữ `synchronize: false` để `check` không đòi xoá.~~ **Sửa 25/11 (tách DB):** bỏ index khỏi NestJS thì DB backend **không có** index này (Alembic giờ chỉ quản DB Engine); tìm theo nội dung (CONV-04) và B3 tìm tin nhắn cho Engine ([integration.md §5.2](../integration.md)) phải chạy không index.
 
 ### TC-42 — CHECK rating
@@ -157,8 +189,10 @@ DATABASE_URL=postgres://chatbot:chatbot@localhost:5432/pyschema pnpm db:migrate:
 | v1.1 | 2026-11-18 | Đồng bộ artifact (mục ◆, §11, 7 route) với code Python `80d9bc9b`; script sinh route-mapping; cờ rich trong hợp đồng E1/E3/E4 | Hiếu yêu cầu đồng bộ 3 nguồn |
 | v1.2 | 2026-11-20 | Vai trò mới của dump: nguồn ETL + danh sách 20 FK chéo | [021](021-tach-database.md) |
 | v1.3 | 2026-11-25 | Gạch và sửa tại chỗ: "dùng chung một database", migration "P-cutover" trên DB thật, lý do giữ tên ràng buộc (TC-59) và index FTS (TC-36) | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
+| v1.4 | 2026-11-26 | Thống nhất thuật ngữ, kế hoạch, kiến trúc giữa artifact và repo: `glossary.md`, PLAN theo đợt W1–W6 và một danh sách việc cần quyết, artifact version 15, chốt 10 điểm; TC-36 chốt | Hiếu yêu cầu thống nhất tài liệu, bớt mã |
 
 ## Gợi ý review
 
-- Duyệt ngoại lệ "một migration viết tay" (TC-36).
+- ~~Duyệt ngoại lệ "một migration viết tay" (TC-36).~~ Đã chốt 26/11.
+- Đọc [glossary.md](../glossary.md) và bảng "Đã chốt ngày 26/11" trong PLAN: còn chỗ nào artifact và repo nói khác nhau?
 - Mở `python-schema.sql` đối chiếu phần còn lại của database-schema.md khi làm W2+.

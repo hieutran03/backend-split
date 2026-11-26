@@ -39,7 +39,11 @@ export function mapPage<A, B>(page: Page<A>, fn: (a: A) => B): Page<B> {
   return { items: page.items.map(fn), meta: page.meta };
 }
 
-/** Parse `sort=-updatedAt` into {field, direction}; only whitelisted fields are accepted. */
+/**
+ * Parse `sort=-updatedAt` into {field, direction}. Each endpoint passes its whitelist and
+ * its default order; a missing sort, or a field outside the whitelist, gives the default
+ * order instead of an error, so a client never breaks on a sort the endpoint does not know.
+ */
 export function parseSort<F extends string>(
   sort: string | undefined,
   allowed: readonly F[],

@@ -49,6 +49,8 @@ export function ApiZodQuery(schema: ZodType): MethodDecorator {
       ApiQuery({
         name,
         required: required.has(name),
+        // Swagger UI shows the parameter's description, not the one inside its schema.
+        description: (property as SchemaObject).description,
         schema: property as SchemaObject,
       }),
   );

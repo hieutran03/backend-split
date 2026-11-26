@@ -126,7 +126,7 @@ Muốn thấy hiệu lực tức thì khi dev: `AUTH_USER_STATE_CACHE_SECONDS=0`
 - Refresh token opaque **chưa** gắn với `token_version`: tăng version (không xoá user) thì refresh vẫn cấp
   được access token mới (mang version mới). Nếu muốn "tăng version = đá ra hoàn toàn" thì phải thu hồi luôn
   refresh token — gắn với quyết định TC-22.
-- ~~Python cache 30 s có độ lệch như nhau ở hai bên trong giai đoạn chạy song song W1.~~ **Sửa 25/11 (tách DB):** nếu cutover một lần (Q10, chờ Hiếu chốt) thì không có giai đoạn NestJS và Python cùng phục vụ đăng nhập trên một DB, nên không có chuyện cache hai hệ lệch nhau.
+- ~~Python cache 30 s có độ lệch như nhau ở hai bên trong giai đoạn chạy song song W1.~~ **Sửa 25/11 (tách DB):** nếu cutover một lần (chờ Hiếu chốt) thì không có giai đoạn NestJS và Python cùng phục vụ đăng nhập trên một DB, nên không có chuyện cache hai hệ lệch nhau.
 
 ## Điểm tranh cãi & quyết định
 

@@ -2,7 +2,8 @@
 
 > Quyết định ngày 2026-11-20 (task DS-01, [nhật ký 021](journal/021-tach-database.md)). File này **thay** mô hình
 > "một PostgreSQL dùng chung, mỗi bảng một bên ghi" của spec (§6, D9/D10, C1/C2 "Engine đọc bằng role read-only
-> tới P5"). Chỗ nào spec/artifact nói khác thì theo file này, trừ các điểm còn chờ Hiếu quyết (Q9–Q13, cuối file).
+> tới P5"). Chỗ nào spec/artifact nói khác thì theo file này, trừ các điểm còn chờ Hiếu quyết (mục 12, cuối file).
+> Thuật ngữ và ký hiệu (E-API, B-API, C1–C22…): [glossary.md](glossary.md).
 >
 > Hợp đồng ở dạng code: [src/contracts/events/](../src/contracts/events/) (sự kiện),
 > [src/contracts/backend/internal-api.ts](../src/contracts/backend/internal-api.ts) (B-API, Engine gọi backend),
@@ -99,7 +100,7 @@ Bảng đầy đủ ở [engine-contract.md](reference/engine-contract.md). Thay
 
 | # | Thay đổi | Thay cho |
 |---|---|---|
-| E1, E3, E4 | `modelRuntime` **bắt buộc**: model theo agent + key **đã giải mã** | C2 "Phase 1 Engine tự giải mã Fernet" — làm luôn bản P5 |
+| E1, E3, E4 | `modelRuntime` **bắt buộc**: model theo agent + key **đã giải mã** | C2 "giai đoạn P1: Engine tự giải mã Fernet" — làm luôn bản P5 |
 | E1 | `history.throughSequence` thay `historyHint`; Engine kéo lịch sử qua B2 | C1 "Engine đọc `messages` bằng role read-only" |
 | E1 | `documents[]` là **phạm vi RAG**: truy vấn chunk lọc theo các id này | C3/C4 nối bảng `documents`, `conversations` |
 | E1 | `planning` có thêm `planLifecycle` (cùng `planningModeEnabled`, `tasks`) | Engine đọc `conversations.plan_lifecycle`, `task_plans` |
@@ -128,7 +129,7 @@ Luật B-API:
 
 ## 6. Sự kiện qua Redis Streams
 
-### 6.1 Vì sao Redis Streams (chờ Hiếu chốt — Q9)
+### 6.1 Vì sao Redis Streams (chờ Hiếu chốt)
 
 - Hai bên **đã có Redis**: Python dùng làm broker Celery và hàng đợi thiết bị, backend cũng cần nó cho W5 ⇒ không
   thêm hạ tầng.
@@ -277,7 +278,7 @@ spec §3.1.
 - Nghi mất event (Redis mất dữ liệu ngoài phạm vi `WAITAOF`, sự cố vận hành): phát lại outbox theo khoảng thời gian
   (OBX-03). Bên nhận idempotent nên phát lại thừa vô hại.
 
-## 10. Chuyển dữ liệu lúc cutover (chờ Hiếu chốt — Q10)
+## 10. Chuyển dữ liệu lúc cutover (chờ Hiếu chốt)
 
 Production hiện có **một** DB của hệ Python. Phương án đề xuất:
 
@@ -313,16 +314,24 @@ Checklist bàn giao (ENG-04):
 8. Upload và media qua object storage, bỏ thư mục dùng chung.
 9. Celery beat: bỏ các job quét bảng backend (dọn checkpoint, quét tài liệu kẹt, backfill tóm tắt theo `messages`).
 10. Không lấy advisory lock lượt.
+11. Registry MCP server (chốt 26/11): chuyển từ file `app/ai/mcp_config.json` + bộ đếm `tools_generation` trong RAM
+    sang bảng trong **DB Engine**, phát thay đổi qua Redis cho các replica Engine (rủi ro R28). Backend không có bảng MCP,
+    chỉ chuyển tiếp E13–E20 với quyền admin (MCP-01).
 
 ## 12. Quyết định chờ Hiếu
 
-| # | Cần quyết | Đang đề xuất | Hạn chót |
-|---|---|---|---|
-| Q9 | Bus sự kiện: Redis Streams hay RabbitMQ | Redis Streams (§6.1) | trước BUS-01 |
-| Q10 | Cutover: một lần sau khi đủ W1–W6 (ETL) hay từng đợt + đồng bộ tạm | một lần (§10) | càng sớm càng tốt — đổi thứ tự PLAN và hạn Q1–Q3 |
-| Q11 | Gửi key provider **đã giải mã** sang Engine (E1, B4) hay Engine giữ khoá Fernet | đã giải mã, qua mạng nội bộ có TLS | trước GEN-03 / PRV-01 |
-| Q12 | Ai làm checklist §11 phía Engine, và khi nào | — | trước khi ghép W4 với Engine thật |
-| Q13 | Registry MCP server (file JSON + bộ đếm trong RAM, R28): bảng trong DB Engine, hay bảng `mcp_servers` do backend sở hữu + gửi trong E1 | — (spec §1c.6/R28 đề xuất backend; §2/§5/R9 để ở Engine) | trước W2 MCP (MCP-01) |
+Danh sách đầy đủ (cả việc ngoài phần tách DB) ở [PLAN](PLAN.md#việc-cần-hiếu-quyết).
+
+| Cần quyết | Đang đề xuất | Hạn chót |
+|---|---|---|
+| Bus sự kiện: Redis Streams hay RabbitMQ | Redis Streams (mục 6.1) | trước BUS-01 |
+| Cutover: một lần sau khi đủ W1–W6 (ETL) hay từng đợt + đồng bộ tạm | một lần (mục 10) | càng sớm càng tốt — quyết định thứ tự PLAN và hạn của các việc về token |
+| Gửi key provider **đã giải mã** sang Engine (E1, B4) hay Engine giữ khoá Fernet | đã giải mã, qua mạng nội bộ có TLS | trước GEN-03 / PRV-01 |
+| Ai làm checklist mục 11 phía Engine, và khi nào | — | trước khi ghép lượt chat (W4) với Engine thật |
+
+Đã chốt 26/11: registry MCP server do Engine giữ trong DB Engine (mục 11, việc 11). Trước đó spec tự mâu thuẫn:
+mục 1c.6 và rủi ro R28 đề xuất bảng do backend sở hữu, còn mục 2, mục 5 và rủi ro R9 để MCP ở Engine. Chọn phía
+Engine vì khớp phần lớn spec và kế hoạch MCP-01 (backend chỉ chuyển tiếp), không thêm bảng cho backend.
 
 ## 13. Máy canh
 

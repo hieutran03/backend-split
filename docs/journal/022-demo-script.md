@@ -150,16 +150,20 @@ Demo lộ ra lệch này. Chi tiết và quyết định ở [005](005-dang-ky-d
   - A) giữ như hiện tại: dễ chịu với client cũ, nhưng client gõ sai không biết mình sai;
   - B) 400 `bad_request` với `errors[{field:'sort'}]`: rõ ràng, nhưng client gửi trường lạ sẽ vỡ.
 - **Đang chọn:** A — giữ nguyên code. Demo ghi lại hành vi này: bước 7.3 kiểm 200 + thứ tự mặc định.
-- **Trạng thái:** mở — Hiếu xem.
+- **Trạng thái:** ~~mở — Hiếu xem.~~ **Chốt 26/11 (Hiếu):** A — dùng thứ tự mặc định; trả 400 thì client rất khó dùng.
+  Thêm cùng lúc: comment của `parseSort`, mô tả `sort` trong Swagger (thứ tự mặc định và trường cho phép của từng
+  danh sách, hiện ở mô tả tham số), test `src/shared/pagination/page.spec.ts` và
+  `src/platform/http/pagination.query.spec.ts`; quy tắc phân trang S2 trong artifact ghi rõ hành vi này.
 - **Nếu đổi sang B:** `parseSort` ném `ValidationError`, hoặc đưa whitelist vào schema zod của từng route; sửa demo bước 7.3.
 
 ## Lịch sử phiên bản
 | Phiên bản | Ngày | Thay đổi | Lý do |
 |---|---|---|---|
 | v1 | 2026-11-26 | `pnpm demo`: 14 kịch bản, log màn hình + file, DB `_demo`; sửa signup email (TC-73); ghi TC-74 | Hiếu yêu cầu demo bằng script, có log theo dõi |
+| v1.1 | 2026-11-26 | TC-74 chốt A (thứ tự mặc định); TC-73 chốt | Hiếu chọn: `sort` lạ dùng mặc định, không 400 |
 
 ## Gợi ý review
 - Chạy `pnpm demo` một lần, đọc lướt file log: mỗi bước có đủ request, response và lý do không.
 - Các câu giải thích trong kịch bản phải khớp code và spec. Chỗ nào nghi ngờ thì đối chiếu với nhật ký tương ứng (cột
   "Task" trong [demo.md](../demo.md#kịch-bản)).
-- TC-74: chọn A hay B.
+- ~~TC-74: chọn A hay B.~~ Đã chốt A.

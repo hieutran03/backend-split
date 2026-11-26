@@ -151,7 +151,8 @@ Phần chống ghi hai event khi xoá đồng thời phụ thuộc khoá của P
 - **Đang chọn:** (a). Hai nguồn cụ thể hơn (ghi chú route và ~~bảng outbox~~ danh mục sự kiện) khớp nhau. Theo AGENTS luật 5,
   route-mapping là nguồn sự thật cho route.
 - **Ảnh hưởng hiện tại:** không có. Bảng `generations` chưa tồn tại nên chưa thể có lượt active.
-- **Trạng thái:** tạm chọn, **chờ Hiếu xác nhận** trước W4.
+- **Trạng thái:** ~~tạm chọn, chờ Hiếu xác nhận trước W4.~~ **Chốt 26/11:** (a). Quyết định D24 trong artifact và
+  [engine-contract.md](../reference/engine-contract.md) đã sửa theo, nên spec không còn mâu thuẫn.
 - **Đối chiếu Python (2026-11-18):** **khớp Python** — Python không chặn và cũng không dừng lượt đang chạy khi xoá ([019](019-doi-chieu-hanh-vi-python.md)).
 
 ### TC-34 — `threadIds` lấy lúc xoá hay lúc phát?
@@ -176,8 +177,9 @@ Phần chống ghi hai event khi xoá đồng thời phụ thuộc khoá của P
 | v1.1 | 2026-11-18 | TC-33/34 đối chiếu Python — không đổi code | [019](019-doi-chieu-hanh-vi-python.md) |
 | v1.2 | 2026-11-20 | Event `conversation.deleted` theo hợp đồng; Engine tự dừng run + xoá thread (TC-71) | [021](021-tach-database.md) |
 | v1.3 | 2026-11-25 | Gạch và sửa tại chỗ: bộ phát gọi E2/E5 ⇒ relay + Engine tự dừng run và xoá thread (TC-71); bối cảnh TC-33/TC-34 theo danh mục sự kiện | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
+| v1.4 | 2026-11-26 | TC-33 chốt (a): cho xoá khi lượt đang chạy; D24 trong spec sửa theo | Thống nhất tài liệu 26/11 ([018](018-dong-bo-schema-alembic.md) v1.4) |
 
 ## Gợi ý review
 
-- TC-33: chốt (a) hay (b)? FE hiện có cho xoá khi đang stream không?
+- ~~TC-33: chốt (a) hay (b)?~~ TC-33 đã chốt (a). FE hiện có cho xoá khi đang stream không?
 - Xoá trả `200` với `data: null`, giống xoá project. Python trả gì? Tôi chưa đối chiếu được code Python.

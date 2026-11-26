@@ -180,7 +180,8 @@ Thêm 7 unit test, tổng cộng 88:
   (2) Hiếu cho phép **một ngoại lệ** là migration viết tay cho đúng index này, như spec yêu cầu.
 - **Ảnh hưởng:** chỉ ảnh hưởng tốc độ tìm theo nội dung (CONV-04). Lượt này không dùng tới.
 - **Trạng thái:** ~~mở~~ **đóng phần biểu thức (2026-11-18)**: `gin (to_tsvector('simple', content))`, tạo bằng migration
-  viết tay `AlembicOnlyDifferences` ([018](018-dong-bo-schema-alembic.md)); ngoại lệ viết tay chờ Hiếu duyệt.
+  viết tay `AlembicOnlyDifferences` ([018](018-dong-bo-schema-alembic.md)); ~~ngoại lệ viết tay chờ Hiếu duyệt.~~
+  **Chốt 26/11:** ngoại lệ viết tay được phép, đã ghi vào định nghĩa xong trong PLAN.
   Lưu ý: endpoint danh sách của Python **không** dùng index này (tìm bằng `LIKE`, xem TC-31 ở 013) — chỉ tool tìm kiếm của agent dùng.
 
 ### TC-37 — Trường của MessageView so với Python `MessageRead`
@@ -216,6 +217,7 @@ Thêm 7 unit test, tổng cộng 88:
 | v1.3 | 2026-11-20 | Ghi chú tách DB: `sender` số giữ cho ETL; Engine đọc tin nhắn qua B2 | [021](021-tach-database.md) |
 | v1.4 | 2026-11-25 | Lý do giữ `sender` số: ETL 1:1 (TC-69), không phải DB dùng chung | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 | v1.5 | 2026-11-26 | MSG-02 không còn bị chặn | Rà 26/11: đoạn còn ghi là chưa làm, dù task đã xong |
+| v1.6 | 2026-11-26 | TC-36: ngoại lệ migration viết tay đã chốt | Thống nhất tài liệu 26/11 ([018](018-dong-bo-schema-alembic.md) v1.4) |
 
 ## Gợi ý review
 

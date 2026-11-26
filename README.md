@@ -8,6 +8,7 @@ Backend và Engine có **database riêng**; dữ liệu đi qua API nội bộ, 
 dùng chung và object storage — xem [docs/integration.md](docs/integration.md).
 
 - Kế hoạch & tiến độ: **[docs/PLAN.md](docs/PLAN.md)** ← đọc trước
+- Thuật ngữ & ký hiệu (dùng chung với artifact): [docs/glossary.md](docs/glossary.md)
 - Kiến trúc: [docs/architecture.md](docs/architecture.md)
 - Tách database & giao tiếp với Engine: [docs/integration.md](docs/integration.md)
 - Thêm module: [docs/how-to-add-a-module.md](docs/how-to-add-a-module.md)

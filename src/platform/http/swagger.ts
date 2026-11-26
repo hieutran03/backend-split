@@ -26,7 +26,7 @@ export function setupSwagger(app: INestApplication, config: AppConfig): void {
           'NestJS backend split out of the FastAPI chatbot (spec: Chatbot Backend Split).',
           '',
           '- Envelope: `{ success, code, message, data }` — `code` is always present.',
-          '- Pagination: `?page=1&limit=20&sort=-updatedAt` → `data: { items, meta }`.',
+          '- Pagination: `?page=1&limit=20&sort=-updatedAt` → `data: { items, meta }`. Each list has a default order; a `sort` field it does not allow falls back to that default.',
           '- Not owned / not found → **404** (D15). 403 only for admin permission.',
           `- Current AI Engine: **${config.aiEngine.mode}**.`,
           '',

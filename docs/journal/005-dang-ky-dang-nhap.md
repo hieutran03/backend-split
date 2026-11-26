@@ -223,7 +223,7 @@ Swagger `/docs` → nhóm **auth** → `POST /auth/login` với `dev@example.loc
   `format: email` (test `auth.schemas.spec.ts`).
 - **Chưa port:** pydantic còn nhận dạng "pretty" `Tên <a@b.com>` và lưu `a@b.com`; NestJS vẫn trả 400 cho dạng này
   (FE không gửi kiểu đó).
-- **Trạng thái:** tạm chọn, chờ Hiếu xem.
+- **Trạng thái:** ~~tạm chọn, chờ Hiếu xem.~~ **Chốt 26/11:** A, như Python.
 - **Nếu đổi ý:** bỏ `.trim().pipe(...)`, sửa test.
 
 ## Lịch sử phiên bản
@@ -234,6 +234,7 @@ Swagger `/docs` → nhóm **auth** → `POST /auth/login` với `dev@example.loc
 | v1.1 | 2026-11-18 | Chuẩn hoá email như Python (domain chữ thường), dùng chung cho login; TC-17/18/19 đối chiếu Python | [019](019-doi-chieu-hanh-vi-python.md) |
 | v1.2 | 2026-11-25 | `users.role` có ở DB backend, ETL điền `'user'` (bỏ "migration Alembic S1 trên DB thật") | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 | v1.3 | 2026-11-26 | Signup cắt khoảng trắng đầu/cuối email trước khi kiểm định dạng, như pydantic `EmailStr` (TC-73) | Demo DEMO-01 lộ lệch Python ([022](022-demo-script.md)) |
+| v1.4 | 2026-11-26 | TC-73 chốt: cắt khoảng trắng như Python | Thống nhất tài liệu 26/11 ([018](018-dong-bo-schema-alembic.md) v1.4) |
 
 ## Gợi ý review
 

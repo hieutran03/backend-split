@@ -1,10 +1,10 @@
-# 019 — Đối chiếu hành vi Phase 1 với code Python
+# 019 — Đối chiếu hành vi đợt W1 với code Python
 
 > Task: SYNC-02, TP-02 · Ngày: 2026-11-18 · Trạng thái: chờ review
 
 ## Tóm tắt dễ hiểu
 
-Nhiều chỗ ở Phase 1 trước đây phải **đoán** cách Python làm (ghi thành `TC-n`, "tạm chọn"). Giờ đã đọc được
+Nhiều chỗ ở đợt W1 trước đây phải **đoán** cách Python làm (ghi thành `TC-n`, "tạm chọn"). Giờ đã đọc được
 code Python, tôi đi lại từng điểm: chỗ nào đoán đúng thì đóng; chỗ nào đoán sai mà **ảnh hưởng tới dữ liệu
 ~~dùng chung~~ hoặc FE** thì sửa code cho giống Python (tách DB: dữ liệu cũ sẽ được chép 1:1 sang DB backend, Engine nhận lại qua E1/B2); chỗ nào NestJS cố ý khác (do spec quyết) thì giữ và ghi rõ.
 
@@ -173,7 +173,7 @@ Lần chạy đầu bắt được một lỗi thật: **login không chuẩn ho
 - **Bối cảnh:** Python `get_planning_status` bật `planning_mode_enabled` nếu hội thoại có task mà cờ đang tắt.
 - **Phương án:** A) giữ như Python (GET có tác dụng phụ); B) bỏ — GET thuần đọc.
 - **Đang chọn:** A — ~~Engine đọc cờ này~~ cờ này đi trong E1 (`planning.planningModeEnabled`) sang Engine (tách DB); khác Python thì hành vi lượt chat sau đó sẽ khác.
-- **Trạng thái:** tạm chọn — **Hiếu xem**.
+- **Trạng thái:** ~~tạm chọn — Hiếu xem.~~ **Chốt 26/11:** A, giữ như Python.
 
 ### TC-61 — Ghi lifecycle trong cùng transaction thay vì sau commit như Python
 - **Đang chọn:** cùng transaction + khoá dòng hội thoại — kết quả cuối giống Python, không có cửa sổ ghi đè.
@@ -185,8 +185,9 @@ Lần chạy đầu bắt được một lỗi thật: **login không chuẩn ho
 |---|---|---|---|
 | v1 | 2026-11-18 | TP-02; sửa fingerprint/tiêu đề/sequence fork, mã `conversation_turn_conflict`, thứ tự preview, tìm kiếm theo độ liên quan, chuẩn hoá email (cả login); đóng/ghi nhận TC-17…58 | Có repo Python |
 | v1.1 | 2026-11-25 | Engine nhận `plan_lifecycle`/`planningModeEnabled` qua E1; sửa sai: `paused` do `MessageService` suy từ metadata workflow (không phải Engine tự đặt), không có code đặt `ready` | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
+| v1.2 | 2026-11-26 | TC-60 chốt: giữ như Python | Thống nhất tài liệu 26/11 ([018](018-dong-bo-schema-alembic.md) v1.4) |
 
 ## Gợi ý review
 
-- TC-60 (GET có ghi) và các dòng "Khác có chủ đích" trong bảng: TC-19, 21/22, 58 (403 vs 404).
+- Các dòng "Khác có chủ đích" trong bảng (TC-60 đã chốt 26/11): TC-19, 21/22, 58 (403 vs 404).
 - FE: tin xem trước đổi thứ tự (cũ → mới); `task_order` bắt đầu 0; tìm kiếm bỏ qua `sort`.

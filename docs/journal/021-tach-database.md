@@ -9,14 +9,14 @@
 
 Hiếu yêu cầu: backend NestJS và AI Engine Python **không dùng chung database nữa**; bên nào cần dữ liệu của bên kia thì
 đi qua kênh trung gian (Redis, hàng đợi, API…). Spec ban đầu cho hai bên dùng chung một PostgreSQL, Engine được đọc
-bảng của backend tới tận Phase 5.
+bảng của backend tới tận giai đoạn P5.
 
 Giờ mỗi bên có kho riêng, và có ba cách để có dữ liệu của bên kia:
 - **hỏi** qua API nội bộ, khi cần câu trả lời ngay;
 - **được báo** qua sự kiện Redis Streams, khi chỉ cần bên kia biết rồi tự làm;
 - **được đưa kèm** trong request, cho dữ liệu nhỏ phục vụ đúng một lượt chat.
 
-Code backend không cần viết lại nhiều: Phase 1 vốn chỉ đọc ghi bảng của chính mình và báo Engine qua outbox. Phần đổi
+Code backend không cần viết lại nhiều: đợt W1 vốn chỉ đọc ghi bảng của chính mình và báo Engine qua outbox. Phần đổi
 chủ yếu là **hợp đồng** (sự kiện, API Engine gọi backend), **bỏ** ba lời gọi HTTP đã thành sự kiện, và một **máy canh**
 để không ai lỡ map hay viết SQL vào bảng của Engine.
 
@@ -142,7 +142,7 @@ pnpm test:unit src/app.entities.spec.ts   # đỏ; xoá file ⇒ xanh
   - Kế hoạch §10 còn canary từng đợt, "quay lại từng nhóm trong vài phút", W2 "chỉ một phía ghi", rollback W4 —
     trái với cutover một lần; khoá lượt "hai bên vẫn loại trừ nhau" sai khi hai DB riêng.
   - Còn khoảng trống chưa có chỗ chứa: cột attempt của `documents` (đưa vào DOC-01), `topConversations` của usage
-    (thêm field, phần còn lại ở USG-01), registry MCP mâu thuẫn trong spec (Q13).
+    (thêm field, phần còn lại ở USG-01), registry MCP mâu thuẫn trong spec (chốt 26/11: Engine giữ — [integration.md](../integration.md) mục 12).
 
 ## Điểm tranh cãi & quyết định
 
@@ -153,7 +153,7 @@ pnpm test:unit src/app.entities.spec.ts   # đỏ; xoá file ⇒ xanh
   - A) Redis Streams: không thêm hạ tầng; consumer group, `XAUTOCLAIM`, `WAITAOF` đủ dùng. Phải tự làm DLQ và cắt stream.
   - B) RabbitMQ: có sẵn DLX, hẹn giờ retry, routing; nhưng thêm một hệ thống phải vận hành ở cả hai bên.
 - **Đang chọn:** A. Hợp đồng không phụ thuộc broker, nên đổi sang B chỉ là thay adapter.
-- **Trạng thái:** tạm chọn — **chờ Hiếu (Q9)**, trước BUS-01.
+- **Trạng thái:** tạm chọn — **chờ Hiếu**, trước BUS-01.
 - **Nếu đổi ý:** viết adapter RabbitMQ cho port publisher/consumer ở BUS-01/02; tên stream ⇒ exchange/queue.
 
 ### TC-66 — Lịch sử chat: kéo, đẩy hay giữ bản sao
@@ -173,7 +173,7 @@ pnpm test:unit src/app.entities.spec.ts   # đỏ; xoá file ⇒ xanh
   - A) Backend giải mã, gửi trong E1/E3/E4 và B4. Engine bỏ Fernet.
   - B) Backend gửi bản mã hoá, Engine giữ `MODEL_ENCRYPTION_KEY` để giải.
 - **Đang chọn:** A. Một nơi giữ khoá; bí mật chỉ đi trên mạng nội bộ có TLS, `no-store`, không log.
-- **Trạng thái:** tạm chọn — **chờ Hiếu (Q11)**, đây là chính sách bảo mật.
+- **Trạng thái:** tạm chọn — **chờ Hiếu**, đây là chính sách bảo mật.
 - **Nếu đổi ý:** `ResolvedModelV1.credential` ⇒ `{ apiKeyEncrypted }`; Engine giữ khoá Fernet trong env.
 
 ### TC-68 — Cutover dữ liệu một lần
@@ -183,7 +183,8 @@ pnpm test:unit src/app.entities.spec.ts   # đỏ; xoá file ⇒ xanh
   - A) Một lần: ETL toàn bộ bảng backend khi W1–W6 xong và Engine sẵn sàng.
   - B) Từng đợt: replication DB backend ⇒ DB cũ cho tới đợt cuối.
 - **Đang chọn:** A. B phức tạp và dễ lệch dữ liệu.
-- **Trạng thái:** tạm chọn — **chờ Hiếu (Q10)**. Hạn của Q1–Q3 đổi từ "trước cutover W1" thành "trước cutover".
+- **Trạng thái:** tạm chọn — **chờ Hiếu**. Hạn của ba việc về token (thời hạn refresh, refresh tuần tự, logout mọi
+  thiết bị) đổi từ "trước cutover W1" thành "trước cutover".
 - **Nếu đổi ý:** thêm task replication và kiểm chứng hai chiều; ETL-01 chia theo đợt.
 
 ### TC-69 — DB riêng nhưng giữ schema giống Alembic
@@ -202,7 +203,7 @@ pnpm test:unit src/app.entities.spec.ts   # đỏ; xoá file ⇒ xanh
 - **Bối cảnh:** bảng outbox cũ: `conversation.deleted` ⇒ "E2 nếu còn lượt, rồi E5".
 - **Đang chọn:** chỉ một event; Engine tự dừng run của hội thoại rồi xoá thread. Bớt một lời gọi đồng bộ, và Engine
   biết rõ nhất run nào đang chạy.
-- **Trạng thái:** tạm chọn. Liên quan Q5 (có cho xoá khi đang có lượt không).
+- **Trạng thái:** tạm chọn. Liên quan TC-33 (có cho xoá khi đang có lượt không — chốt 26/11: cho xoá).
 
 ### TC-72 — Gỡ E5/E8/E9/B1 ngay, chưa có relay
 - **Bối cảnh:** chưa có relay (BUS-01) nên chưa ai gọi E5/E8/E9; để lại sẽ có người dùng nhầm.
@@ -218,9 +219,10 @@ pnpm test:unit src/app.entities.spec.ts   # đỏ; xoá file ⇒ xanh
 | v1.1 | 2026-11-20 | Artifact version 11: sửa thẳng mọi chỗ còn nói DB dùng chung (khoảng 120 chỗ thay ở §0–§13, bảng route, module, bảng DB, sơ đồ §7b; 42 nhãn "Cập nhật 20/11", 4 nhãn "Bỏ 20/11"); ba mục nhật ký ☆ ★ ◆ giữ nguyên vì là lịch sử. Làn DB trong sơ đồ tách thành "DB backend" / "DB Engine" / "DB hiện tại". Bảng route sinh lại (B1 ⇒ B2–B4, cột Internal theo sự kiện). Sửa nhầm mã route xoá tài liệu D5 ⇒ D7 trong integration.md và hợp đồng | Hiếu: "tài liệu vẫn còn chỗ dùng chung database" |
 | v1.2 | 2026-11-25 | Rà lại artifact (3 lượt độc lập) ⇒ version 12, ~85 chỗ sửa có nhãn "Cập nhật 25/11"; repo: thu hẹp `StopTurnRequestV1.reason`, ghi chú `attachments.chatImageId`, thêm `topConversations`; sửa Swagger A12 (E5), comment "bảng dùng chung"; integration.md C20–C22, owner của summary, trần backoff; PLAN thêm Q13, ghi chú DOC-01/INT-01/USG-01/ENG-01, số route W1/W2/W6 | Hiếu yêu cầu duyệt lại xem còn chỗ chệch |
 | v1.3 | 2026-11-25 | Rà lại nhật ký 001–020 (2 lượt đọc độc lập): gạch và sửa tại chỗ 47 đoạn ở 13 file còn lập luận theo DB dùng chung (luật schema/migration TC-4, bộ phát gọi E2/E5, khoá lượt loại trừ Python, "Engine đọc cột", lý do giữ tên ràng buộc/`sender` số…); sửa comment code (`database.module.ts`, task-plans, port Engine); sửa sai về Python: `paused` do `MessageService` suy từ metadata workflow (artifact version 13, GEN-04) | Hiếu thấy nhật ký cũ còn theo quyết định cũ |
+| v1.4 | 2026-11-26 | Bỏ mã Q (gọi việc bằng tên); registry MCP chốt ở Engine; TC-33 chốt | Thống nhất tài liệu 26/11 ([018](018-dong-bo-schema-alembic.md) v1.4) |
 
 ## Gợi ý review
 
-- Đọc [integration.md](../integration.md) §4 (chọn kênh) và §6.4 (danh mục sự kiện) trước, rồi tới §12 (Q9–Q13).
+- Đọc [integration.md](../integration.md) §4 (chọn kênh) và §6.4 (danh mục sự kiện) trước, rồi tới mục 12 (việc chờ Hiếu).
 - So danh mục sự kiện với các chỗ Python ghi chéo miền (§8) xem còn sót không.
 - Xem `ModelRuntimeV1` có đủ cho cách Python chọn model theo agent không (ENG-01).

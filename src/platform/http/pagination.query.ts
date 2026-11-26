@@ -11,7 +11,11 @@ export const paginationQuerySchema = z.object({
     .min(1)
     .max(MAX_PAGE_LIMIT)
     .default(DEFAULT_PAGE_LIMIT),
-  sort: z.string().max(64).optional(),
+  sort: z.string().max(64).optional().meta({
+    description:
+      'Field to sort by, `-` prefix = descending. A field this endpoint does not allow falls back to its default order (no error).',
+    example: '-updatedAt',
+  }),
 });
 
 export type PaginationQuery = z.infer<typeof paginationQuerySchema>;

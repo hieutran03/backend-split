@@ -52,7 +52,7 @@ export class MessagesController {
   @ApiOperation({
     summary: 'List messages of a conversation (A10)',
     description:
-      'Default sort `-sequence`. Another user’s or a deleted conversation ⇒ 404 conversation_not_found. ' +
+      'Default sort `-sequence`; `sort` accepts `sequence`, `createdAt`, `updatedAt`. Another user’s or a deleted conversation ⇒ 404 conversation_not_found. ' +
       '`format=ui-message` returns the same page as Vercel AI SDK UIMessages ' +
       '(`id, role, content, parts, metadata, createdAt` — port of Python A26); ' +
       '`inlineRichResponseV1` / `answerVisualsV1` / `sourceFiguresV1` choose the rich-response projection; `include` is then rejected.',
@@ -98,7 +98,8 @@ export class MessagesController {
   @Get('messages')
   @ApiOperation({
     summary: 'List my messages (A20)',
-    description: 'Default sort `-createdAt`; optional `conversationId` filter.',
+    description:
+      'Default sort `-createdAt`; `sort` accepts `sequence`, `createdAt`, `updatedAt`; optional `conversationId` filter.',
   })
   @ApiZodQuery(listMessagesQuerySchema)
   @ApiEnvelope(messageViewSchema, { paginated: true })

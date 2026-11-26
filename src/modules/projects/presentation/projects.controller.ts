@@ -79,7 +79,11 @@ export class ProjectsController {
   ) {}
 
   @Get()
-  @ApiOperation({ summary: 'List my projects (PJ1)' })
+  @ApiOperation({
+    summary: 'List my projects (PJ1)',
+    description:
+      'Default sort `-updatedAt`; `sort` accepts `createdAt`, `updatedAt`, `name` (`-` prefix = descending).',
+  })
   @ApiZodQuery(paginationQuerySchema)
   @ApiEnvelope(projectViewSchema, {
     paginated: true,

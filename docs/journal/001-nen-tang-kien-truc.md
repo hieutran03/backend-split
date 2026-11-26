@@ -139,7 +139,9 @@ pnpm verify                 # typecheck + lint + 20 unit test + kiến trúc + b
   - B) Như `platform` 100% — một composition root, CQRS, Kafka; quá nặng cho ~130 route chủ yếu CRUD.
   - C) **Clean vừa phải** — giữ 4 tầng + port/adapter + máy canh, bỏ CQRS/Kafka/composition root duy nhất.
 - **Đang chọn:** C.
-- **Trạng thái:** tạm chọn, **chờ Hiếu chốt** (nếu team bắt buộc Layered thì cần biết sớm).
+- **Trạng thái:** ~~tạm chọn, chờ Hiếu chốt (nếu team bắt buộc Layered thì cần biết sớm).~~ **Chốt 26/11:** C,
+  như code đang chạy. Artifact mục 5 (trước gợi ý Layered) đã viết lại theo [architecture.md](../architecture.md),
+  nên spec và repo không còn tả hai kiến trúc khác nhau.
 - **Nếu đổi ý sang A:** gộp `application/` + `domain/` thành `*.service.ts`, bỏ port, bỏ 2 rule kiến trúc.
   Chi phí thấp lúc này (mới 1 module mẫu), cao dần theo số module.
 
@@ -178,8 +180,10 @@ pnpm verify                 # typecheck + lint + 20 unit test + kiến trúc + b
 | v1.1 | 2026-11-20 | Tách database backend ↔ Engine: DB riêng, outbox ⇒ Redis Streams, máy canh bảng Engine | [021](021-tach-database.md) |
 | v1.2 | 2026-11-25 | Gạch và sửa tại chỗ: luật schema/migration (TC-4), "chưa có bộ gửi" ⇒ relay BUS-01, công tắc token cũ tắt sau cutover; thêm câu về máy canh bảng Engine | Hiếu thấy bài còn theo quyết định cũ (DB dùng chung) |
 | v1.3 | 2026-11-26 | AUTH-03 đã làm | Rà 26/11: đoạn còn ghi là chưa làm, dù task đã xong |
+| v1.4 | 2026-11-26 | TC-1 chốt clean vừa phải; artifact mục 5 viết lại theo repo | Thống nhất tài liệu 26/11 ([018](018-dong-bo-schema-alembic.md) v1.4) |
 
 ## Gợi ý review
 
-- TC-1, TC-2: chia 4 tầng + mỗi context một Nest module có hợp với team không?
+- ~~TC-1, TC-2: chia 4 tầng + mỗi context một Nest module có hợp với team không?~~ TC-1 đã chốt 26/11; TC-2 (mỗi
+  miền một Nest module) vẫn nên xem.
 - Envelope/mã lỗi có khớp FE mong đợi không?

@@ -129,7 +129,7 @@
    "new": "DELETE /api/v1/conversations/{conversationId}",
    "internal": "event conversation.deleted (Redis Streams): the Engine stops the run and deletes the threads",
    "handledBy": "Backend→Engine",
-   "notes": "Soft delete + outbox; checkpoint cleanup is now guaranteed (retried) instead of best-effort in-process. An active turn does not block the delete (as Python; spec D24 wants 409, Q5 open): the Engine stops the run when it consumes `conversation.deleted` (TC-71). Hiện tại (S8.3): chỉ xoá thread id kiểu cũ, thread `routing-v2:*` do retention sweep dọn; hội thoại con của fork giữ nguyên.",
+   "notes": "Soft delete + outbox; checkpoint cleanup is now guaranteed (retried) instead of best-effort in-process. An active turn does not block the delete (as Python; decision D24, settled 26/11): the Engine stops the run when it consumes `conversation.deleted` (TC-71). Hiện tại (S8.3): chỉ xoá thread id kiểu cũ, thread `routing-v2:*` do retention sweep dọn; hội thoại con của fork giữ nguyên.",
    "wave": "W1"
   },
   {
